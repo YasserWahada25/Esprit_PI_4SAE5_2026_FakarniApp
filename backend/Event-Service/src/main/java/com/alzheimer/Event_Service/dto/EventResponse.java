@@ -5,32 +5,35 @@ import java.time.LocalDateTime;
 public class EventResponse {
     private Long id;
     private String title;
-    private LocalDateTime startDateTime;
+    private String description;
+    private String startDateTime;   // ISO string, ex: "2026-03-04T20:33:56"
     private String location;
     private boolean remindEnabled;
     private Long userId;
-    private LocalDateTime createdAt;
+    private String createdAt;
 
     // Constructeur pour initialiser l'objet
-    public EventResponse(Long id, String title, LocalDateTime startDateTime, String location, boolean remindEnabled, Long userId, LocalDateTime createdAt) {
+    public EventResponse(Long id, String title, String description, LocalDateTime startDateTime, String location, boolean remindEnabled, Long userId, LocalDateTime createdAt) {
         this.id = id;
         this.title = title;
-        this.startDateTime = startDateTime;
+        this.description = description;
+        this.startDateTime = startDateTime != null ? startDateTime.toString() : null;
         this.location = location;
         this.remindEnabled = remindEnabled;
         this.userId = userId;
-        this.createdAt = createdAt;
+        this.createdAt = createdAt != null ? createdAt.toString() : null;
     }
 
     // Constructeur depuis l'entité Event
     public EventResponse(com.alzheimer.Event_Service.entities.Event e) {
         this.id = e.getId();
         this.title = e.getTitle();
-        this.startDateTime = e.getStartDateTime();
+        this.description = e.getDescription();
+        this.startDateTime = e.getStartDateTime() != null ? e.getStartDateTime().toString() : null;
         this.location = e.getLocation();
         this.remindEnabled = e.isRemindEnabled();
         this.userId = e.getUserId();
-        this.createdAt = e.getCreatedAt();
+        this.createdAt = e.getCreatedAt() != null ? e.getCreatedAt().toString() : null;
     }
 
     // Getters et Setters
@@ -50,11 +53,19 @@ public class EventResponse {
         this.title = title;
     }
 
-    public LocalDateTime getStartDateTime() {
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getStartDateTime() {
         return startDateTime;
     }
 
-    public void setStartDateTime(LocalDateTime startDateTime) {
+    public void setStartDateTime(String startDateTime) {
         this.startDateTime = startDateTime;
     }
 
@@ -82,11 +93,11 @@ public class EventResponse {
         this.userId = userId;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 }

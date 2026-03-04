@@ -1,0 +1,72 @@
+package com.alzheimer.Event_Service.controllers;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/maps")
+public class MapsController {
+
+    private static final String NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    /**
+     * Geocode a location text using OpenStreetMap Nominatim (free, no API key).
+     * GET /api/maps/geocode?query=tunis
+     * Response: { query, lat, lng, formattedAddress }
+     */
+    @GetMapping("/geocode")
+    public ResponseEntity<?> geocode(@RequestParam String query) {
+        try {
+            String url = UriComponentsBuilder.fromUriString(NOMINATIM_URL)
+                    .queryParam("q", query)
+                    .queryParam("format", "json")
+                    .queryParam("limit", 1)
+                    .queryParam("addressdetails", 1)
+                    .toUriString();
+
+            // Nominatim requires a User-Agent header
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("User-Agent", "FakarniApp/1.0 (contact@fakarni.com)");
+            org.springframework.http.HttpEntity<Void> entity = new org.springframework.http.HttpEntity<>(headers);
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> results = restTemplate.exchange(
+                    url,
+                    org.springframework.http.HttpMethod.GET,
+                    entity,
+                    (Class<List<Map<String, Object>>>) (Class<?>) List.class
+            ).getBody();
+
+            if (results == null || results.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of(
+                        "error", "Location not found",
+                        "query", query
+                ));
+            }
+
+            Map<String, Object> first = results.get(0);
+            double lat = Double.parseDouble((String) first.get("lat"));
+            double lng = Double.parseDouble((String) first.get("lon"));
+            String displayName = (String) first.get("display_name");
+
+            return ResponseEntity.ok(Map.of(
+                    "query", query,
+                    "lat", lat,
+                    "lng", lng,
+                    "formattedAddress", displayName != null ? displayName : query
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(502).body(Map.of(
+                    "error", "Geocoding service unavailable: " + e.getMessage(),
+                    "query", query
+            ));
+        }
+    }
+}
