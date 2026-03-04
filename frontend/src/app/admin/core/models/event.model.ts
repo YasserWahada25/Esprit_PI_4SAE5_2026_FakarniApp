@@ -1,10 +1,10 @@
 export interface Event {
     id: number;
     title: string;
-    date: Date;
-    startTime: string;
-    status: 'upcoming' | 'past' | 'cancelled';
-    participantsCount: number;
-    description?: string;
-    reminders?: string[]; // e.g., ['1 day before', '1 hour before']
+    date: Date;  // Utilisation de Date pour gérer la date de l'événement
+    startTime: string;  // Heure de début sous forme de string, par exemple '10:00 AM'
+    status: 'upcoming' | 'past' | 'cancelled';  // État de l'événement
+    participantsCount: number;  // Nombre de participants
+    description?: string;  // Description facultative de l'événement
+    reminders?: string[];  // Liste des rappels, par exemple ['1 day before', '1 hour before']
 }

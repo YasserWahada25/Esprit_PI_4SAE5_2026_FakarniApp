@@ -3,7 +3,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
-import { Event as AppEvent } from '../../../../core/models/event.model';
+import { EducationalEvent } from '../../../../core/models/educational-event.model';
 import { EventService } from '../../../../core/services/event.service';
 import { EventFormComponent } from '../event-form/event-form.component';
 import { isPlatformBrowser } from '@angular/common';
@@ -15,8 +15,8 @@ import { isPlatformBrowser } from '@angular/common';
     styleUrls: ['./event-list.component.scss']
 })
 export class EventListComponent implements OnInit, AfterViewInit {
-    events: AppEvent[] = [];
-    dataSource: MatTableDataSource<AppEvent>;
+    events: EducationalEvent[] = [];
+    dataSource: MatTableDataSource<EducationalEvent>;
     displayedColumns: string[] = ['title', 'date', 'startTime', 'status', 'participants', 'actions'];
 
     @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -30,7 +30,7 @@ export class EventListComponent implements OnInit, AfterViewInit {
         private dialog: MatDialog,
         @Inject(PLATFORM_ID) platformId: Object
     ) {
-        this.dataSource = new MatTableDataSource();
+        this.dataSource = new MatTableDataSource<EducationalEvent>();
         this.isBrowser = isPlatformBrowser(platformId);
     }
 
@@ -43,8 +43,27 @@ export class EventListComponent implements OnInit, AfterViewInit {
 
     loadEvents() {
         this.eventService.getEvents().subscribe(data => {
-            this.events = data;
-            this.dataSource.data = data;
+            const mapped: EducationalEvent[] = data.map(e => {
+                let date: Date | undefined;
+                let startTime = e.startTime;
+
+                if (e.startDateTime) {
+                    const d = new Date(e.startDateTime);
+                    if (!isNaN(d.getTime())) {
+                        date = d;
+                        startTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    }
+                }
+
+                return {
+                    ...e,
+                    date,
+                    startTime
+                };
+            });
+
+            this.events = mapped;
+            this.dataSource.data = mapped;
             this.dataSource.paginator = this.paginator;
             this.dataSource.sort = this.sort;
         });
@@ -55,7 +74,7 @@ export class EventListComponent implements OnInit, AfterViewInit {
         this.dataSource.filter = filterValue.trim().toLowerCase();
     }
 
-    openEventDialog(event?: AppEvent) {
+    openEventDialog(event?: EducationalEvent) {
         const dialogRef = this.dialog.open(EventFormComponent, {
             width: '600px',
             data: event
@@ -68,7 +87,7 @@ export class EventListComponent implements OnInit, AfterViewInit {
         });
     }
 
-    deleteEvent(event: AppEvent) {
+    deleteEvent(event: EducationalEvent) {
         if (confirm(`Êtes-vous sûr de vouloir supprimer l'événement "${event.title}" ?`)) {
             this.eventService.deleteEvent(event.id).subscribe(() => {
                 this.loadEvents();

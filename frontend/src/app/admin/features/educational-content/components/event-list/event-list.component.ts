@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -7,6 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { EducationalEvent, EventStatus } from '../../../../core/models/educational-event.model';
 import { EducationalEventService } from '../../../../core/services/educational-event.service';
 import { EventFormComponent } from '../event-form/event-form.component';
+import { MapModalComponent } from '../map-modal/map-modal.component';
 
 @Component({
     selector: 'app-event-list',
@@ -17,7 +18,7 @@ import { EventFormComponent } from '../event-form/event-form.component';
 export class EventListComponent implements OnInit {
     events: EducationalEvent[] = [];
     dataSource: MatTableDataSource<EducationalEvent>;
-    displayedColumns: string[] = ['title', 'date', 'time', 'status', 'participants', 'actions'];
+    displayedColumns: string[] = ['title', 'date', 'time', 'status', 'participants', 'map', 'actions'];
 
     @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
@@ -25,22 +26,38 @@ export class EventListComponent implements OnInit {
     constructor(
         private eventService: EducationalEventService,
         private dialog: MatDialog,
-        private snackBar: MatSnackBar
+        private snackBar: MatSnackBar,
+        private cdr: ChangeDetectorRef
     ) {
-        this.dataSource = new MatTableDataSource();
+        this.dataSource = new MatTableDataSource<EducationalEvent>();
     }
 
     ngOnInit(): void {
-        this.loadEvents();
-    }
+        // On s'abonne au flux partagé des événements
+        this.eventService.events$.subscribe(rawEvents => {
+            const now = new Date();
+            this.events = rawEvents.map(event => {
+                const eventDate = new Date(event.startDateTime);
+                return {
+                    ...event,
+                    status: eventDate < now ? 'completed' : 'scheduled',
+                    participantsCount: event.participantsCount ?? null
+                } as EducationalEvent;
+            });
 
-    loadEvents(): void {
-        this.eventService.getEvents().subscribe(events => {
-            this.events = events;
-            this.dataSource.data = events;
+            this.dataSource.data = this.events;
             this.dataSource.paginator = this.paginator;
             this.dataSource.sort = this.sort;
+            // Avec le mode zoneless, on force le rafraîchissement de la vue
+            this.cdr.detectChanges();
         });
+
+        // Premier chargement depuis l'API
+        this.eventService.reloadEvents().subscribe();
+    }
+
+    private reloadFromApi(): void {
+        this.eventService.reloadEvents().subscribe();
     }
 
     applyFilter(event: Event): void {
@@ -66,7 +83,6 @@ export class EventListComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                this.loadEvents();
                 this.snackBar.open(
                     event ? 'Événement modifié avec succès' : 'Événement ajouté avec succès',
                     'Fermer',
@@ -76,12 +92,24 @@ export class EventListComponent implements OnInit {
         });
     }
 
+    openMap(event: EducationalEvent): void {
+        this.dialog.open(MapModalComponent, {
+            width: '600px',
+            data: { location: event.location, title: event.title }
+        });
+    }
+
     deleteEvent(event: EducationalEvent): void {
         if (confirm(`Êtes-vous sûr de vouloir supprimer l'événement "${event.title}" ?`)) {
-            this.eventService.deleteEvent(event.id).subscribe(success => {
-                if (success) {
-                    this.loadEvents();
+            this.eventService.deleteEvent(event.id).subscribe({
+                next: () => {
+                    // Mise à jour instantanée de la liste au niveau du composant
+                    this.events = this.events.filter(e => e.id !== event.id);
+                    this.dataSource.data = [...this.events];
                     this.snackBar.open('Événement supprimé avec succès', 'Fermer', { duration: 3000 });
+                },
+                error: () => {
+                    this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
                 }
             });
         }
