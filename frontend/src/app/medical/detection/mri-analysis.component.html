@@ -115,12 +115,43 @@
   ══════════════════════════════════════════════════════ -->
   <div class="workspace">
 
-    <!-- ════════════════════ LEFT PANEL ════════════════════ -->
+    <!-- ════════════════════ LEFT PANEL — WIZARD ════════════════════ -->
     <div class="left-panel">
 
-      <!-- Dossier patient -->
-      <div class="card patient-card">
-        <div class="card-label"><i class="fa-solid fa-id-card-clip"></i> Dossier patient</div>
+      <!-- ── WIZARD STEPPER ── -->
+      <div class="wizard-stepper">
+        <ng-container *ngFor="let s of wizardSteps; let i = index">
+          <div class="wz-node"
+            [class.wz-active]="currentStep === s.num"
+            [class.wz-done]="stepCompleted(s.num)"
+            (click)="goToStep(s.num)">
+            <div class="wz-bubble">
+              <i *ngIf="!stepCompleted(s.num)" [class]="s.icon"></i>
+              <i *ngIf="stepCompleted(s.num)" class="fa-solid fa-check"></i>
+            </div>
+            <div class="wz-meta">
+              <span class="wz-num">Étape {{s.num}}/{{TOTAL_STEPS}}</span>
+              <span class="wz-label">{{s.label}}</span>
+            </div>
+          </div>
+          <div class="wz-line" *ngIf="i < wizardSteps.length - 1"
+            [class.wz-line-done]="stepCompleted(s.num)"></div>
+        </ng-container>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════
+           ÉTAPE 1 — Dossier patient + Indice de risque
+      ══════════════════════════════════════════════════ -->
+      <div class="wizard-panel" [class.wz-panel-active]="currentStep === 1">
+
+        <div class="wz-panel-header">
+          <div class="wz-panel-icon"><i class="fa-solid fa-id-card-clip"></i></div>
+          <div>
+            <div class="wz-panel-title">Dossier patient</div>
+            <div class="wz-panel-sub">Renseignez les informations du patient</div>
+          </div>
+        </div>
+
         <div class="patient-grid">
           <div class="pfield pfield-full">
             <label>Nom complet</label>
@@ -149,7 +180,7 @@
           </div>
         </div>
 
-        <!-- Score risque global -->
+        <!-- Score risque global (affiché dès l'étape 1 avec l'âge) -->
         <div class="global-risk-block" *ngIf="patientAge && patientAge > 0">
           <div class="grb-header">
             <span class="grb-title">Indice de risque global</span>
@@ -181,7 +212,7 @@
               <div class="sc-val" [style.color]="getRiskColor(analyseResult.couleurRisque)">{{aiRiskPct}}%</div>
             </div>
             <div class="score-component" *ngIf="!analysisComplete || !analyseResult">
-              <div class="sc-label">Risque IA (après analyse)</div>
+              <div class="sc-label">Risque IA (disponible après analyse IRM)</div>
               <div class="sc-bar-wrap"><div class="sc-bar sc-bar-empty"></div></div>
               <div class="sc-val" style="color:#d1d5db">—</div>
             </div>
@@ -190,78 +221,111 @@
             <i class="fa-solid fa-circle-dot"></i> {{ globalRiskMessage }}
           </p>
         </div>
+
         <div class="age-placeholder" *ngIf="!patientAge || patientAge <= 0">
           <i class="fa-solid fa-calculator"></i>
-          <span>Saisissez l'âge pour calculer l'indice de risque global IA × Âge</span>
+          <span>Saisissez l'âge pour calculer l'indice de risque global</span>
+        </div>
+
+        <!-- Navigation -->
+        <div class="wz-nav-row">
+          <div></div>
+          <button class="wz-btn-next" (click)="nextStep()">
+            Suivant — Questionnaire <i class="fa-solid fa-arrow-right"></i>
+          </button>
         </div>
       </div>
 
-      <!-- Questionnaire clinique -->
-      <div class="card questionnaire-card">
-        <div class="card-label q-toggle" (click)="toggleQuestionnaire()">
-          <i class="fa-solid fa-clipboard-list"></i>
-          Questionnaire clinique pré-analyse
+      <!-- ══════════════════════════════════════════════════
+           ÉTAPE 2 — Questionnaire clinique
+      ══════════════════════════════════════════════════ -->
+      <div class="wizard-panel" [class.wz-panel-active]="currentStep === 2">
+
+        <div class="wz-panel-header">
+          <div class="wz-panel-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+          <div>
+            <div class="wz-panel-title">Questionnaire clinique</div>
+            <div class="wz-panel-sub">Évaluez les symptômes et antécédents</div>
+          </div>
           <span class="q-badge" *ngIf="questionnaireScore > 0"
             [style.background]="qScoreColor+'22'" [style.color]="qScoreColor" [style.border-color]="qScoreColor">
             {{questionnaireScore}}/10
           </span>
-          <i class="fa-solid q-chevron" [class.fa-chevron-up]="showQuestionnaire" [class.fa-chevron-down]="!showQuestionnaire"></i>
         </div>
-        <div class="questionnaire-body" [class.q-open]="showQuestionnaire">
-          <div class="q-section">
-            <div class="q-section-title"><span class="q-step">1</span> Symptômes rapportés</div>
-            <div class="q-checkgrid">
-              <label class="q-check" *ngFor="let s of symptomsList">
-                <input type="checkbox" [(ngModel)]="questionnaire.symptoms[s.key]" (change)="computeQuestionnaireScore()">
-                <span class="q-check-box"></span>
-                <span class="q-check-label"><i [class]="s.icon"></i> {{ s.label }}</span>
-              </label>
-            </div>
+
+        <div class="q-section">
+          <div class="q-section-title"><span class="q-step">1</span> Symptômes rapportés</div>
+          <div class="q-checkgrid">
+            <label class="q-check" *ngFor="let s of symptomsList">
+              <input type="checkbox" [(ngModel)]="questionnaire.symptoms[s.key]" (change)="computeQuestionnaireScore()">
+              <span class="q-check-box"></span>
+              <span class="q-check-label"><i [class]="s.icon"></i> {{ s.label }}</span>
+            </label>
           </div>
-          <div class="q-section">
-            <div class="q-section-title"><span class="q-step">2</span> Antécédents médicaux</div>
-            <div class="q-checkgrid">
-              <label class="q-check" *ngFor="let a of antecedentsList">
-                <input type="checkbox" [(ngModel)]="questionnaire.antecedents[a.key]" (change)="computeQuestionnaireScore()">
-                <span class="q-check-box"></span>
-                <span class="q-check-label"><i [class]="a.icon"></i> {{ a.label }}</span>
-              </label>
-            </div>
+        </div>
+
+        <div class="q-section">
+          <div class="q-section-title"><span class="q-step">2</span> Antécédents médicaux</div>
+          <div class="q-checkgrid">
+            <label class="q-check" *ngFor="let a of antecedentsList">
+              <input type="checkbox" [(ngModel)]="questionnaire.antecedents[a.key]" (change)="computeQuestionnaireScore()">
+              <span class="q-check-box"></span>
+              <span class="q-check-label"><i [class]="a.icon"></i> {{ a.label }}</span>
+            </label>
           </div>
-          <div class="q-section">
-            <div class="q-section-title"><span class="q-step">3</span> Durée des symptômes</div>
-            <div class="q-radio-group">
-              <label class="q-radio" *ngFor="let d of durationOptions">
-                <input type="radio" name="duration" [value]="d.value"
-                  [(ngModel)]="questionnaire.duration" (change)="computeQuestionnaireScore()">
-                <span class="q-radio-dot"></span>
-                <span>{{ d.label }}</span>
-              </label>
-            </div>
+        </div>
+
+        <div class="q-section">
+          <div class="q-section-title"><span class="q-step">3</span> Durée des symptômes</div>
+          <div class="q-radio-group">
+            <label class="q-radio" *ngFor="let d of durationOptions">
+              <input type="radio" name="duration" [value]="d.value"
+                [(ngModel)]="questionnaire.duration" (change)="computeQuestionnaireScore()">
+              <span class="q-radio-dot"></span>
+              <span>{{ d.label }}</span>
+            </label>
           </div>
-          <div class="q-result" *ngIf="questionnaireScore > 0" [style.border-color]="qScoreColor">
-            <div class="q-result-left">
-              <div class="q-result-score" [style.color]="qScoreColor">{{questionnaireScore}}<span>/10</span></div>
-              <div class="q-result-label">Score clinique</div>
-            </div>
-            <div class="q-result-msg">
-              <strong [style.color]="qScoreColor">{{qScoreLabel}}</strong>
-              <p>{{qScoreMessage}}</p>
-            </div>
+        </div>
+
+        <div class="q-result" *ngIf="questionnaireScore > 0" [style.border-color]="qScoreColor">
+          <div class="q-result-left">
+            <div class="q-result-score" [style.color]="qScoreColor">{{questionnaireScore}}<span>/10</span></div>
+            <div class="q-result-label">Score clinique</div>
           </div>
+          <div class="q-result-msg">
+            <strong [style.color]="qScoreColor">{{qScoreLabel}}</strong>
+            <p>{{qScoreMessage}}</p>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="wz-nav-row">
+          <button class="wz-btn-prev" (click)="prevStep()">
+            <i class="fa-solid fa-arrow-left"></i> Précédent
+          </button>
+          <button class="wz-btn-next" (click)="nextStep()">
+            Suivant — Imagerie IRM <i class="fa-solid fa-arrow-right"></i>
+          </button>
         </div>
       </div>
 
-      <!-- Viewer IRM -->
-      <div class="card viewer-card">
-        <div class="card-label">
-          <i class="fa-solid fa-brain"></i> Imagerie IRM
+      <!-- ══════════════════════════════════════════════════
+           ÉTAPE 3 — Imagerie IRM
+      ══════════════════════════════════════════════════ -->
+      <div class="wizard-panel" [class.wz-panel-active]="currentStep === 3">
+
+        <div class="wz-panel-header">
+          <div class="wz-panel-icon"><i class="fa-solid fa-brain"></i></div>
+          <div>
+            <div class="wz-panel-title">Imagerie IRM</div>
+            <div class="wz-panel-sub">Chargez et analysez le scan cérébral</div>
+          </div>
           <div class="viewer-tabs" *ngIf="imageUrl && imageConfirmed">
             <button class="vtab" [class.vtab-active]="!compareMode" (click)="compareMode=false">
-              <i class="fa-solid fa-image"></i> Scan actuel
+              <i class="fa-solid fa-image"></i> Scan
             </button>
             <button class="vtab" [class.vtab-active]="compareMode" (click)="compareMode=true">
-              <i class="fa-solid fa-code-compare"></i> Avant / Après
+              <i class="fa-solid fa-code-compare"></i> Avant/Après
             </button>
           </div>
         </div>
@@ -277,7 +341,7 @@
           <div class="transform-bar" *ngIf="imageUrl && imageConfirmed">
             <button class="tbtn" (click)="rotateLeft()" title="Rotation -90°"><i class="fa-solid fa-rotate-left"></i></button>
             <button class="tbtn" (click)="rotateRight()" title="Rotation +90°"><i class="fa-solid fa-rotate-right"></i></button>
-            <button class="tbtn" [class.tbtn-active]="flipH" (click)="flipHorizontal()" title="Miroir horizontal"><i class="fa-solid fa-left-right"></i></button>
+            <button class="tbtn" [class.tbtn-active]="flipH" (click)="flipHorizontal()" title="Miroir"><i class="fa-solid fa-left-right"></i></button>
             <div class="tbtn-sep"></div>
             <button class="tbtn" (click)="resetTransform()" title="Réinitialiser"><i class="fa-solid fa-arrows-rotate"></i></button>
           </div>
@@ -308,7 +372,7 @@
             <span class="qchip"><i class="fa-solid fa-eye-dropper"></i> Niveaux de gris : {{imageQuality.grayscale}}%</span>
             <span class="qchip"><i class="fa-solid fa-waveform-lines"></i> Contraste : {{imageQuality.contrast}}</span>
             <span class="qchip qchip-warn" *ngIf="imageQuality.score < 50">
-              <i class="fa-solid fa-triangle-exclamation"></i> Qualité faible — résultats moins fiables
+              <i class="fa-solid fa-triangle-exclamation"></i> Qualité faible
             </span>
           </div>
         </div>
@@ -335,7 +399,7 @@
             </div>
           </div>
 
-          <!-- ★ OVERLAY DÉTECTION AUTOMATIQUE — remplace la confirmation manuelle ★ -->
+          <!-- Overlay détection automatique -->
           <div class="detecting-overlay" *ngIf="isDetecting">
             <div class="detecting-box">
               <div class="detecting-ring"><div class="detecting-ring-inner"></div></div>
@@ -402,11 +466,21 @@
           </div>
           <div class="compare-hint" *ngIf="!compareUrl">
             <i class="fa-solid fa-arrow-pointer"></i>
-            Cliquez sur la zone gauche pour charger un scan précédent
+            Cliquez pour charger un scan précédent
           </div>
         </div>
 
-      </div><!-- /viewer-card -->
+        <!-- Navigation -->
+        <div class="wz-nav-row">
+          <button class="wz-btn-prev" (click)="prevStep()">
+            <i class="fa-solid fa-arrow-left"></i> Précédent
+          </button>
+          <div *ngIf="errorMessage" class="error-msg" style="flex:1;margin:0 8px;">
+            <i class="fa-solid fa-triangle-exclamation"></i> {{ errorMessage }}
+          </div>
+        </div>
+
+      </div><!-- /étape 3 -->
     </div><!-- /left-panel -->
 
     <!-- ════════════════════ RIGHT PANEL ════════════════════ -->
@@ -442,15 +516,35 @@
         </div>
         <h3>
           {{ isDetecting ? 'Vérification en cours…' :
-             imageUrl && imageConfirmed ? 'Prêt à analyser' : 'Aucune image chargée' }}
+             (currentStep === 1 ? 'Remplissez le dossier patient' :
+             currentStep === 2 ? 'Complétez le questionnaire' :
+             imageUrl && imageConfirmed ? 'Prêt à analyser' : 'Chargez une image IRM') }}
         </h3>
         <p>
-          {{ isDetecting ? 'Analyse automatique du type d\'image IRM.' :
-             imageUrl && imageConfirmed ? 'Remplissez le questionnaire, puis cliquez sur « Analyser ».' :
-             'Sélectionnez une IRM et complétez le dossier patient.' }}
+          {{ isDetecting ? 'Analyse automatique du type d\'image.' :
+             (currentStep === 1 ? 'Saisissez les informations du patient puis cliquez sur Suivant.' :
+             currentStep === 2 ? 'Évaluez les symptômes cliniques puis passez à l\'étape suivante.' :
+             imageUrl && imageConfirmed ? 'Cliquez sur « Analyser » pour lancer l\'analyse IA.' :
+             'Sélectionnez une IRM cérébrale pour continuer.') }}
         </p>
-        <div *ngIf="errorMessage" class="error-msg">
-          <i class="fa-solid fa-triangle-exclamation"></i> {{ errorMessage }}
+
+        <!-- Résumé wizard visible dans le panel droit -->
+        <div class="wz-summary" *ngIf="!isDetecting">
+          <div class="wz-sum-item" [class.wz-sum-done]="stepCompleted(1)" [class.wz-sum-active]="currentStep === 1">
+            <i class="fa-solid" [class.fa-check-circle]="stepCompleted(1)" [class.fa-id-card-clip]="!stepCompleted(1)"></i>
+            <span>Dossier patient</span>
+            <span class="wz-sum-detail" *ngIf="patientName">{{ patientName }}</span>
+          </div>
+          <div class="wz-sum-item" [class.wz-sum-done]="stepCompleted(2)" [class.wz-sum-active]="currentStep === 2">
+            <i class="fa-solid" [class.fa-check-circle]="stepCompleted(2)" [class.fa-clipboard-list]="!stepCompleted(2)"></i>
+            <span>Questionnaire</span>
+            <span class="wz-sum-detail" *ngIf="questionnaireScore > 0">Score : {{questionnaireScore}}/10</span>
+          </div>
+          <div class="wz-sum-item" [class.wz-sum-done]="stepCompleted(3)" [class.wz-sum-active]="currentStep === 3">
+            <i class="fa-solid" [class.fa-check-circle]="stepCompleted(3)" [class.fa-brain]="!stepCompleted(3)"></i>
+            <span>Analyse IRM</span>
+            <span class="wz-sum-detail" *ngIf="imageConfirmed">Image chargée ✓</span>
+          </div>
         </div>
       </div>
 

@@ -12,6 +12,16 @@ import { AnalyseIRMResponse, DetectionService } from '../services/detection';
 })
 export class MriAnalysisComponent implements OnDestroy {
 
+  // ── Wizard ───────────────────────────────────────────
+  currentStep = 1;
+  readonly TOTAL_STEPS = 3;
+
+  wizardSteps = [
+    { num: 1, label: 'Dossier patient',     icon: 'fa-solid fa-id-card-clip'    },
+    { num: 2, label: 'Questionnaire',       icon: 'fa-solid fa-clipboard-list'  },
+    { num: 3, label: 'Imagerie IRM',        icon: 'fa-solid fa-brain'           }
+  ];
+
   // ── Patient ─────────────────────────────────────────
   patientName   = '';
   patientId     = '';
@@ -27,12 +37,9 @@ export class MriAnalysisComponent implements OnDestroy {
   flipH       = false;
 
   // ── Détection automatique IRM ───────────────────────
-  // null  = pas encore analysée
-  // true  = image reconnue comme IRM  → analyse autorisée
-  // false = image rejetée automatiquement → modale affichée
   imageConfirmed: boolean | null = null;
-  isDetecting        = false;   // spinner pendant l'analyse pixel
-  showRejectionModal = false;   // modale rejet (déclenchée automatiquement)
+  isDetecting        = false;
+  showRejectionModal = false;
 
   // ── Qualité image ────────────────────────────────────
   imageQuality: { score:number; grayscale:number; contrast:string; label:string; color:string } | null = null;
@@ -70,7 +77,7 @@ export class MriAnalysisComponent implements OnDestroy {
   ];
 
   // ── Questionnaire ────────────────────────────────────
-  showQuestionnaire  = false;
+  showQuestionnaire  = true;
   questionnaire = {
     symptoms:    {} as Record<string,boolean>,
     antecedents: {} as Record<string,boolean>,
@@ -111,6 +118,36 @@ export class MriAnalysisComponent implements OnDestroy {
   ngOnDestroy() { this.clearProc(); }
 
   // ══════════════════════════════════════════════════════
+  //  WIZARD NAVIGATION
+  // ══════════════════════════════════════════════════════
+  nextStep(): void {
+    if (this.currentStep < this.TOTAL_STEPS) this.currentStep++;
+  }
+
+  prevStep(): void {
+    if (this.currentStep > 1) this.currentStep--;
+  }
+
+  canGoNext(): boolean {
+    if (this.currentStep === 1) return true;
+    if (this.currentStep === 2) return true;
+    return false;
+  }
+
+  stepCompleted(n: number): boolean {
+    if (n === 1) return this.currentStep > 1;
+    if (n === 2) return this.currentStep > 2;
+    if (n === 3) return this.analysisComplete;
+    return false;
+  }
+
+  goToStep(n: number): void {
+    if (n < this.currentStep || this.stepCompleted(n - 1)) {
+      this.currentStep = n;
+    }
+  }
+
+  // ══════════════════════════════════════════════════════
   //  QUESTIONNAIRE
   // ══════════════════════════════════════════════════════
   toggleQuestionnaire() { this.showQuestionnaire = !this.showQuestionnaire; }
@@ -145,14 +182,11 @@ export class MriAnalysisComponent implements OnDestroy {
 
   // ══════════════════════════════════════════════════════
   //  UPLOAD → DÉTECTION AUTOMATIQUE IRM
-  //  Aucune question posée au patient.
-  //  L'algorithme décide seul si c'est une IRM valide.
   // ══════════════════════════════════════════════════════
   onFileSelected(e: Event): void {
     const input = e.target as HTMLInputElement;
     if (!input.files?.[0]) return;
 
-    // Reset complet
     this.selectedFile       = input.files[0];
     this.imageConfirmed     = null;
     this.imageQuality       = null;
@@ -162,19 +196,18 @@ export class MriAnalysisComponent implements OnDestroy {
     this.rotationDeg        = 0;
     this.flipH              = false;
     this.showRejectionModal = false;
-    this.isDetecting        = true;   // ← active le spinner de vérification
+    this.isDetecting        = true;
 
     const reader = new FileReader();
     reader.onload = (ev) => {
       this.imageUrl = ev.target?.result as string;
-      this.autoDetectMRI(this.imageUrl);  // ← détection pixel automatique
+      this.autoDetectMRI(this.imageUrl);
     };
     reader.readAsDataURL(this.selectedFile);
   }
 
   closeRejectionModal(): void {
     this.showRejectionModal = false;
-    // Si rejet : on vide l'image pour forcer un nouvel upload
     if (this.imageConfirmed !== true) {
       this.imageUrl     = '';
       this.selectedFile = null;
@@ -182,23 +215,6 @@ export class MriAnalysisComponent implements OnDestroy {
     }
   }
 
-  // ══════════════════════════════════════════════════════
-  //  ALGORITHME DE DÉTECTION IRM (canvas, sans serveur)
-  //
-  //  Calibré sur images réelles (120×120 px échantillon) :
-  //
-  //  PORTES DURES — toutes doivent passer, sinon rejet immédiat :
-  //    [G1] grayPct   >= 75%   IRM=100% | Logo coloré=47%  | Photo=10-40%
-  //    [G2] colorPct  <=  8%   IRM=  0% | Logo coloré=13%  | Photo=5-30%
-  //         (pixels avec delta RGB > 60 → couleurs vives)
-  //    [G3] highSatPct<=  5%   IRM=  0% | Logo coloré=65%  | Photo=20-70%
-  //         (saturation HSL > 0.5 → rouge, vert, bleu vif…)
-  //
-  //  SCORE CONFIRMATOIRE — requis >= 45 si les portes passent :
-  //    40% gris + 30% fond sombre + 15% contraste + 15% luminance
-  //    → IRM valide : ~97/100
-  //    → Radiographie, CT-scan, échographie : 55-85/100 → ACCEPTÉS
-  // ══════════════════════════════════════════════════════
   private autoDetectMRI(dataUrl: string): void {
     const img = new Image();
     img.onload = () => {
@@ -211,10 +227,10 @@ export class MriAnalysisComponent implements OnDestroy {
       ctx.drawImage(img, 0, 0, SIZE, SIZE);
       const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
 
-      let grayCount    = 0;   // delta RGB < 25  → quasi-gris
-      let coloredCount = 0;   // delta RGB > 60  → couleur vive (vert, rouge…)
-      let highSatCount = 0;   // sat HSL > 0.5   → couleur saturée
-      let darkCount    = 0;   // luminance < 40  → fond sombre IRM
+      let grayCount    = 0;
+      let coloredCount = 0;
+      let highSatCount = 0;
+      let darkCount    = 0;
       let totalLum     = 0;
       const lums: number[] = [];
 
@@ -223,10 +239,10 @@ export class MriAnalysisComponent implements OnDestroy {
         const lum    = 0.299 * r + 0.587 * g + 0.114 * b;
         const maxC   = Math.max(r, g, b) / 255;
         const minC   = Math.min(r, g, b) / 255;
-        const delta  = Math.max(r, g, b) - Math.min(r, g, b);         // 0–255
+        const delta  = Math.max(r, g, b) - Math.min(r, g, b);
         const lumHSL = (maxC + minC) / 2;
         const sat    = maxC === minC ? 0
-          : (maxC - minC) / (1 - Math.abs(2 * lumHSL - 1) + 1e-9);   // 0–1
+          : (maxC - minC) / (1 - Math.abs(2 * lumHSL - 1) + 1e-9);
 
         totalLum += lum;
         lums.push(lum);
@@ -245,7 +261,6 @@ export class MriAnalysisComponent implements OnDestroy {
       const variance     = lums.reduce((a, l) => a + (l - avgLum) ** 2, 0) / N;
       const stdDev       = Math.sqrt(variance);
 
-      // ── Barre qualité UI (calculée avant la décision) ─
       const qualityScore = Math.round(grayPct * 0.6 + Math.min(100, stdDev * 1.5) * 0.4);
       let qlabel: string; let qcolor: string;
       if      (qualityScore >= 70) { qlabel = 'Excellente'; qcolor = '#10b981'; }
@@ -265,21 +280,9 @@ export class MriAnalysisComponent implements OnDestroy {
 
       this.isDetecting = false;
 
-      // ══════════════════════════════════════════════════
-      //  DÉCISION AUTOMATIQUE
-      //
-      //  ÉTAPE 1 — Portes dures anti-couleur (toutes doivent passer)
-      //    [G1] Trop peu de pixels gris  → photo ou logo coloré
-      //    [G2] Trop de pixels colorés   → vert vif, rouge, etc.
-      //    [G3] Trop de haute saturation → couleur intense détectée
-      //
-      //  ÉTAPE 2 — Score confirmatoire >= 45
-      //    Assure un minimum de contraste et de fond sombre
-      //    typique d'une vraie image médicale
-      // ══════════════════════════════════════════════════
-      const passG1 = grayPct    >= 75;   // suffisamment gris
-      const passG2 = coloredPct <=  8;   // pas de couleurs vives
-      const passG3 = highSatPct <=  5;   // pas de saturation élevée
+      const passG1 = grayPct    >= 75;
+      const passG2 = coloredPct <=  8;
+      const passG3 = highSatPct <=  5;
 
       const grayScore     = Math.min(100, grayPct  * 1.2);
       const darkScore     = Math.min(100, darkPct  * 2.5);
@@ -295,7 +298,7 @@ export class MriAnalysisComponent implements OnDestroy {
         this.imageConfirmed = true;
       } else {
         this.imageConfirmed     = false;
-        this.showRejectionModal = true;   // ← s'ouvre automatiquement
+        this.showRejectionModal = true;
       }
     };
     img.src = dataUrl;
@@ -384,6 +387,7 @@ export class MriAnalysisComponent implements OnDestroy {
     this.errorMessage       = '';    this.procStep           = 0;
     this.aiRiskPct          = 0;     this.rotationDeg        = 0;
     this.flipH              = false;
+    this.currentStep        = 1;
     this.computeGlobalRisk();
   }
 
@@ -572,7 +576,6 @@ ${recs.map(rec=>`<div class="ri"><div class="rt">${rec.title} <span style="font-
     return new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
   }
 
-  // ── Drag / Zoom ───────────────────────────────────────
   startDrag(e: MouseEvent) { this.isDragging = true; this.startX = e.clientX - this.panX; this.startY = e.clientY - this.panY; }
   drag(e: MouseEvent)      { if (!this.isDragging) return; e.preventDefault(); this.panX = e.clientX - this.startX; this.panY = e.clientY - this.startY; }
   endDrag()                { this.isDragging = false; }

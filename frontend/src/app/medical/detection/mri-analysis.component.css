@@ -563,4 +563,262 @@
   .mri-header { padding:10px 16px; }
   .header-version { display:none; }
   .q-checkgrid { grid-template-columns:1fr; }
+}/* ══════════════════════════════════════════
+   WIZARD STEPPER — barre de progression étapes
+══════════════════════════════════════════ */
+.wizard-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 16px 20px 12px;
+  background: linear-gradient(135deg, #faf8ff, #f5f3ff);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 4px;
+}
+
+.wz-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  position: relative;
+  z-index: 2;
+}
+.wz-node:hover { opacity: 0.8; }
+
+.wz-bubble {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; color: var(--muted2);
+  flex-shrink: 0;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wz-active .wz-bubble {
+  background: linear-gradient(135deg, var(--amethyst), var(--lilac));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4);
+  transform: scale(1.12);
+}
+
+.wz-done .wz-bubble {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #10b981;
+}
+
+.wz-meta { display: flex; flex-direction: column; }
+.wz-num  { font-family: var(--mono); font-size: 0.58rem; color: var(--muted2); }
+.wz-label {
+  font-size: 0.72rem; font-weight: 700;
+  color: var(--muted2);
+  transition: color 0.3s;
+}
+.wz-active .wz-label { color: var(--amethyst); font-weight: 800; }
+.wz-active .wz-num   { color: var(--lilac); }
+.wz-done .wz-label   { color: #10b981; }
+.wz-done .wz-num     { color: #6ee7b7; }
+
+.wz-line {
+  flex: 1;
+  height: 2px;
+  background: var(--border2);
+  margin: 0 8px;
+  margin-top: -10px;
+  position: relative;
+  z-index: 1;
+  transition: background 0.5s;
+  max-width: 40px;
+}
+.wz-line-done {
+  background: linear-gradient(90deg, #6ee7b7, #a78bfa);
+}
+
+/* ══════════════════════════════════════════
+   WIZARD PANEL — chaque étape
+══════════════════════════════════════════ */
+.wizard-panel {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  animation: wzFadeIn 0.3s ease;
+}
+.wz-panel-active {
+  display: flex;
+}
+@keyframes wzFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.wz-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+}
+
+.wz-panel-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(192,132,252,0.12));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  color: var(--amethyst);
+  flex-shrink: 0;
+}
+
+.wz-panel-title {
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: var(--prune);
+  line-height: 1.2;
+}
+.wz-panel-sub {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+/* ══════════════════════════════════════════
+   NAVIGATION WIZARD — boutons Précédent / Suivant
+══════════════════════════════════════════ */
+.wz-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 4px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border2);
+}
+
+.wz-btn-prev {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 18px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: 0.8rem; font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.wz-btn-prev:hover {
+  border-color: var(--amethyst);
+  color: var(--amethyst);
+}
+
+.wz-btn-next {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 20px;
+  background: linear-gradient(135deg, var(--amethyst), var(--lilac));
+  border: none;
+  border-radius: 9px;
+  color: #fff;
+  font-size: 0.8rem; font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+}
+.wz-btn-next:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
+}
+
+/* ══════════════════════════════════════════
+   RÉSUMÉ WIZARD dans le panel droit (état vide)
+══════════════════════════════════════════ */
+.wz-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 280px;
+  margin-top: 8px;
+}
+
+.wz-sum-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  font-size: 0.78rem;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.wz-sum-item i {
+  font-size: 0.85rem;
+  color: var(--muted2);
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+.wz-sum-active {
+  border-color: var(--amethyst);
+  background: rgba(124, 58, 237, 0.04);
+  color: var(--amethyst);
+}
+.wz-sum-active i { color: var(--amethyst); }
+
+.wz-sum-done {
+  border-color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.04);
+  color: #10b981;
+}
+.wz-sum-done i { color: #10b981; }
+
+.wz-sum-detail {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--muted2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+.wz-sum-done .wz-sum-detail { color: #6ee7b7; }
+.wz-sum-active .wz-sum-detail { color: var(--lilac); }
+
+/* ══════════════════════════════════════════
+   OVERRIDE : left-panel sans gap excessif
+   pour que le wizard soit compact
+══════════════════════════════════════════ */
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Le viewer-card devient un wrapper simple dans le wizard */
+.viewer-card { padding: 0 !important; box-shadow: none !important; border: none !important; background: transparent !important; }
+
+/* Étape 3 : le viewer-card n'existe plus, on s'appuie sur wizard-panel */
+.wz-panel-active .viewport,
+.wz-panel-active .compare-viewport { flex: 1; min-height: 260px; }
+
+/* ══════════════════════════════════════════
+   RESPONSIVE WIZARD
+══════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .wz-meta { display: none; }
+  .wz-line { max-width: 20px; margin: 0 4px; }
+  .wz-nav-row { flex-wrap: wrap; }
+  .wz-btn-next, .wz-btn-prev { flex: 1; justify-content: center; }
 }
