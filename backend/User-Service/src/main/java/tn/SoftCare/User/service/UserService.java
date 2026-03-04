@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import tn.SoftCare.User.dto.CreateUserRequest;
 import tn.SoftCare.User.dto.UpdateUserRequest;
 import tn.SoftCare.User.dto.UserResponse;
+import tn.SoftCare.User.exception.EmailAlreadyUsedException;
 import tn.SoftCare.User.model.User;
 import tn.SoftCare.User.repository.UserRepository;
 
@@ -23,7 +24,7 @@ public class UserService {
 
     public UserResponse create(CreateUserRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
-            throw new RuntimeException("Email déjà utilisé");
+            throw new EmailAlreadyUsedException();
         }
 
         User u = new User();
@@ -54,7 +55,7 @@ public class UserService {
 
         if (req.getEmail() != null && !req.getEmail().equals(u.getEmail())) {
             if (userRepository.existsByEmail(req.getEmail())) {
-                throw new RuntimeException("Email déjà utilisé");
+                throw new EmailAlreadyUsedException();
             }
             u.setEmail(req.getEmail());
         }

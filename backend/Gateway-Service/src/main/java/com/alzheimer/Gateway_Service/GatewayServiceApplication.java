@@ -24,20 +24,14 @@ public class GatewayServiceApplication {
 	public RouteLocator gatewayRoutes(RouteLocatorBuilder builder) {
 		return builder.routes()
 
-				// SESSION-SERVICE
-				.route("session_service", r -> r
-						.path("/session/**")
-						.uri("lb://SESSION-SERVICE"))
-
-				// EVENT-SERVICE
-				.route("event_service", r -> r
-						.path("/api/events/**")
-						.uri("lb://EVENT-SERVICE"))
-
 				// USER-SERVICE
-				.route("User-Service", r -> r
-						.path("/api/users/**", "/auth/**", "/internal/users/**")
-						.uri("lb://USER-SERVICE"))
+				.route("user-service-api",
+						r -> r.path("/api/users", "/api/users/**")
+								.uri("lb://USER-SERVICE"))
+
+				.route("user-service-auth",
+						r -> r.path("/auth/**", "/internal/users/**")
+								.uri("lb://USER-SERVICE"))
 
 				.build();
 	}
@@ -45,15 +39,13 @@ public class GatewayServiceApplication {
 	@Bean
 	public CorsWebFilter corsWebFilter() {
 		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(List.of("http://localhost:4200"));
+		config.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:3000"));
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 		config.setAllowedHeaders(List.of("*"));
 		config.setAllowCredentials(true);
-		config.setExposedHeaders(List.of("Authorization"));
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", config);
-
 		return new CorsWebFilter(source);
 	}
 }

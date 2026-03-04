@@ -4,7 +4,8 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { SignUpRequest } from '../models/sign-up.model';
 import { AuthResponse, User, UserUpdateRequest } from '../models/user.model';
 
-// Gateway (microservices) – le front appelle la gateway, qui route vers User-Service, etc.
+// IMPORTANT: Toujours utiliser la GATEWAY (8090), jamais Eureka (8761).
+// Eureka = registre des services (dashboard). L'API /api/users est sur la Gateway → User-Service.
 const API_BASE = 'http://localhost:8090';
 const API = `${API_BASE}/api`;
 const AUTH = `${API_BASE}/auth`;

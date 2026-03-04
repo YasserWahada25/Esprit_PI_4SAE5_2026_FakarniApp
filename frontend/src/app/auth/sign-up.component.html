@@ -1,54 +1,145 @@
 <section class="auth-section section-padding">
-    <div class="container auth-container">
-        <div class="auth-box">
-            <h2>Create Account</h2>
-            <p>Fill in the details below to create an account.</p>
+  <div class="container auth-container">
+    <div class="auth-box">
+      <h2>Create Account</h2>
+      <p>Fill in the details below to create an account.</p>
 
-            @if (errorMessage) {
-                <p class="auth-error">{{ errorMessage }}</p>
-            }
-            <form class="auth-form" [formGroup]="signUpForm" (ngSubmit)="onSubmit()">
-                <div class="form-group">
-                    <label for="nom">Name</label>
-                    <input id="nom" type="text" formControlName="nom" placeholder="Your Name">
-                </div>
-                <div class="form-group">
-                    <label for="prenom">Last Name</label>
-                    <input id="prenom" type="text" formControlName="prenom" placeholder="">
-                </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input id="email" type="email" formControlName="email" placeholder="Example@email.com">
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input id="password" type="password" formControlName="password" placeholder="Minimum 6 characters">
-                </div>
-                <div class="form-group">
-                    <label for="role">Role</label>
-                    <select id="role" formControlName="role">
-                        @for (opt of roleOptions; track opt.value) {
-                            <option [value]="opt.value">{{ opt.label }}</option>
-                        }
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="numTel">Phone Number</label>
-                    <input id="numTel" type="tel" formControlName="numTel" placeholder="Ex: 12345678">
-                </div>
-                <div class="form-group">
-                    <label for="adresse">Address</label>
-                    <input id="adresse" type="text" formControlName="adresse" placeholder="Your address">
-                </div>
+      @if (errorMessage) {
+        <p class="auth-error">{{ errorMessage }}</p>
+      }
 
-                <button type="submit" class="btn btn-primary btn-block" [disabled]="signUpForm.invalid || loading">
-                    {{ loading ? 'Please wait...' : 'SIGN UP' }}
-                </button>
-            </form>
-
-            <p class="auth-footer mt-4">
-                Already have an account? <a routerLink="/auth/signin">Sign In</a>
-            </p>
+      <form class="auth-form" [formGroup]="signUpForm" (ngSubmit)="onSubmit()">
+        <!-- NOM -->
+        <div class="form-group">
+          <label for="nom">Name</label>
+          <input
+            id="nom"
+            type="text"
+            formControlName="nom"
+            placeholder="Your Name"
+            [class.invalid-input]="shouldShowError('nom')"
+          />
+          @if (shouldShowError('nom')) {
+            <div class="error-message">
+              @if (getControl('nom')?.errors?.['required']) { Name is required. }
+              @if (getControl('nom')?.errors?.['pattern']) { Name must contain only letters (no numbers). }
+            </div>
+          }
         </div>
+
+        <!-- PRENOM -->
+        <div class="form-group">
+          <label for="prenom">Last Name</label>
+          <input
+            id="prenom"
+            type="text"
+            formControlName="prenom"
+            placeholder="Your Last Name"
+            [class.invalid-input]="shouldShowError('prenom')"
+          />
+          @if (shouldShowError('prenom')) {
+            <div class="error-message">
+              @if (getControl('prenom')?.errors?.['required']) { Last name is required. }
+              @if (getControl('prenom')?.errors?.['pattern']) { Last name must contain only letters (no numbers). }
+            </div>
+          }
+        </div>
+
+        <!-- EMAIL -->
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="Example@email.com"
+            [class.invalid-input]="shouldShowError('email')"
+          />
+          @if (shouldShowError('email')) {
+            <div class="error-message">
+              @if (getControl('email')?.errors?.['required']) { Email is required. }
+              @if (getControl('email')?.errors?.['email']) { Please enter a valid email address. }
+            </div>
+          }
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            placeholder="Minimum 6 characters"
+            [class.invalid-input]="shouldShowError('password')"
+          />
+          @if (shouldShowError('password')) {
+            <div class="error-message">
+              @if (getControl('password')?.errors?.['required']) { Password is required. }
+              @if (getControl('password')?.errors?.['minlength']) { Password must be at least 6 characters. }
+              @if (getControl('password')?.errors?.['pattern']) { Password must contain 1 uppercase, 1 number and 1 special character. }
+            </div>
+          }
+        </div>
+
+        <!-- ROLE -->
+        <div class="form-group">
+          <label for="role">Role</label>
+          <select
+            id="role"
+            formControlName="role"
+            [class.invalid-input]="shouldShowError('role')"
+          >
+            @for (opt of roleOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+          @if (shouldShowError('role')) {
+            <div class="error-message">Role is required.</div>
+          }
+        </div>
+
+        <!-- NUMTEL -->
+        <div class="form-group">
+          <label for="numTel">Phone Number</label>
+          <input
+            id="numTel"
+            type="tel"
+            formControlName="numTel"
+            placeholder="Ex: 12345678"
+            [class.invalid-input]="shouldShowError('numTel')"
+          />
+          @if (shouldShowError('numTel')) {
+            <div class="error-message">Phone number must contain exactly 8 digits.</div>
+          }
+        </div>
+
+        <!-- ADRESSE -->
+        <div class="form-group">
+          <label for="adresse">Address</label>
+          <input
+            id="adresse"
+            type="text"
+            formControlName="adresse"
+            placeholder="Your address"
+            [class.invalid-input]="shouldShowError('adresse')"
+          />
+          @if (shouldShowError('adresse')) {
+            <div class="error-message">
+              @if (getControl('adresse')?.errors?.['required']) { Address is required. }
+            </div>
+          }
+        </div>
+
+        <!-- ✅ Important: ne pas désactiver si invalid -->
+        <button type="submit" class="btn btn-primary btn-block" [disabled]="loading">
+          {{ loading ? 'Please wait...' : 'SIGN UP' }}
+        </button>
+      </form>
+
+      <p class="auth-footer mt-4">
+        Already have an account? <a routerLink="/auth/signin">Sign In</a>
+      </p>
     </div>
+  </div>
 </section>
