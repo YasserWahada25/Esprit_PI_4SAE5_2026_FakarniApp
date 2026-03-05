@@ -11,7 +11,7 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 @EnableDiscoveryClient
 
-public class GatewayServiceApplication {
+public class 		GatewayServiceApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(GatewayServiceApplication.class, args);
@@ -29,14 +29,13 @@ public class GatewayServiceApplication {
 						.uri("lb://POST-SERVICE"))
 				.route("Group-Service", r -> r.path("/api/groups/**")
 						.uri("lb://GROUP-SERVICE"))
+				.route("Chat-Service-Messages", r -> r.path("/api/messages/**")
+						.uri("lb://CHAT-SERVICE"))
+				.route("Chat-Service-MockUsers", r -> r.path("/api/mock-users/**")
+						.uri("lb://CHAT-SERVICE"))
+				.route("Chat-Service-WebSocket", r -> r.path("/ws/**")
+						.uri("lb:ws://CHAT-SERVICE"))
 				.build();
-
-
-
-
-
-
-
 	}
 
 }

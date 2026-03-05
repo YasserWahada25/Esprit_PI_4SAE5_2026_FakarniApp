@@ -10,6 +10,7 @@
         <option value="$PROJECT_DIR$/Post-Service/pom.xml" />
         <option value="$PROJECT_DIR$/group/pom.xml" />
         <option value="$PROJECT_DIR$/Eureka-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Chat_Service/pom.xml" />
       </list>
     </option>
   </component>

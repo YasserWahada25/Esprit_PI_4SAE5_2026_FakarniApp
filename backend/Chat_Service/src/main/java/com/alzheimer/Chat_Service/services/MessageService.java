@@ -73,10 +73,8 @@ public class MessageService {
     }
 
     private String generateConversationId(String user1, String user2) {
-        int id1 = Integer.parseInt(user1);
-        int id2 = Integer.parseInt(user2);
-        
-        if (id1 < id2) {
+        // Comparer les IDs alphabétiquement pour garantir un ID de conversation cohérent
+        if (user1.compareTo(user2) < 0) {
             return user1 + "_" + user2;
         } else {
             return user2 + "_" + user1;

@@ -8,12 +8,27 @@
                 <i class="fa-solid fa-newspaper"></i> Feed
             </button>
         </div>
+        
+        <!-- User Switcher for Testing -->
+        <div class="user-switcher" *ngIf="activeTab === 'chat' && availableUsers.length > 0">
+            <label>
+                <i class="fa-solid fa-user"></i> Connecté en tant que:
+            </label>
+            <select [(ngModel)]="currentUserId" (change)="switchUser(currentUserId)">
+                <option *ngFor="let user of availableUsers" [value]="user.id">
+                    {{ user.name }} ({{ user.role }})
+                </option>
+            </select>
+        </div>
     </header>
 
     <!-- Chat Interface -->
     <div class="chat-interface" *ngIf="activeTab === 'chat'">
         <div class="contacts-list">
-            <div class="contact" *ngFor="let contact of contacts">
+            <div class="contact" 
+                 *ngFor="let contact of contacts" 
+                 [class.active]="selectedContact?.id === contact.id"
+                 (click)="selectContact(contact)">
                 <div class="avatar"><i class="fa-solid" [ngClass]="contact.avatar"></i></div>
                 <div class="info">
                     <h4>{{ contact.name }}</h4>
@@ -22,17 +37,57 @@
             </div>
         </div>
         <div class="chat-area">
-            <div class="messages">
-                <div class="message" *ngFor="let msg of messages" [class.self]="msg.self">
+            <div class="chat-header" *ngIf="selectedContact">
+                <h3>{{ selectedContact.name }}</h3>
+                <span class="status" [ngClass]="selectedContact.status">{{ selectedContact.status }}</span>
+            </div>
+            
+            <div class="error-message" *ngIf="error">
+                <i class="fa-solid fa-exclamation-circle"></i> {{ error }}
+            </div>
+
+            <div class="messages" #messagesContainer *ngIf="!loading">
+                <div class="message" 
+                     *ngFor="let msg of messages" 
+                     [class.self]="isMyMessage(msg)">
                     <div class="msg-content">
-                        <p>{{ msg.text }}</p>
-                        <span class="time">{{ msg.time }}</span>
+                        <p>{{ msg.content }}</p>
+                        <span class="time">{{ formatTime(msg.timestamp) }}</span>
+                        <button class="delete-btn" 
+                                *ngIf="isMyMessage(msg)" 
+                                (click)="deleteMessage(msg.id)"
+                                title="Supprimer">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </div>
                 </div>
+                <div class="no-messages" *ngIf="messages.length === 0">
+                    <p>Aucun message. Commencez la conversation!</p>
+                </div>
+                <div class="typing-indicator" *ngIf="isContactTyping()">
+                    <span>{{ selectedContact?.name }} est en train d'écrire</span>
+                    <span class="dots">
+                        <span>.</span><span>.</span><span>.</span>
+                    </span>
+                </div>
             </div>
+
+            <div class="loading" *ngIf="loading">
+                <i class="fa-solid fa-spinner fa-spin"></i> Chargement...
+            </div>
+
             <div class="input-area">
-                <input type="text" placeholder="Type a message...">
-                <button class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                <input type="text" 
+                       placeholder="Tapez un message..." 
+                       [(ngModel)]="newMessage"
+                       (input)="onMessageInput()"
+                       (keyup.enter)="sendMessage()"
+                       [disabled]="loading || !selectedContact">
+                <button class="send-btn" 
+                        (click)="sendMessage()"
+                        [disabled]="loading || !newMessage.trim() || !selectedContact">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
                 <button class="icon-btn"><i class="fa-solid fa-microphone"></i></button>
                 <button class="icon-btn"><i class="fa-solid fa-video"></i></button>
             </div>

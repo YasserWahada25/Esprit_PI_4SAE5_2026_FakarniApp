@@ -31,7 +31,7 @@
         <module name="Event-Service" />
         <module name="meeting-insights-service" />
       </profile>
-      <profile name="Annotation profile for Post-Service" enabled="true">
+      <profile name="Annotation profile for Chat_Service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -39,6 +39,7 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
         <module name="Post-Service" />
+        <module name="Chat_Service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -48,6 +49,7 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Auth-Service" options="-parameters" />
+      <module name="Chat_Service" options="-parameters" />
       <module name="Eureka-Service" options="-parameters" />
       <module name="Event-Service" options="-parameters" />
       <module name="Gateway-Service" options="-parameters" />

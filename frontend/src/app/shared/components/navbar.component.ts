@@ -27,4 +27,23 @@ export class NavbarComponent {
             }
         }
     }
+
+    onMouseEnter(menuName: string) {
+        // Desktop hover behavior
+        if (window.innerWidth > 992) {
+            this.activeDropdown = menuName;
+        }
+    }
+
+    onMouseLeave() {
+        // Desktop hover behavior
+        if (window.innerWidth > 992) {
+            this.activeDropdown = null;
+        }
+    }
+
+    closeMenu() {
+        this.isMobileMenuOpen = false;
+        this.activeDropdown = null;
+    }
 }

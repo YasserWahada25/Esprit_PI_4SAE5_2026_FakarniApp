@@ -71,16 +71,17 @@
 
                 <!-- Communication Dropdown -->
                 <li class="dropdown" [class.active]="activeDropdown === 'communication'"
-                    (click)="toggleDropdown('communication')">
-                    <a class="nav-link" [class.active]="activeDropdown === 'communication'">
+                    (mouseenter)="onMouseEnter('communication')" (mouseleave)="onMouseLeave()">
+                    <a class="nav-link" [class.active]="activeDropdown === 'communication'"
+                       (click)="toggleDropdown('communication')">
                         COMMUNICATION <i class="fa-solid fa-chevron-down caret"></i>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a routerLink="/communication/messaging" (click)="isMobileMenuOpen = false">Messaging &
+                        <li><a routerLink="/communication/messaging" (click)="closeMenu()">Messaging &
                                 Feed</a></li>
-                        <li><a routerLink="/communication/groups" (click)="isMobileMenuOpen = false">Groups &
+                        <li><a routerLink="/communication/groups" (click)="closeMenu()">Groups &
                                 Support</a></li>
-                        <li><a routerLink="/communication/admin" (click)="isMobileMenuOpen = false">Moderation</a></li>
+                        <li><a routerLink="/communication/admin" (click)="closeMenu()">Moderation</a></li>
                     </ul>
                 </li>
 

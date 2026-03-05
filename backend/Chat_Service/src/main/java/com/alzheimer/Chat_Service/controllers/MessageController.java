@@ -3,6 +3,7 @@ package com.alzheimer.Chat_Service.controllers;
 import com.alzheimer.Chat_Service.dto.MessageRequestDTO;
 import com.alzheimer.Chat_Service.dto.MessageResponseDTO;
 import com.alzheimer.Chat_Service.services.MessageService;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,14 +13,22 @@ import java.util.List;
 public class MessageController {
 
     private final MessageService messageService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public MessageController(MessageService messageService) {
+    public MessageController(MessageService messageService, SimpMessagingTemplate messagingTemplate) {
         this.messageService = messageService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PostMapping("/send")
     public MessageResponseDTO sendMessage(@RequestBody MessageRequestDTO request) {
-        return messageService.saveMessage(request);
+        MessageResponseDTO response = messageService.saveMessage(request);
+        
+        // Envoyer via WebSocket aussi
+        messagingTemplate.convertAndSend("/queue/messages/" + request.getReceiverId(), response);
+        messagingTemplate.convertAndSend("/queue/messages/" + request.getSenderId(), response);
+        
+        return response;
     }
 
     @GetMapping("/conversation")
@@ -32,6 +41,11 @@ public class MessageController {
     @GetMapping("/all")
     public List<MessageResponseDTO> getAllMessages() {
         return messageService.getAllMessages();
+    }
+
+    @GetMapping
+    public String healthCheck() {
+        return "Chat-Service is running! Available endpoints: /all, /send, /conversation";
     }
 
     @PutMapping("/{messageId}")
