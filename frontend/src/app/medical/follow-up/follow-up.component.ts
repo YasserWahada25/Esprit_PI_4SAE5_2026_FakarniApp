@@ -43,7 +43,83 @@ export class FollowUpComponent implements OnInit {
       }
     });
   }
+// ── Nouvelles propriétés viewer ───────────────────────
+viewerAnalyse: AnalyseIRMResponse | null = null;
+viewerZoom       = 1;
+viewerRotation   = 0;
+viewerFlipped    = false;
+viewerContrast   = 100;
+viewerBrightness = 100;
+viewerSaturation = 100;
 
+// ── URL image IRM ─────────────────────────────────────
+// Adaptez selon votre backend :
+// Option A — Spring Boot sert les fichiers :
+getMriImageUrl(nomFichier: string): string {
+  return `http://localhost:8080/api/images/${nomFichier}`;
+}
+// Option B — assets Angular locaux :
+// return `/assets/mri/${nomFichier}`;
+
+onImageError(event: Event): void {
+  const img = event.target as HTMLImageElement;
+  img.src = 'assets/mri-placeholder.png'; // créez ce fichier
+  img.style.opacity = '0.35';
+  img.style.filter = 'grayscale(1)';
+}
+
+// ── Viewer : open / close ─────────────────────────────
+openViewer(analyse: AnalyseIRMResponse): void {
+  this.viewerAnalyse   = analyse;
+  this.viewerZoom      = 1;
+  this.viewerRotation  = 0;
+  this.viewerFlipped   = false;
+  this.viewerContrast  = 100;
+  this.viewerBrightness = 100;
+  this.viewerSaturation = 100;
+}
+closeViewer(): void { this.viewerAnalyse = null; }
+
+// ── Viewer : contrôles ────────────────────────────────
+zoomIn():  void { this.viewerZoom = Math.min(5, +(this.viewerZoom + 0.25).toFixed(2)); }
+zoomOut(): void { this.viewerZoom = Math.max(0.25, +(this.viewerZoom - 0.25).toFixed(2)); }
+rotateImage():      void { this.viewerRotation = (this.viewerRotation + 90) % 360; }
+flipImage():        void { this.viewerFlipped = !this.viewerFlipped; }
+increaseContrast(): void { this.viewerContrast   = Math.min(200, this.viewerContrast + 20); }
+increaseBrightness():void { this.viewerBrightness = Math.min(200, this.viewerBrightness + 20); }
+resetViewer():      void {
+  this.viewerZoom = 1; this.viewerRotation = 0; this.viewerFlipped = false;
+  this.viewerContrast = 100; this.viewerBrightness = 100; this.viewerSaturation = 100;
+}
+
+// ── Viewer : transform & filter CSS ──────────────────
+getViewerTransform(): string {
+  const flip = this.viewerFlipped ? ' scaleX(-1)' : '';
+  return `scale(${this.viewerZoom}) rotate(${this.viewerRotation}deg)${flip}`;
+}
+getViewerFilter(): string {
+  return `contrast(${this.viewerContrast}%) brightness(${this.viewerBrightness}%) saturate(${this.viewerSaturation}%)`;
+}
+
+// ── Gradient par stage ────────────────────────────────
+getStageGradient(p: string): string {
+  return ({
+    Non_Demented:       'linear-gradient(90deg,#0891b2,#06b6d4)',
+    Very_Mild_Demented: 'linear-gradient(90deg,#2563eb,#3b82f6)',
+    Mild_Demented:      'linear-gradient(90deg,#7c3aed,#a78bfa)',
+    Moderate_Demented:  'linear-gradient(90deg,#dc2626,#ef4444)'
+  } as any)[p] || 'linear-gradient(90deg,#64748b,#94a3b8)';
+}
+
+// ── Barres de probabilité ─────────────────────────────
+getProbBars(analyse: AnalyseIRMResponse) {
+  return [
+    { label: 'Non Demented',       value: analyse.probNonDemented,      color: '#0891b2' },
+    { label: 'Very Mild Demented', value: analyse.probVeryMildDemented, color: '#2563eb' },
+    { label: 'Mild Demented',      value: analyse.probMildDemented,     color: '#7c3aed' },
+    { label: 'Moderate Demented',  value: analyse.probModerateDemented, color: '#dc2626' }
+  ];
+}
   openEditModal(analyse: AnalyseIRMResponse): void {
     this.editingAnalyse = analyse;
     this.editForm = {
