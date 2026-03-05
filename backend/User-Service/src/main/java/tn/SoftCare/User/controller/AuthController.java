@@ -34,4 +34,21 @@ public class AuthController {
     public void logout(@Valid @RequestBody RefreshRequest req) {
         authService.logout(req.getRefreshToken());
     }
+
+    // ✅ NEW: forgot password (send email with token)
+    @PostMapping("/forgot-password")
+    @ResponseStatus(HttpStatus.OK)
+    public MessageResponse forgotPassword(@Valid @RequestBody ForgotPasswordRequest req) {
+        authService.forgotPassword(req.getEmail());
+        // ✅ Security: always return same message
+        return new MessageResponse("If the email exists, a reset link has been sent.");
+    }
+
+    // ✅ NEW: reset password (token + new password)
+    @PostMapping("/reset-password")
+    @ResponseStatus(HttpStatus.OK)
+    public MessageResponse resetPassword(@Valid @RequestBody ResetPasswordRequest req) {
+        authService.resetPassword(req.getToken(), req.getNewPassword());
+        return new MessageResponse("Password has been reset successfully.");
+    }
 }
