@@ -1,562 +1,814 @@
-<div class="follow-up-container">
+<div>
 
-  <!-- PATIENT HEADER -->
-  <div class="patient-header">
-    <div class="avatar-pulse">
-      <div class="avatar"><i class="fa-solid fa-user-circle"></i></div>
-      <div class="pulse-ring"></div>
-    </div>
-    <div class="patient-info">
-      <h1>Patient Medical Follow-up</h1>
-      <p>Patient ID: <strong>#{{ patientId }}</strong> · Alzheimer's MRI Monitoring System</p>
-    </div>
-    <button class="btn-refresh" (click)="loadDossier()" [disabled]="isLoading">
-      <i class="fa-solid fa-rotate-right" [class.spinning]="isLoading"></i>
-      {{ isLoading ? 'Loading...' : 'Refresh' }}
-    </button>
-  </div>
+ 
 
-  <!-- TABS -->
-  <div class="tabs-nav">
-    <button [class.active]="activeTab === 'overview'" (click)="activeTab = 'overview'">
-      <i class="fa-solid fa-gauge-high"></i><span>Overview</span>
-    </button>
-    <button [class.active]="activeTab === 'dossier'" (click)="activeTab = 'dossier'">
-      <i class="fa-solid fa-folder-medical"></i><span>Medical Record</span>
-      <span *ngIf="dossier" class="badge">{{ dossier.nombreAnalyses }}</span>
-    </button>
-    <button [class.active]="activeTab === 'stats'" (click)="activeTab = 'stats'">
-      <i class="fa-solid fa-chart-line"></i><span>Statistics</span>
-    </button>
-  </div>
+  <!-- ══════════════════════════════════════════════════
+       MAIN LAYOUT
+  ══════════════════════════════════════════════════ -->
+  <div class="emr-layout">
 
-  <!-- LOADING -->
-  <div *ngIf="isLoading" class="loading-state">
-    <div class="brain-loader"><i class="fa-solid fa-brain"></i></div>
-    <p>Analyzing medical data...</p>
-  </div>
+    <!-- ─────────────────────────────────────────────
+         SIDEBAR
+    ───────────────────────────────────────────── -->
+    <aside class="emr-sidebar">
 
-  <!-- ERROR -->
-  <div *ngIf="!isLoading && errorMessage" class="error-state">
-    <i class="fa-solid fa-exclamation-triangle"></i>
-    <p>{{ errorMessage }}</p>
-    <button class="btn-retry" (click)="loadDossier()">
-      <i class="fa-solid fa-rotate-right"></i> Retry
-    </button>
-  </div>
-
-  <!-- ══════════════════════════════════════════════════ -->
-  <!--   ONGLET 1 — OVERVIEW                             -->
-  <!-- ══════════════════════════════════════════════════ -->
-  <div *ngIf="!isLoading && dossier && activeTab === 'overview'" class="tab-content">
-
-    <!-- ★★★ HERO CARD — Dernier scan (analyses[0] = plus récent après tri desc) ★★★ -->
-    <div class="hero-scan-card" *ngIf="dossier.analyses.length"
-         [ngClass]="getStageCssClass(dossier.analyses[0].prediction)">
-
-      <!-- IMAGE IRM — panneau gauche sombre style DICOM -->
-      <div class="hero-mri-panel">
-        <div class="mri-frame">
-          <img [src]="getMriImageUrl(dossier.analyses[0].nomFichier)"
-               [alt]="dossier.analyses[0].nomFichier"
-               class="mri-image"
-               (error)="onImageError($event)">
-          <div class="mri-scanlines"></div>
-          <div class="mri-overlay-top">
-            <span class="mri-badge"><i class="fa-solid fa-brain"></i> MRI Scan</span>
-            <button class="btn-expand" (click)="openViewer(dossier.analyses[0])" title="Open viewer">
-              <i class="fa-solid fa-expand"></i>
-            </button>
-          </div>
-          <div class="mri-overlay-bottom">
-            <span class="mri-tag-date"><i class="fa-solid fa-calendar-days"></i> {{ formatDate(dossier.analyses[0].dateAnalyse) }}</span>
-            <span class="mri-tag-file"><i class="fa-solid fa-file-image"></i> {{ dossier.analyses[0].nomFichier }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- DÉTAILS — panneau droit -->
-      <div class="hero-details-panel">
-        <div class="hero-tag">
-          <i class="fa-solid fa-star"></i> Latest Analysis
-        </div>
-
-        <div class="hero-diagnosis">
-          <div class="hero-icon" [style.background]="getStageColor(dossier.analyses[0].prediction)">
-            <i [class]="getStageIcon(dossier.analyses[0].prediction)"></i>
-          </div>
+      <!-- Patient card -->
+      <div class="sidebar-patient-card">
+        <div class="spc-avatar-row">
+          <div class="spc-avatar"><i class="fa-solid fa-user-injured"></i></div>
           <div>
-            <div class="hero-stage-label">AI Diagnosis</div>
-            <div class="hero-stage-value" [style.color]="getStageColor(dossier.analyses[0].prediction)">
-              {{ formatPrediction(dossier.analyses[0].prediction) }}
-            </div>
+            <div class="spc-name">Patient #{{ patientId }}</div>
+            <div class="spc-id" *ngIf="dossier">Dossier #{{ dossier.id }}</div>
           </div>
         </div>
-
-        <div class="hero-pills-row">
-          <span class="stage-pill" [ngClass]="getStageCssClass(dossier.analyses[0].prediction)">
-            Stage {{ getStageNumber(dossier.analyses[0].prediction) }}
-          </span>
-          <span class="hero-risk-pill" [ngClass]="getStageCssClass(dossier.analyses[0].prediction)">
-            {{ dossier.analyses[0].niveauRisque }}
-          </span>
-        </div>
-
-        <!-- Confidence meter -->
-        <div class="hero-confidence">
-          <div class="conf-row">
-            <span class="conf-lbl"><i class="fa-solid fa-robot"></i> AI Confidence</span>
-            <span class="conf-num" [style.color]="getStageColor(dossier.analyses[0].prediction)">
-              {{ dossier.analyses[0].confidence | number:'1.1-1' }}%
-            </span>
+        <div class="spc-vitals" *ngIf="dossier">
+          <div class="spv-item">
+            <div class="lbl">Scans</div>
+            <div class="val">{{ dossier.nombreAnalyses }}</div>
           </div>
-          <div class="conf-track">
-            <div class="conf-fill"
-                 [style.width]="dossier.analyses[0].confidence + '%'"
-                 [style.background]="getStageGradient(dossier.analyses[0].prediction)">
-              <div class="conf-glow"></div>
-            </div>
+          <div class="spv-item">
+            <div class="lbl">Stage</div>
+            <div class="val">{{ getStageNumber(dossier.dernierePrediction) }}/4</div>
           </div>
-        </div>
-
-        <!-- Probability distribution -->
-        <div class="hero-probs">
-          <div class="hero-prob-row" *ngFor="let prob of getProbBars(dossier.analyses[0])">
-            <div class="hp-dot" [style.background]="prob.color"></div>
-            <span class="hp-label">{{ prob.label }}</span>
-            <div class="hp-bar">
-              <div [style.width]="(prob.value * 100) + '%'" [style.background]="prob.color"></div>
-            </div>
-            <span class="hp-val" [style.color]="prob.color">{{ (prob.value * 100) | number:'1.0-0' }}%</span>
+          <div class="spv-item">
+            <div class="lbl">Since</div>
+            <div class="val">{{ formatDateShort(dossier.dateCreation) }}</div>
           </div>
-        </div>
-
-        <p class="hero-description" *ngIf="dossier.analyses[0].descriptionRisque">
-          <i class="fa-solid fa-info-circle"></i>
-          {{ dossier.analyses[0].descriptionRisque }}
-        </p>
-
-        <button class="btn-open-viewer" (click)="openViewer(dossier.analyses[0])">
-          <i class="fa-solid fa-microscope"></i> Open MRI Viewer
-        </button>
-      </div>
-    </div>
-
-    <!-- KPI Cards -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-icon kpi-blue"><i class="fa-solid fa-brain"></i></div>
-        <div class="kpi-body">
-          <span class="kpi-label">Total Scans</span>
-          <span class="kpi-value">{{ dossier.nombreAnalyses }}</span>
+          <div class="spv-item">
+            <div class="lbl">Updated</div>
+            <div class="val">{{ formatDateShort(dossier.dateDerniereMaj) }}</div>
+          </div>
         </div>
       </div>
-      <div class="kpi-card" [ngClass]="'kpi-border-' + getStageCssClass(dossier.dernierePrediction)">
-        <div class="kpi-icon" [style.background]="getStageColor(dossier.dernierePrediction)">
-          <i [class]="getStageIcon(dossier.dernierePrediction)"></i>
-        </div>
-        <div class="kpi-body">
-          <span class="kpi-label">Latest Diagnosis</span>
-          <span class="kpi-value small" [style.color]="getStageColor(dossier.dernierePrediction)">
+
+      <!-- Cognitive Gauge -->
+      <div class="sidebar-section" *ngIf="dossier">
+        <div class="ss-title"><i class="fa-solid fa-brain"></i> Cognitive Index</div>
+        <div class="cog-gauge-wrap">
+          <div class="cog-gauge">
+            <svg viewBox="0 0 160 88" xmlns="http://www.w3.org/2000/svg">
+              <!-- Track (semicircle) -->
+              <path d="M 20 80 A 60 60 0 0 1 140 80"
+                    class="gauge-track"/>
+              <!-- Fill -->
+              <path d="M 20 80 A 60 60 0 0 1 140 80"
+                    class="gauge-fill"
+                    [attr.stroke]="getStageColor(dossier.dernierePrediction)"
+                    [attr.stroke-dasharray]="'188'"
+                    [attr.stroke-dashoffset]="getGaugeDashOffset()"/>
+            </svg>
+            <div class="gauge-center-text">
+              <span class="gauge-score" [style.color]="getStageColor(dossier.dernierePrediction)">
+                {{ getCurrentMmseScore() }}
+              </span>
+              <span class="gauge-max">/30</span>
+            </div>
+          </div>
+          <div class="gauge-labels">
+            <span>0</span><span>MMSE</span><span>30</span>
+          </div>
+          <span class="cog-stage-label"
+                [class]="getStagePillClass(dossier.dernierePrediction)"
+                [style.color]="getStageColor(dossier.dernierePrediction)"
+                [style.background]="getStageColor(dossier.dernierePrediction) + '18'"
+                [style.border]="'1px solid ' + getStageColor(dossier.dernierePrediction) + '44'">
             {{ formatPrediction(dossier.dernierePrediction) }}
           </span>
-          <span class="stage-pill" [ngClass]="getStageCssClass(dossier.dernierePrediction)">
-            Stage {{ getStageNumber(dossier.dernierePrediction) }} — {{ dossier.dernierNiveauRisque }}
-          </span>
         </div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-icon" [style.background]="cognitiveStatusColor">
-          <i class="fa-solid fa-arrow-trend-up"></i>
+
+      <!-- Trend Sparkline -->
+      <div class="sidebar-section" *ngIf="dossier && mmseHistory.length > 1">
+        <div class="ss-title"><i class="fa-solid fa-chart-line"></i> Score Trend</div>
+        <div class="trend-sparkline">
+          <div *ngFor="let m of mmseHistory"
+               class="spark-bar"
+               [style.height]="getBarHeight(m.score)"
+               [style.background]="m.color"
+               [attr.data-tip]="m.date + ': ' + m.score"></div>
         </div>
-        <div class="kpi-body">
-          <span class="kpi-label">Cognitive Trend</span>
-          <span class="kpi-value small" [style.color]="cognitiveStatusColor">{{ cognitiveStatus }}</span>
+        <div class="trend-label" [style.color]="cognitiveStatusColor">
+          <span class="trend-arrow">{{ cognitiveStatus === 'Improving' ? '↗' : cognitiveStatus === 'Declining' ? '↘' : '→' }}</span>
+          {{ cognitiveStatus }}
         </div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-icon kpi-slate"><i class="fa-solid fa-calendar-check"></i></div>
-        <div class="kpi-body">
-          <span class="kpi-label">Last Update</span>
-          <span class="kpi-value small">{{ formatDate(dossier.dateDerniereMaj) }}</span>
+
+      <!-- Navigation -->
+      <nav class="sidebar-nav">
+        <button class="snav-item" [class.active]="activeTab==='overview'" (click)="activeTab='overview'">
+          <i class="fa-solid fa-gauge-high"></i> Overview
+        </button>
+        <button class="snav-item" [class.active]="activeTab==='dossier'" (click)="activeTab='dossier'">
+          <i class="fa-solid fa-folder-medical"></i> Medical Record
+          <span class="snav-count" *ngIf="dossier">{{ dossier.nombreAnalyses }}</span>
+        </button>
+        <button class="snav-item" [class.active]="activeTab==='compare'" (click)="activeTab='compare'">
+          <i class="fa-solid fa-code-compare"></i> Compare Scans
+        </button>
+        <button class="snav-item" [class.active]="activeTab==='stats'" (click)="activeTab='stats'">
+          <i class="fa-solid fa-chart-column"></i> Statistics
+        </button>
+      </nav>
+
+      <!-- Quick actions -->
+      <div class="sidebar-actions" *ngIf="dossier">
+        <button class="btn-side-action" (click)="openViewer(dossier.analyses[0])" *ngIf="dossier.analyses.length">
+          <i class="fa-solid fa-microscope"></i> Open Latest Scan
+        </button>
+        <button class="btn-side-action" (click)="exportDossier()">
+          <i class="fa-solid fa-file-export"></i> Export Dossier
+        </button>
+        <button class="btn-side-action" (click)="printReport()">
+          <i class="fa-solid fa-print"></i> Print Report
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- ─────────────────────────────────────────────
+         MAIN CONTENT
+    ───────────────────────────────────────────── -->
+    <main class="emr-main">
+
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="loading-overlay">
+        <div class="clinical-spinner"></div>
+        <p>Loading patient dossier...</p>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="!isLoading && errorMessage" class="error-panel">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <p>{{ errorMessage }}</p>
+        <button class="btn-retry" (click)="loadDossier()"><i class="fa-solid fa-rotate-right"></i> Retry</button>
+      </div>
+
+      <!-- ════════════════════════════════════════
+           TAB: OVERVIEW
+      ════════════════════════════════════════ -->
+      <div *ngIf="!isLoading && dossier && activeTab === 'overview'" class="tab-content">
+
+        <!-- Clinical Alert -->
+        <div *ngIf="showAlert" class="clinical-alert" [class]="'stage-' + getStageNumber(dossier.dernierePrediction)">
+          <i class="alert-icon" [class]="getStageIcon(dossier.dernierePrediction)"></i>
+          <div class="alert-body">
+            <strong>{{ getAlertTitle() }}</strong>
+            {{ dossier.analyses[0]?.descriptionRisque || getAlertDescription() }}
+          </div>
+          <button class="alert-dismiss" (click)="showAlert=false"><i class="fa-solid fa-times"></i></button>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- ══════════════════════════════════════════════════ -->
-  <!--   ONGLET 2 — MEDICAL RECORD (Timeline + images)   -->
-  <!-- ══════════════════════════════════════════════════ -->
-  <div *ngIf="!isLoading && dossier && activeTab === 'dossier'" class="tab-content">
+        <!-- KPI Row -->
+        <div class="kpi-row">
+          <div class="kpi-card k-total">
+            <div class="kpi-icon" style="background:#818cf8"><i class="fa-solid fa-brain"></i></div>
+            <div class="kpi-label">Total Scans</div>
+            <div class="kpi-value">{{ dossier.nombreAnalyses }}</div>
+            <div class="kpi-sub">Since {{ formatDateShort(dossier.dateCreation) }}</div>
+          </div>
 
-    <div class="dossier-summary">
-      <div class="ds-item"><span class="label">Dossier ID</span><span class="value">#{{ dossier.id }}</span></div>
-      <div class="ds-item"><span class="label">Patient ID</span><span class="value">#{{ dossier.patientId }}</span></div>
-      <div class="ds-item"><span class="label">Created</span><span class="value">{{ formatDate(dossier.dateCreation) }}</span></div>
-      <div class="ds-item"><span class="label">Total Scans</span><span class="value highlight">{{ dossier.nombreAnalyses }}</span></div>
-    </div>
-
-    <div class="section-card">
-      <div class="card-header">
-        <h3><i class="fa-solid fa-timeline"></i> Analysis History</h3>
-        <span class="count">{{ dossier.analyses.length }} scan(s)</span>
-      </div>
-
-      <div class="timeline">
-        <div *ngFor="let analyse of dossier.analyses; let i = index"
-             class="timeline-item" [ngClass]="getStageCssClass(analyse.prediction)">
-
-          <!-- Dot avec numéro -->
-          <div class="tl-connector">
-            <div class="tl-dot" [style.background]="getStageColor(analyse.prediction)">
-              <i [class]="getStageIcon(analyse.prediction)"></i>
+          <div class="kpi-card k-stage" [style.--stage-color]="getStageColor(dossier.dernierePrediction)">
+            <div class="kpi-icon" [style.background]="getStageColor(dossier.dernierePrediction)">
+              <i [class]="getStageIcon(dossier.dernierePrediction)"></i>
             </div>
-            <div class="tl-line" *ngIf="i < dossier.analyses.length - 1"
-                 [style.background]="'linear-gradient(' + getStageColor(analyse.prediction) + ', ' + getStageColor(dossier.analyses[i+1].prediction) + ')'">
+            <div class="kpi-label">Current Stage</div>
+            <div class="kpi-value sm" [style.color]="getStageColor(dossier.dernierePrediction)">
+              Stage {{ getStageNumber(dossier.dernierePrediction) }}
+            </div>
+            <div class="kpi-sub">{{ dossier.dernierNiveauRisque }} Risk</div>
+          </div>
+
+          <div class="kpi-card k-trend" [style.--trend-color]="cognitiveStatusColor">
+            <div class="kpi-icon" [style.background]="cognitiveStatusColor">
+              <i class="fa-solid fa-arrow-trend-{{ cognitiveStatus === 'Declining' ? 'down' : 'up' }}"></i>
+            </div>
+            <div class="kpi-label">Cognitive Trend</div>
+            <div class="kpi-value sm" [style.color]="cognitiveStatusColor">{{ cognitiveStatus }}</div>
+            <div class="kpi-sub">vs. previous scan</div>
+          </div>
+
+          <div class="kpi-card k-date">
+            <div class="kpi-icon" style="background:#243447"><i class="fa-solid fa-calendar-check"></i></div>
+            <div class="kpi-label">Last Updated</div>
+            <div class="kpi-value sm">{{ formatDateShort(dossier.dateDerniereMaj) }}</div>
+            <div class="kpi-sub">{{ formatDateTime(dossier.dateDerniereMaj) }}</div>
+          </div>
+        </div>
+
+        <!-- Latest Scan + Recommendations -->
+        <div class="latest-scan-grid" *ngIf="dossier.analyses.length">
+
+          <!-- Scan Result Card -->
+          <div class="scan-result-card">
+            <div class="src-header">
+              <div class="src-header-left">
+                <span class="src-header-tag">Latest Analysis</span>
+                <span class="src-date"><i class="fa-solid fa-calendar"></i> {{ formatDateTime(dossier.analyses[0].dateAnalyse) }}</span>
+              </div>
+              <span class="stage-pill" [class]="getStagePillClass(dossier.analyses[0].prediction)">
+                Stage {{ getStageNumber(dossier.analyses[0].prediction) }} — {{ dossier.analyses[0].niveauRisque }}
+              </span>
+            </div>
+
+            <div class="src-body">
+              <!-- MRI Panel -->
+              <div class="src-mri-panel" (click)="openViewer(dossier.analyses[0])">
+                <img [src]="getMriImageUrl(dossier.analyses[0].nomFichier)"
+                     [alt]="dossier.analyses[0].nomFichier"
+                     class="src-mri-img"
+                     (error)="onImageError($event)">
+                <div class="mri-scanlines"></div>
+                <div class="mri-overlay-corner"><i class="fa-solid fa-brain"></i> MRI · DICOM</div>
+                <button class="mri-expand-btn" (click)="openViewer(dossier.analyses[0]); $event.stopPropagation()">
+                  <i class="fa-solid fa-expand"></i>
+                </button>
+                <div class="mri-bottom-strip">
+                  <div class="mri-conf-track">
+                    <div class="mri-conf-fill"
+                         [style.width]="dossier.analyses[0].confidence + '%'"
+                         [style.background]="getStageColor(dossier.analyses[0].prediction)"></div>
+                  </div>
+                  <div class="mri-filename">{{ dossier.analyses[0].nomFichier }}</div>
+                </div>
+              </div>
+
+              <!-- Details -->
+              <div class="src-details">
+                <div class="diag-headline">
+                  <div class="diag-icon" [style.background]="getStageColor(dossier.analyses[0].prediction)">
+                    <i [class]="getStageIcon(dossier.analyses[0].prediction)"></i>
+                  </div>
+                  <div class="diag-texts">
+                    <div class="diag-stage">AI Diagnosis · Model v2.4</div>
+                    <div class="diag-name" [style.color]="getStageColor(dossier.analyses[0].prediction)">
+                      {{ formatPrediction(dossier.analyses[0].prediction) }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="conf-meter">
+                  <div class="conf-meter-row">
+                    <span class="conf-meter-label"><i class="fa-solid fa-robot"></i> Model Confidence</span>
+                    <span class="conf-meter-value" [style.color]="getStageColor(dossier.analyses[0].prediction)">
+                      {{ dossier.analyses[0].confidence | number:'1.1-1' }}%
+                    </span>
+                  </div>
+                  <div class="conf-meter-track">
+                    <div class="conf-meter-fill"
+                         [style.width]="dossier.analyses[0].confidence + '%'"
+                         [style.background]="getStageColor(dossier.analyses[0].prediction)"></div>
+                  </div>
+                </div>
+
+                <div class="prob-table">
+                  <div class="prob-tbl-row" *ngFor="let p of getProbBars(dossier.analyses[0])">
+                    <div class="ptd" [style.background]="p.color"></div>
+                    <span class="ptlbl">{{ p.label }}</span>
+                    <div class="ptbar"><div [style.width]="(p.value*100)+'%'" [style.background]="p.color"></div></div>
+                    <span class="ptval" [style.color]="p.color">{{ (p.value*100) | number:'1.0-0' }}%</span>
+                  </div>
+                </div>
+
+                <p class="clinical-desc"
+                   [style.border-left-color]="getStageColor(dossier.analyses[0].prediction)"
+                   *ngIf="dossier.analyses[0].descriptionRisque">
+                  {{ dossier.analyses[0].descriptionRisque }}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div class="tl-card">
-
-            <!-- ★ IMAGE IRM en haut de chaque card ★ -->
-            <div class="tl-mri-section">
-              <div class="tl-mri-wrapper" (click)="openViewer(analyse)">
-                <img [src]="getMriImageUrl(analyse.nomFichier)"
-                     [alt]="analyse.nomFichier"
-                     class="tl-mri-img"
-                     (error)="onImageError($event)">
-                <div class="tl-mri-scanlines"></div>
-                <div class="tl-mri-overlay">
-                  <i class="fa-solid fa-expand"></i>
-                  <span>Open Viewer</span>
-                </div>
-                <div class="tl-mri-stage-badge" [style.background]="getStageColor(analyse.prediction)">
-                  Stage {{ getStageNumber(analyse.prediction) }}
-                </div>
-                <div class="tl-mri-conf-bar">
-                  <div [style.width]="analyse.confidence + '%'"
-                       [style.background]="getStageGradient(analyse.prediction)"></div>
-                </div>
+          <!-- Recommendations Panel -->
+          <div class="recommendations-card">
+            <div class="src-header">
+              <div class="src-header-left">
+                <span class="src-header-tag">Clinical Recommendations</span>
               </div>
-
-              <!-- Infos rapides à côté de l'image -->
-              <div class="tl-quick-info">
-                <div class="tl-prediction" [style.color]="getStageColor(analyse.prediction)">
-                  <i [class]="getStageIcon(analyse.prediction)"></i>
-                  {{ formatPrediction(analyse.prediction) }}
-                  <span *ngIf="i === 0" class="latest-tag">Latest</span>
+              <i class="fa-solid fa-notes-medical" style="color:var(--teal); font-size:.85rem;"></i>
+            </div>
+            <div class="rec-card-inner">
+              <div class="rec-item" *ngFor="let rec of getRecommendations(dossier.analyses[0].prediction)">
+                <div class="rec-icon-box" [style.background]="rec.color + '18'" [style.color]="rec.color">
+                  <i [class]="rec.icon"></i>
                 </div>
-                <span class="stage-pill" [ngClass]="getStageCssClass(analyse.prediction)">
-                  Stage {{ getStageNumber(analyse.prediction) }} · {{ analyse.niveauRisque }}
-                </span>
-                <div class="tl-conf-inline">
-                  <i class="fa-solid fa-robot"></i>
-                  <span>{{ analyse.confidence | number:'1.1-1' }}% confidence</span>
+                <div class="rec-body">
+                  <strong>{{ rec.title }}</strong>
+                  <p>{{ rec.detail }}</p>
                 </div>
-                <div class="tl-date-inline">
-                  <i class="fa-solid fa-calendar"></i>
-                  <span>{{ formatDateTime(analyse.dateAnalyse) }}</span>
-                </div>
-                <div class="tl-filename-inline">
-                  <i class="fa-solid fa-file-image"></i>
-                  <span>{{ analyse.nomFichier }}</span>
-                </div>
-                <div class="tl-actions">
-                  <button class="btn-icon view" (click)="openViewer(analyse)" title="View MRI">
-                    <i class="fa-solid fa-eye"></i>
-                  </button>
-                  <button class="btn-icon edit" (click)="openEditModal(analyse)" title="Edit">
-                    <i class="fa-solid fa-edit"></i>
-                  </button>
-                  <button class="btn-icon delete" (click)="deleteAnalyse(analyse.id, analyse.nomFichier)" title="Delete">
-                    <i class="fa-solid fa-trash"></i>
-                  </button>
-                </div>
+                <span class="rec-priority"
+                      [style.background]="rec.color + '18'"
+                      [style.color]="rec.color">{{ rec.priority }}</span>
               </div>
             </div>
 
-            <!-- Prob mini bars -->
-            <div class="tl-probs">
-              <div class="prob-mini" *ngFor="let p of [
-                {label: 'Non Demented', val: analyse.probNonDemented,      color: '#0891b2'},
-                {label: 'Very Mild',    val: analyse.probVeryMildDemented, color: '#2563eb'},
-                {label: 'Mild',         val: analyse.probMildDemented,     color: '#7c3aed'},
-                {label: 'Moderate',     val: analyse.probModerateDemented, color: '#dc2626'}
-              ]">
-                <div class="pm-dot" [style.background]="p.color"></div>
-                <span>{{ p.label }}</span>
-                <div class="mini-bar"><div [style.width]="(p.val * 100) + '%'" [style.background]="p.color"></div></div>
-                <span [style.color]="p.color">{{ (p.val * 100) | number:'1.0-0' }}%</span>
+            <!-- Doctor Note if exists -->
+            <div *ngIf="dossier.analyses[0].conseilMedecin" style="padding:.75rem 1rem; border-top: 1px solid var(--border-soft);">
+              <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:800;margin-bottom:.5rem;display:flex;gap:.35rem;align-items:center;">
+                <i class="fa-solid fa-user-doctor" style="color:var(--teal)"></i> Doctor's Note
               </div>
+              <p style="font-size:.8rem;color:var(--text-mid);line-height:1.6;">{{ dossier.analyses[0].conseilMedecin }}</p>
             </div>
+          </div>
+        </div>
 
-            <p class="tl-description" *ngIf="analyse.descriptionRisque">
-              {{ analyse.descriptionRisque }}
-            </p>
+      </div><!-- /overview -->
 
-            <div *ngIf="analyse.conseilMedecin" class="tl-conseil">
-              <i class="fa-solid fa-user-doctor"></i>
-              <div><strong>Doctor's Advice</strong><p>{{ analyse.conseilMedecin }}</p></div>
+      <!-- ════════════════════════════════════════
+           TAB: MEDICAL RECORD
+      ════════════════════════════════════════ -->
+      <div *ngIf="!isLoading && dossier && activeTab === 'dossier'" class="tab-content">
+
+        <!-- Dossier meta strip -->
+        <div class="dossier-meta-strip">
+          <div class="dms-item"><i class="fa-solid fa-folder-medical"></i> Dossier <strong>#{{ dossier.id }}</strong></div>
+          <div class="dms-sep"></div>
+          <div class="dms-item"><i class="fa-solid fa-user"></i> Patient <strong>#{{ dossier.patientId }}</strong></div>
+          <div class="dms-sep"></div>
+          <div class="dms-item"><i class="fa-solid fa-calendar-plus"></i> Created <strong>{{ formatDate(dossier.dateCreation) }}</strong></div>
+          <div class="dms-sep"></div>
+          <div class="dms-item"><i class="fa-solid fa-brain"></i> <strong>{{ dossier.nombreAnalyses }}</strong> scans recorded</div>
+          <div class="dms-sep"></div>
+          <div class="dms-item"><i class="fa-solid fa-clock-rotate-left"></i> Latest <strong>{{ formatDate(dossier.dateDerniereMaj) }}</strong></div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline-container">
+          <div class="timeline-header">
+            <div class="tl-header-title">
+              <i class="fa-solid fa-timeline"></i>
+              Analysis Timeline
+              <span class="tl-count-badge">{{ dossier.analyses.length }}</span>
             </div>
-            <div *ngIf="analyse.notesCliniques" class="tl-notes">
-              <i class="fa-solid fa-notes-medical"></i>
-              <div><strong>Clinical Notes</strong><p>{{ analyse.notesCliniques }}</p></div>
-            </div>
-
-            <div class="tl-meta">
-              <span *ngIf="i < dossier.analyses.length - 1" class="trend">{{ getTrend(i) }}</span>
-              <span *ngIf="analyse.dateModification" class="modified">
-                <i class="fa-solid fa-clock"></i> Modified: {{ formatDate(analyse.dateModification) }}
+            <div style="display:flex;gap:.4rem;align-items:center;">
+              <span style="font-size:.7rem;color:var(--text-muted);">
+                <i class="fa-solid fa-code-compare" style="color:var(--teal);"></i>
+                Select 2 scans to compare
               </span>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- ══════════════════════════════════════════════════ -->
-  <!--   ONGLET 3 — STATISTICS                           -->
-  <!-- ══════════════════════════════════════════════════ -->
-  <div *ngIf="!isLoading && dossier && activeTab === 'stats'" class="tab-content">
-    <div class="section-card">
-      <div class="card-header">
-        <h3><i class="fa-solid fa-chart-column"></i> MMSE Score Evolution</h3>
-        <small>Mini-Mental State Exam (estimated from predictions)</small>
-      </div>
-      <div *ngIf="!mmseHistory.length" class="no-data">Not enough data for statistics.</div>
-      <div *ngIf="mmseHistory.length" class="bar-chart">
-        <div class="bars">
-          <div *ngFor="let m of mmseHistory" class="bar-col">
-            <div class="bar-value">{{ m.score }}</div>
-            <div class="bar-wrapper">
-              <div class="bar" [style.height]="getBarHeight(m.score)" [style.background]="m.color"></div>
-            </div>
-            <div class="bar-label">{{ m.date }}</div>
+          <div class="timeline-entries">
+            <div *ngFor="let analyse of dossier.analyses; let i = index"
+                 class="tl-entry">
+
+              <!-- Gutter -->
+              <div class="tl-gutter">
+                <div class="tl-dot-outer" [style.background]="getStageColor(analyse.prediction)">
+                  <i [class]="getStageIcon(analyse.prediction)"></i>
+                </div>
+                <div class="tl-vline" *ngIf="i < dossier.analyses.length - 1"
+                     [style.background]="getStageColor(analyse.prediction)"></div>
+              </div>
+
+              <!-- Card -->
+              <div class="tl-body">
+                <div class="tl-entry-card">
+
+                  <!-- Header -->
+                  <div class="tl-entry-header">
+                    <div class="tl-entry-title-row">
+                      <div class="tl-entry-title" [style.color]="getStageColor(analyse.prediction)">
+                        <i [class]="getStageIcon(analyse.prediction)"></i>
+                        {{ formatPrediction(analyse.prediction) }}
+                        <span *ngIf="i === 0" class="latest-tag">LATEST</span>
+                      </div>
+                      <span class="stage-pill" [class]="getStagePillClass(analyse.prediction)">
+                        Stage {{ getStageNumber(analyse.prediction) }}
+                      </span>
+                    </div>
+                    <div class="tl-entry-meta">
+                      <span>{{ formatDateTime(analyse.dateAnalyse) }}</span>
+                      <span>{{ analyse.confidence | number:'1.1-1' }}% confidence</span>
+                    </div>
+                    <div class="tl-entry-actions">
+                      <button class="btn-icon compare-toggle"
+                              [class.selected]="isSelectedForCompare(analyse.id)"
+                              (click)="toggleCompareSelection(analyse)"
+                              title="Select for comparison">
+                        <i class="fa-solid fa-code-compare"></i>
+                      </button>
+                      <button class="btn-icon view" (click)="openViewer(analyse)" title="View MRI"><i class="fa-solid fa-eye"></i></button>
+                      <button class="btn-icon edit" (click)="openEditModal(analyse)" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                      <button class="btn-icon delete" (click)="deleteAnalyse(analyse.id, analyse.nomFichier)" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                  </div>
+
+                  <!-- Body: MRI + Details -->
+                  <div class="tl-entry-body">
+
+                    <!-- MRI Thumb -->
+                    <div class="tl-mri-thumb" (click)="openViewer(analyse)">
+                      <img [src]="getMriImageUrl(analyse.nomFichier)"
+                           [alt]="analyse.nomFichier"
+                           class="tl-mri-img"
+                           (error)="onImageError($event)">
+                      <div class="tl-mri-hover-overlay">
+                        <i class="fa-solid fa-expand"></i> Open Viewer
+                      </div>
+                      <div class="tl-mri-stage-dot" [style.background]="getStageColor(analyse.prediction)"></div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="tl-entry-details">
+                      <div class="tl-mini-probs">
+                        <div class="tl-prob-mini" *ngFor="let p of [
+                          {l:'Non Demented', v:analyse.probNonDemented,      c:'#38bdf8'},
+                          {l:'Very Mild',    v:analyse.probVeryMildDemented, c:'#818cf8'},
+                          {l:'Mild',         v:analyse.probMildDemented,     c:'#c084fc'},
+                          {l:'Moderate',     v:analyse.probModerateDemented, c:'#fb7185'}
+                        ]">
+                          <div class="tpm-dot" [style.background]="p.c"></div>
+                          <span class="tpm-lbl">{{ p.l }}</span>
+                          <div class="tpm-bar"><div [style.width]="(p.v*100)+'%'" [style.background]="p.c"></div></div>
+                          <span class="tpm-val" [style.color]="p.c">{{ (p.v*100) | number:'1.0-0' }}%</span>
+                        </div>
+                      </div>
+
+                      <!-- Trend badge -->
+                      <span *ngIf="i < dossier.analyses.length - 1"
+                            class="tl-trend-badge"
+                            [style.background]="getTrendColor(i) + '18'"
+                            [style.color]="getTrendColor(i)">
+                        {{ getTrend(i) }}
+                      </span>
+
+                      <!-- Notes -->
+                      <div *ngIf="analyse.conseilMedecin || analyse.notesCliniques" class="tl-notes-block">
+                        <span class="nb-title"><i class="fa-solid fa-notes-medical"></i> Clinical Notes</span>
+                        <p *ngIf="analyse.conseilMedecin">{{ analyse.conseilMedecin }}</p>
+                        <p *ngIf="analyse.notesCliniques" style="margin-top:.2rem;opacity:.75">{{ analyse.notesCliniques }}</p>
+                      </div>
+
+                      <div class="tl-detail-row" *ngIf="analyse.nomFichier">
+                        <span class="lbl"><i class="fa-solid fa-file-image" style="color:var(--teal)"></i> File</span>
+                        <span class="val" style="font-size:.68rem;word-break:break-all;">{{ analyse.nomFichier }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div><!-- /ngFor analyses -->
           </div>
         </div>
-        <div class="chart-legend">
-          <span><span class="dot" style="background:#0891b2"></span> Stage I — Normal (24–30)</span>
-          <span><span class="dot" style="background:#2563eb"></span> Stage II — Very Mild (18–23)</span>
-          <span><span class="dot" style="background:#7c3aed"></span> Stage III — Mild (10–17)</span>
-          <span><span class="dot" style="background:#dc2626"></span> Stage IV — Moderate (&lt;10)</span>
-        </div>
-      </div>
-    </div>
 
-    <div class="section-card">
-      <div class="card-header">
-        <h3><i class="fa-solid fa-chart-pie"></i> Stage Distribution</h3>
-        <small>Proportion of each cognitive stage across all analyses</small>
-      </div>
-      <div *ngIf="!stageDistribution.length" class="no-data">Not enough data.</div>
-      <div *ngIf="stageDistribution.length" class="dist-chart">
-        <div *ngFor="let s of stageDistribution" class="dist-row">
-          <div class="dist-label-group">
-            <i [class]="s.icon" [style.color]="s.color"></i>
-            <span class="dist-label">{{ s.label }}</span>
-          </div>
-          <div class="dist-bar"><div [style.width]="s.pct + '%'" [style.background]="s.color"></div></div>
-          <span class="dist-value">{{ s.count }} ({{ s.pct }}%)</span>
-        </div>
-      </div>
-    </div>
+      </div><!-- /dossier -->
 
-    <div class="section-card">
-      <div class="card-header"><h3><i class="fa-solid fa-list-check"></i> Summary</h3></div>
-      <div class="summary-stats">
-        <div class="stat-row"><span>Total Analyses</span><span class="value">{{ dossier.nombreAnalyses }}</span></div>
-        <div class="stat-row">
-          <span>Latest Diagnosis</span>
-          <span class="value" [style.color]="getStageColor(dossier.dernierePrediction)">{{ formatPrediction(dossier.dernierePrediction) }}</span>
-        </div>
-        <div class="stat-row">
-          <span>Cognitive Stage</span>
-          <span class="stage-pill" [ngClass]="getStageCssClass(dossier.dernierePrediction)">
-            Stage {{ getStageNumber(dossier.dernierePrediction) }} — {{ dossier.dernierNiveauRisque }}
+      <!-- ════════════════════════════════════════
+           TAB: COMPARE
+      ════════════════════════════════════════ -->
+      <div *ngIf="!isLoading && dossier && activeTab === 'compare'" class="tab-content">
+
+        <div class="compare-instruction">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>
+            Select <strong>2 scans</strong> from the Medical Record tab using the compare button
+            <i class="fa-solid fa-code-compare"></i>, or pick below.
           </span>
         </div>
-        <div class="stat-row">
-          <span>Cognitive Trend</span>
-          <span class="value" [style.color]="cognitiveStatusColor">{{ cognitiveStatus }}</span>
-        </div>
-        <div class="stat-row"><span>Record Since</span><span class="value">{{ formatDate(dossier.dateCreation) }}</span></div>
-      </div>
-    </div>
-  </div>
 
-  <!-- ══════════════════════════════════════════════════ -->
-  <!--   VIEWER IRM INTERACTIF (zoom + contraste)        -->
-  <!-- ══════════════════════════════════════════════════ -->
+        <!-- Scan selector -->
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;">
+          <span style="font-size:.78rem;font-weight:700;color:var(--text-muted);">SELECT SCANS:</span>
+          <button *ngFor="let a of dossier.analyses; let i=index"
+                  (click)="toggleCompareSelection(a)"
+                  class="btn-sm"
+                  [class.active]="isSelectedForCompare(a.id)">
+            <i [class]="getStageIcon(a.prediction)" [style.color]="getStageColor(a.prediction)"></i>
+            {{ shortDate(a.dateAnalyse) }}
+            <span *ngIf="isSelectedForCompare(a.id)">✓</span>
+          </button>
+        </div>
+
+        <!-- Compare Panel -->
+        <div *ngIf="compareSelection.length === 2">
+          <div class="compare-panel">
+            <div class="compare-scan-card" *ngFor="let a of compareSelection; let ci=index">
+              <div class="compare-scan-header">
+                <span [style.color]="getStageColor(a.prediction)">
+                  <i [class]="getStageIcon(a.prediction)"></i>
+                  {{ formatPrediction(a.prediction) }}
+                </span>
+                <span style="font-size:.72rem;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;">
+                  {{ formatDate(a.dateAnalyse) }}
+                </span>
+              </div>
+              <img [src]="getMriImageUrl(a.nomFichier)"
+                   [alt]="a.nomFichier"
+                   class="compare-mri-img"
+                   (error)="onImageError($event)">
+              <div class="compare-details">
+                <span class="stage-pill" [class]="getStagePillClass(a.prediction)">
+                  Stage {{ getStageNumber(a.prediction) }} — {{ a.niveauRisque }}
+                </span>
+                <div class="conf-meter" style="margin-top:.4rem">
+                  <div class="conf-meter-row">
+                    <span class="conf-meter-label">Confidence</span>
+                    <span class="conf-meter-value" [style.color]="getStageColor(a.prediction)">{{ a.confidence | number:'1.1-1' }}%</span>
+                  </div>
+                  <div class="conf-meter-track">
+                    <div class="conf-meter-fill" [style.width]="a.confidence+'%'" [style.background]="getStageColor(a.prediction)"></div>
+                  </div>
+                </div>
+                <div class="prob-table">
+                  <div class="prob-tbl-row" *ngFor="let p of getProbBars(a)">
+                    <div class="ptd" [style.background]="p.color"></div>
+                    <span class="ptlbl">{{ p.label }}</span>
+                    <div class="ptbar"><div [style.width]="(p.value*100)+'%'" [style.background]="p.color"></div></div>
+                    <span class="ptval" [style.color]="p.color">{{ (p.value*100) | number:'1.0-0' }}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Diff table -->
+          <div class="compare-diff-bar">
+            <div class="compare-diff-title"><i class="fa-solid fa-arrows-left-right"></i> Delta Analysis</div>
+            <div class="diff-row" style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding-bottom:.6rem;border-bottom:2px solid var(--border);">
+              <span>Metric</span><span style="text-align:center">Scan A</span><span style="text-align:center">→</span><span style="text-align:center">Scan B</span><span style="text-align:right">Change</span>
+            </div>
+            <div class="diff-row" *ngFor="let d of getCompareDiff()">
+              <span class="diff-lbl">{{ d.label }}</span>
+              <span class="diff-val" [style.color]="d.colorA">{{ d.valA }}</span>
+              <span class="diff-arrow">→</span>
+              <span class="diff-val" [style.color]="d.colorB">{{ d.valB }}</span>
+              <span class="diff-change" [class]="d.changeClass">{{ d.change }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="compareSelection.length < 2" class="no-data">
+          Select exactly 2 scans above to see the comparison.
+        </div>
+
+      </div><!-- /compare -->
+
+      <!-- ════════════════════════════════════════
+           TAB: STATISTICS
+      ════════════════════════════════════════ -->
+      <div *ngIf="!isLoading && dossier && activeTab === 'stats'" class="tab-content">
+
+        <div class="stats-grid">
+
+          <!-- MMSE Chart -->
+          <div class="stats-card full-width">
+            <div class="sc-header">
+              <div class="sc-title"><i class="fa-solid fa-chart-column"></i> MMSE Score Evolution</div>
+              <span class="sc-sub">Mini-Mental State Examination — estimated from AI predictions</span>
+            </div>
+            <div *ngIf="!mmseHistory.length" class="no-data">Not enough data.</div>
+            <div *ngIf="mmseHistory.length" class="mmse-chart">
+              <div class="mmse-bars">
+                <div *ngFor="let m of mmseHistory" class="mmse-col">
+                  <div class="mmse-col-val" [style.color]="m.color">{{ m.score }}</div>
+                  <div class="mmse-col-bar-wrap">
+                    <div class="mmse-bar" [style.height]="getBarHeight(m.score)" [style.background]="m.color"></div>
+                  </div>
+                  <div class="mmse-col-date">{{ m.date }}</div>
+                </div>
+              </div>
+              <div class="chart-legend">
+                <span><span class="cleg-dot" style="background:#38bdf8"></span> Stage I — Normal (24–30)</span>
+                <span><span class="cleg-dot" style="background:#818cf8"></span> Stage II — Very Mild (18–23)</span>
+                <span><span class="cleg-dot" style="background:#c084fc"></span> Stage III — Mild (10–17)</span>
+                <span><span class="cleg-dot" style="background:#fb7185"></span> Stage IV — Moderate (&lt;10)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Distribution -->
+          <div class="stats-card">
+            <div class="sc-header">
+              <div class="sc-title"><i class="fa-solid fa-chart-pie"></i> Stage Distribution</div>
+            </div>
+            <div *ngIf="!stageDistribution.length" class="no-data">No data.</div>
+            <div *ngIf="stageDistribution.length" class="dist-chart">
+              <div class="dist-row-item" *ngFor="let s of stageDistribution">
+                <div class="dist-lbl"><i [class]="s.icon" [style.color]="s.color"></i> {{ s.label }}</div>
+                <div class="dist-bar"><div [style.width]="s.pct+'%'" [style.background]="s.color"></div></div>
+                <span class="dist-val">{{ s.count }} · {{ s.pct }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="stats-card">
+            <div class="sc-header">
+              <div class="sc-title"><i class="fa-solid fa-list-check"></i> Clinical Summary</div>
+            </div>
+            <div class="summary-table">
+              <div class="smt-row"><span class="smt-lbl">Total Analyses</span><span class="smt-val">{{ dossier.nombreAnalyses }}</span></div>
+              <div class="smt-row">
+                <span class="smt-lbl">Current Stage</span>
+                <span class="smt-val" [style.color]="getStageColor(dossier.dernierePrediction)">
+                  Stage {{ getStageNumber(dossier.dernierePrediction) }}
+                </span>
+              </div>
+              <div class="smt-row">
+                <span class="smt-lbl">Diagnosis</span>
+                <span class="smt-val">{{ formatPrediction(dossier.dernierePrediction) }}</span>
+              </div>
+              <div class="smt-row">
+                <span class="smt-lbl">Risk Level</span>
+                <span class="smt-val" [style.color]="getStageColor(dossier.dernierePrediction)">{{ dossier.dernierNiveauRisque }}</span>
+              </div>
+              <div class="smt-row">
+                <span class="smt-lbl">Cognitive Trend</span>
+                <span class="smt-val" [style.color]="cognitiveStatusColor">{{ cognitiveStatus }}</span>
+              </div>
+              <div class="smt-row">
+                <span class="smt-lbl">MMSE Score (est.)</span>
+                <span class="smt-val">{{ getCurrentMmseScore() }} / 30</span>
+              </div>
+              <div class="smt-row">
+                <span class="smt-lbl">Record Since</span>
+                <span class="smt-val">{{ formatDate(dossier.dateCreation) }}</span>
+              </div>
+              <div class="smt-row">
+                <span class="smt-lbl">Last Updated</span>
+                <span class="smt-val">{{ formatDate(dossier.dateDerniereMaj) }}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /stats -->
+
+    </main>
+  </div><!-- /emr-layout -->
+
+  <!-- ══════════════════════════════════════════════════
+       VIEWER MODAL
+  ══════════════════════════════════════════════════ -->
   <div *ngIf="viewerAnalyse" class="viewer-overlay" (click)="closeViewer()">
     <div class="viewer-modal" (click)="$event.stopPropagation()">
 
-      <!-- Header viewer -->
-      <div class="viewer-header">
-        <div class="viewer-title">
+      <div class="viewer-topbar">
+        <div class="viewer-title-row">
           <i class="fa-solid fa-brain"></i>
           <span>MRI Viewer</span>
-          <span class="stage-pill" [ngClass]="getStageCssClass(viewerAnalyse.prediction)">
+          <span class="stage-pill" [class]="getStagePillClass(viewerAnalyse.prediction)">
             Stage {{ getStageNumber(viewerAnalyse.prediction) }} — {{ formatPrediction(viewerAnalyse.prediction) }}
+          </span>
+          <span style="font-size:.72rem;color:#475569;font-family:'IBM Plex Mono',monospace;">
+            {{ viewerAnalyse.nomFichier }}
           </span>
         </div>
         <div class="viewer-controls">
-          <!-- Zoom -->
-          <button class="ctrl-btn" (click)="zoomIn()" title="Zoom in"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-          <button class="ctrl-btn" (click)="zoomOut()" title="Zoom out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-          <button class="ctrl-btn" (click)="resetViewer()" title="Reset all"><i class="fa-solid fa-arrows-to-circle"></i></button>
-          <!-- Contraste -->
-          <button class="ctrl-btn" (click)="increaseContrast()" title="Contrast +"><i class="fa-solid fa-circle-half-stroke"></i></button>
-          <!-- Luminosité -->
-          <button class="ctrl-btn" (click)="increaseBrightness()" title="Brightness +"><i class="fa-solid fa-sun"></i></button>
-          <!-- Rotation -->
-          <button class="ctrl-btn" (click)="rotateImage()" title="Rotate 90°"><i class="fa-solid fa-rotate-right"></i></button>
-          <!-- Flip -->
-          <button class="ctrl-btn" (click)="flipImage()" title="Flip horizontal"><i class="fa-solid fa-left-right"></i></button>
-          <!-- Fermer -->
-          <button class="ctrl-btn danger" (click)="closeViewer()" title="Close"><i class="fa-solid fa-times"></i></button>
+          <button class="vctrl" (click)="zoomIn()" title="Zoom +"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+          <button class="vctrl" (click)="zoomOut()" title="Zoom -"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+          <button class="vctrl" (click)="resetViewer()" title="Reset"><i class="fa-solid fa-arrows-to-circle"></i></button>
+          <div class="vctrl-sep"></div>
+          <button class="vctrl" (click)="rotateImage()" title="Rotate 90°"><i class="fa-solid fa-rotate-right"></i></button>
+          <button class="vctrl" (click)="flipImage()" title="Flip H"><i class="fa-solid fa-left-right"></i></button>
+          <div class="vctrl-sep"></div>
+          <button class="vctrl" (click)="increaseContrast()" title="Contrast +"><i class="fa-solid fa-circle-half-stroke"></i></button>
+          <button class="vctrl" (click)="increaseBrightness()" title="Brightness +"><i class="fa-solid fa-sun"></i></button>
+          <div class="vctrl-sep"></div>
+          <button class="vctrl close" (click)="closeViewer()" title="Close"><i class="fa-solid fa-times"></i></button>
         </div>
       </div>
 
-      <!-- Sliders contraste / luminosité -->
       <div class="viewer-sliders">
-        <div class="slider-group">
-          <i class="fa-solid fa-circle-half-stroke"></i>
-          <span>Contrast</span>
+        <div class="vslider-group">
+          <i class="fa-solid fa-circle-half-stroke"></i> Contrast
           <input type="range" min="50" max="200" [value]="viewerContrast"
                  (input)="viewerContrast = +$any($event.target).value">
-          <span class="slider-val">{{ viewerContrast }}%</span>
+          <span class="vslider-val">{{ viewerContrast }}%</span>
         </div>
-        <div class="slider-group">
-          <i class="fa-solid fa-sun"></i>
-          <span>Brightness</span>
+        <div class="vslider-group">
+          <i class="fa-solid fa-sun"></i> Brightness
           <input type="range" min="50" max="200" [value]="viewerBrightness"
                  (input)="viewerBrightness = +$any($event.target).value">
-          <span class="slider-val">{{ viewerBrightness }}%</span>
+          <span class="vslider-val">{{ viewerBrightness }}%</span>
         </div>
-        <div class="slider-group">
-          <i class="fa-solid fa-droplet"></i>
-          <span>Saturation</span>
+        <div class="vslider-group">
+          <i class="fa-solid fa-droplet"></i> Saturation
           <input type="range" min="0" max="200" [value]="viewerSaturation"
                  (input)="viewerSaturation = +$any($event.target).value">
-          <span class="slider-val">{{ viewerSaturation }}%</span>
+          <span class="vslider-val">{{ viewerSaturation }}%</span>
         </div>
       </div>
 
-      <!-- Corps viewer -->
       <div class="viewer-body">
-
-        <!-- Zone image -->
-        <div class="viewer-image-panel" #viewerPanel>
-          <div class="viewer-image-wrapper"
+        <div class="viewer-canvas-area">
+          <div class="viewer-img-wrapper"
                [style.transform]="getViewerTransform()"
-               style="transition: transform 0.25s ease; cursor: grab;">
+               style="transition:transform .22s ease;">
             <img [src]="getMriImageUrl(viewerAnalyse.nomFichier)"
                  [alt]="viewerAnalyse.nomFichier"
-                 class="viewer-mri-img"
+                 class="viewer-img"
                  [style.filter]="getViewerFilter()"
                  (error)="onImageError($event)">
           </div>
-          <!-- Indicators -->
           <div class="viewer-hud">
-            <span class="hud-item"><i class="fa-solid fa-magnifying-glass"></i> {{ (viewerZoom * 100) | number:'1.0-0' }}%</span>
-            <span class="hud-item"><i class="fa-solid fa-rotate-right"></i> {{ viewerRotation }}°</span>
-            <span class="hud-item"><i class="fa-solid fa-circle-half-stroke"></i> {{ viewerContrast }}%</span>
+            <span class="hud-chip"><i class="fa-solid fa-magnifying-glass"></i> {{ (viewerZoom*100)|number:'1.0-0' }}%</span>
+            <span class="hud-chip"><i class="fa-solid fa-rotate-right"></i> {{ viewerRotation }}°</span>
+            <span class="hud-chip"><i class="fa-solid fa-circle-half-stroke"></i> {{ viewerContrast }}%</span>
+            <span class="hud-chip"><i class="fa-solid fa-sun"></i> {{ viewerBrightness }}%</span>
           </div>
         </div>
 
-        <!-- Panneau infos -->
-        <div class="viewer-info-panel">
-          <!-- Diagnosis block -->
-          <div class="viewer-diagnosis-block" [ngClass]="getStageCssClass(viewerAnalyse.prediction)">
-            <div class="vd-icon" [style.background]="getStageColor(viewerAnalyse.prediction)">
+        <div class="viewer-info">
+          <div class="vi-diag-block">
+            <div class="vi-diag-icon" [style.background]="getStageColor(viewerAnalyse.prediction)">
               <i [class]="getStageIcon(viewerAnalyse.prediction)"></i>
             </div>
             <div>
-              <div class="vd-label">AI Diagnosis</div>
-              <div class="vd-value" [style.color]="getStageColor(viewerAnalyse.prediction)">
+              <div class="vi-diag-lbl">AI DIAGNOSIS</div>
+              <div class="vi-diag-val" [style.color]="getStageColor(viewerAnalyse.prediction)">
                 {{ formatPrediction(viewerAnalyse.prediction) }}
               </div>
             </div>
           </div>
 
-          <div class="viewer-stat">
-            <span class="vs-label"><i class="fa-solid fa-robot"></i> Confidence</span>
-            <span class="vs-val" [style.color]="getStageColor(viewerAnalyse.prediction)">
+          <div class="vi-stat-row">
+            <span class="vi-stat-lbl"><i class="fa-solid fa-robot"></i> Confidence</span>
+            <span class="vi-stat-val" [style.color]="getStageColor(viewerAnalyse.prediction)">
               {{ viewerAnalyse.confidence | number:'1.1-1' }}%
             </span>
           </div>
-          <div class="viewer-conf-bar">
-            <div [style.width]="viewerAnalyse.confidence + '%'"
-                 [style.background]="getStageGradient(viewerAnalyse.prediction)"></div>
+          <div class="vi-conf-track">
+            <div class="vi-conf-fill"
+                 [style.width]="viewerAnalyse.confidence+'%'"
+                 [style.background]="getStageColor(viewerAnalyse.prediction)"></div>
           </div>
 
-          <div class="viewer-stat">
-            <span class="vs-label"><i class="fa-solid fa-calendar"></i> Scan Date</span>
-            <span class="vs-val">{{ formatDateTime(viewerAnalyse.dateAnalyse) }}</span>
+          <div class="vi-stat-row">
+            <span class="vi-stat-lbl"><i class="fa-solid fa-calendar"></i> Scan Date</span>
+            <span class="vi-stat-val">{{ formatDateTime(viewerAnalyse.dateAnalyse) }}</span>
           </div>
-          <div class="viewer-stat">
-            <span class="vs-label"><i class="fa-solid fa-file-image"></i> File</span>
-            <span class="vs-val file">{{ viewerAnalyse.nomFichier }}</span>
+          <div class="vi-stat-row">
+            <span class="vi-stat-lbl"><i class="fa-solid fa-file-image"></i> File</span>
+            <span class="vi-stat-val file">{{ viewerAnalyse.nomFichier }}</span>
           </div>
-
-          <!-- Probability distribution -->
-          <div class="viewer-probs">
-            <div class="vp-title">Probability Distribution</div>
-            <div class="vp-row" *ngFor="let prob of getProbBars(viewerAnalyse)">
-              <div class="vp-dot" [style.background]="prob.color"></div>
-              <span class="vp-label">{{ prob.label }}</span>
-              <div class="vp-bar"><div [style.width]="(prob.value * 100) + '%'" [style.background]="prob.color"></div></div>
-              <span class="vp-val" [style.color]="prob.color">{{ (prob.value * 100) | number:'1.1-1' }}%</span>
-            </div>
+          <div class="vi-stat-row">
+            <span class="vi-stat-lbl"><i class="fa-solid fa-layer-group"></i> Stage</span>
+            <span class="vi-stat-val">Stage {{ getStageNumber(viewerAnalyse.prediction) }} / 4</span>
           </div>
 
-          <p class="viewer-description" *ngIf="viewerAnalyse.descriptionRisque">
+          <span class="vi-section-label">PROBABILITY DISTRIBUTION</span>
+          <div *ngFor="let p of getProbBars(viewerAnalyse)" class="vi-prob-row">
+            <div class="vpr-dot" [style.background]="p.color"></div>
+            <span class="vpr-lbl">{{ p.label }}</span>
+            <div class="vpr-bar"><div [style.width]="(p.value*100)+'%'" [style.background]="p.color"></div></div>
+            <span class="vpr-val" [style.color]="p.color">{{ (p.value*100)|number:'1.1-1' }}%</span>
+          </div>
+
+          <p class="vi-desc" *ngIf="viewerAnalyse.descriptionRisque">
             <i class="fa-solid fa-info-circle"></i> {{ viewerAnalyse.descriptionRisque }}
           </p>
-          <div class="viewer-conseil" *ngIf="viewerAnalyse.conseilMedecin">
-            <i class="fa-solid fa-user-doctor"></i>
-            <div><strong>Doctor's Advice</strong><p>{{ viewerAnalyse.conseilMedecin }}</p></div>
+          <div *ngIf="viewerAnalyse.conseilMedecin" class="vi-desc" style="border-left-color:#c084fc;">
+            <i class="fa-solid fa-user-doctor" style="color:#c084fc;margin-top:.15rem;flex-shrink:0;"></i>
+            {{ viewerAnalyse.conseilMedecin }}
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════ -->
-  <!--   MODAL ÉDITION                                   -->
-  <!-- ══════════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════
+       EDIT MODAL
+  ══════════════════════════════════════════════════ -->
   <div *ngIf="editingAnalyse" class="modal-overlay" (click)="closeEditModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-edit"></i> Edit Analysis</h3>
+        <h3><i class="fa-solid fa-pen-to-square"></i> Edit Analysis</h3>
         <button class="btn-close" (click)="closeEditModal()"><i class="fa-solid fa-times"></i></button>
       </div>
       <div class="modal-body">
-        <div class="modal-info"><span class="info-label">Analysis:</span><span class="info-value">{{ editingAnalyse.nomFichier }}</span></div>
-        <div class="modal-info">
-          <span class="info-label">Stage:</span>
-          <span class="stage-pill" [ngClass]="getStageCssClass(editingAnalyse.prediction)">
+        <div class="modal-info-row">
+          <span class="mil">Stage</span>
+          <span class="stage-pill" [class]="getStagePillClass(editingAnalyse.prediction)">
             Stage {{ getStageNumber(editingAnalyse.prediction) }} — {{ formatPrediction(editingAnalyse.prediction) }}
           </span>
         </div>
-        <div class="modal-info"><span class="info-label">Date:</span><span class="info-value">{{ formatDateTime(editingAnalyse.dateAnalyse) }}</span></div>
+        <div class="modal-info-row">
+          <span class="mil">File</span>
+          <span class="miv">{{ editingAnalyse.nomFichier }}</span>
+        </div>
+        <div class="modal-info-row">
+          <span class="mil">Date</span>
+          <span class="miv">{{ formatDateTime(editingAnalyse.dateAnalyse) }}</span>
+        </div>
+
         <div class="form-group">
-          <label><i class="fa-solid fa-clipboard"></i> Risk Description</label>
-          <textarea [(ngModel)]="editForm.descriptionRisque" rows="3" placeholder="Description of the risk detected..."></textarea>
+          <label><i class="fa-solid fa-clipboard-list"></i> Risk Description</label>
+          <textarea [(ngModel)]="editForm.descriptionRisque" rows="3" placeholder="Clinical description of the detected risk..."></textarea>
         </div>
         <div class="form-group">
           <label><i class="fa-solid fa-user-doctor"></i> Doctor's Advice</label>
-          <textarea [(ngModel)]="editForm.conseilMedecin" rows="3" placeholder="Treatment recommendations..."></textarea>
+          <textarea [(ngModel)]="editForm.conseilMedecin" rows="3" placeholder="Treatment recommendations, follow-up protocol..."></textarea>
         </div>
         <div class="form-group">
           <label><i class="fa-solid fa-notes-medical"></i> Clinical Notes</label>
-          <textarea [(ngModel)]="editForm.notesCliniques" rows="3" placeholder="Detailed clinical observations..."></textarea>
+          <textarea [(ngModel)]="editForm.notesCliniques" rows="3" placeholder="Detailed clinical observations, remarks..."></textarea>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" (click)="closeEditModal()">Cancel</button>
-        <button class="btn-save" (click)="saveEdit()"><i class="fa-solid fa-save"></i> Save Changes</button>
+        <button class="btn-save" (click)="saveEdit()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
       </div>
     </div>
   </div>
