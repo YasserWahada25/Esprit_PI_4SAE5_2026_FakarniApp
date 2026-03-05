@@ -123,4 +123,14 @@ export class AuthService {
       })
     );
   }
+
+  /** Envoie un email de réinitialisation de mot de passe */
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${AUTH}/forgot-password`, { email });
+  }
+
+  /** Réinitialise le mot de passe avec le token reçu par email */
+  resetPassword(token: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${AUTH}/reset-password`, { token, newPassword });
+  }
 }

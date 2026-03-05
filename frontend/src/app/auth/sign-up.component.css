@@ -64,12 +64,94 @@
     color: var(--text-main);
 }
 
+.form-group input.ng-invalid.ng-touched,
+.form-group input.ng-invalid.ng-dirty,
+.form-group select.ng-invalid.ng-touched,
+.form-group select.ng-invalid.ng-dirty {
+    border-color: #c62828;
+}
+
+.form-group input.ng-invalid.ng-touched:focus,
+.form-group input.ng-invalid.ng-dirty:focus,
+.form-group select.ng-invalid.ng-touched:focus,
+.form-group select.ng-invalid.ng-dirty:focus {
+    box-shadow: 0 0 0 4px rgba(198, 40, 40, 0.12);
+}
+
 .form-group input:focus,
 .form-group select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 4px rgba(160, 132, 220, 0.1);
     outline: none;
     background-color: var(--white);
+}
+
+.field-error {
+    color: #c62828;
+    font-size: 0.85rem;
+    margin-top: 6px;
+    margin-bottom: 0;
+}
+
+.input-with-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--bg-secondary);
+    border-radius: 8px;
+    background-color: var(--bg-main);
+    padding-right: 4px;
+}
+
+.input-with-toggle.invalid {
+    border-color: #c62828;
+}
+
+.input-with-toggle:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(160, 132, 220, 0.1);
+    background-color: var(--white);
+}
+
+.input-with-toggle.invalid:focus-within {
+    border-color: #c62828;
+    box-shadow: 0 0 0 4px rgba(198, 40, 40, 0.12);
+}
+
+.input-with-toggle input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding-right: 0;
+}
+
+.input-with-toggle input:focus {
+    box-shadow: none;
+}
+
+.password-toggle {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    background: rgba(160, 132, 220, 0.15);
+}
+
+.eye-icon {
+    width: 20px;
+    height: 20px;
+    display: block;
 }
 
 .form-group select {

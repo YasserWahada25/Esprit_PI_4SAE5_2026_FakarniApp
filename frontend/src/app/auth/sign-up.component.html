@@ -11,18 +11,46 @@
                 <div class="form-group">
                     <label for="nom">Name</label>
                     <input id="nom" type="text" formControlName="nom" placeholder="Your Name">
+                    @if (signUpForm.get('nom')?.invalid && (signUpForm.get('nom')?.touched || signUpForm.get('nom')?.dirty)) {
+                        <p class="field-error">{{ getError('nom', signUpForm.get('nom')?.errors ?? null) }}</p>
+                    }
                 </div>
                 <div class="form-group">
                     <label for="prenom">Last Name</label>
-                    <input id="prenom" type="text" formControlName="prenom" placeholder="">
+                    <input id="prenom" type="text" formControlName="prenom" placeholder="Your last name">
+                    @if (signUpForm.get('prenom')?.invalid && (signUpForm.get('prenom')?.touched || signUpForm.get('prenom')?.dirty)) {
+                        <p class="field-error">{{ getError('prenom', signUpForm.get('prenom')?.errors ?? null) }}</p>
+                    }
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input id="email" type="email" formControlName="email" placeholder="Example@email.com">
+                    @if (signUpForm.get('email')?.invalid && (signUpForm.get('email')?.touched || signUpForm.get('email')?.dirty)) {
+                        <p class="field-error">{{ getError('email', signUpForm.get('email')?.errors ?? null) }}</p>
+                    }
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input id="password" type="password" formControlName="password" placeholder="Minimum 6 characters">
+                    <div class="input-with-toggle" [class.invalid]="signUpForm.get('password')?.invalid && (signUpForm.get('password')?.touched || signUpForm.get('password')?.dirty)">
+                        <input id="password" [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Min. 6 caractères, 1 majuscule, 1 chiffre, 1 caractère spécial">
+                        <button type="button" class="password-toggle" (click)="togglePasswordVisibility()" [attr.aria-label]="hidePassword ? 'Afficher le mot de passe' : 'Masquer le mot de passe'">
+                            @if (hidePassword) {
+                                <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M2.1 12c2.1-4.6 6-7.5 9.9-7.5s7.8 2.9 9.9 7.5c-2.1 4.6-6 7.5-9.9 7.5S4.2 16.6 2.1 12Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                                    <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2" />
+                                </svg>
+                            } @else {
+                                <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M3 3l18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                    <path d="M2.1 12c2.1-4.6 6-7.5 9.9-7.5 2.1 0 4.2.8 6.1 2.3M21.9 12c-2.1 4.6-6 7.5-9.9 7.5-2.1 0-4.1-.8-6-2.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                                    <path d="M10.3 10.3A3 3 0 0 0 13.7 13.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                </svg>
+                            }
+                        </button>
+                    </div>
+                    @if (signUpForm.get('password')?.invalid && (signUpForm.get('password')?.touched || signUpForm.get('password')?.dirty)) {
+                        <p class="field-error">{{ getError('password', signUpForm.get('password')?.errors ?? null) }}</p>
+                    }
                 </div>
                 <div class="form-group">
                     <label for="role">Role</label>
@@ -34,7 +62,10 @@
                 </div>
                 <div class="form-group">
                     <label for="numTel">Phone Number</label>
-                    <input id="numTel" type="tel" formControlName="numTel" placeholder="Ex: 12345678">
+                    <input id="numTel" type="tel" formControlName="numTel" placeholder="8 chiffres (ex: 12345678)">
+                    @if (signUpForm.get('numTel')?.invalid && (signUpForm.get('numTel')?.touched || signUpForm.get('numTel')?.dirty)) {
+                        <p class="field-error">{{ getError('numTel', signUpForm.get('numTel')?.errors ?? null) }}</p>
+                    }
                 </div>
                 <div class="form-group">
                     <label for="adresse">Address</label>

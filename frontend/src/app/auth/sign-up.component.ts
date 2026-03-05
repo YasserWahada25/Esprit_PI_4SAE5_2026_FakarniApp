@@ -1,8 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ROLE_OPTIONS, Role, SignUpRequest } from './models/sign-up.model';
 import { AuthService } from './services/auth.service';
+import {
+    nomValidators,
+    prenomValidators,
+    emailValidators,
+    passwordValidators,
+    numTelValidators,
+    getControlErrorMessage,
+} from './validators/form.validators';
 
 @Component({
     selector: 'app-sign-up',
@@ -16,25 +24,35 @@ export class SignUpComponent {
     roleOptions = ROLE_OPTIONS;
     errorMessage: string | null = null;
     loading = false;
+    hidePassword = true;
+
+    readonly getError = getControlErrorMessage;
 
     constructor(
         private fb: FormBuilder,
         private router: Router,
-        private authService: AuthService
+        @Inject(AuthService) private authService: AuthService
     ) {
         this.signUpForm = this.fb.group({
-            nom: ['', Validators.required],
-            prenom: ['', Validators.required],
-            email: ['', [Validators.required, Validators.email]],
-            password: ['', [Validators.required, Validators.minLength(6)]],
-            role: [Role.PATIENT_PROFILE, Validators.required],
-            numTel: [''],
+            nom: ['', nomValidators],
+            prenom: ['', prenomValidators],
+            email: ['', emailValidators],
+            password: ['', passwordValidators],
+            role: [Role.PATIENT_PROFILE, [Validators.required]],
+            numTel: ['', numTelValidators],
             adresse: [''],
         });
     }
 
+    togglePasswordVisibility(): void {
+        this.hidePassword = !this.hidePassword;
+    }
+
     onSubmit(): void {
-        if (this.signUpForm.invalid || this.loading) return;
+        if (this.signUpForm.invalid || this.loading) {
+            this.signUpForm.markAllAsTouched();
+            return;
+        }
         this.errorMessage = null;
         this.loading = true;
         const value = this.signUpForm.value as SignUpRequest;

@@ -71,12 +71,33 @@
     color: var(--text-main);
 }
 
+.form-group input.ng-invalid.ng-touched,
+.form-group input.ng-invalid.ng-dirty,
+.form-group select.ng-invalid.ng-touched,
+.form-group select.ng-invalid.ng-dirty {
+    border-color: #c62828;
+}
+
+.form-group input.ng-invalid.ng-touched:focus,
+.form-group input.ng-invalid.ng-dirty:focus,
+.form-group select.ng-invalid.ng-touched:focus,
+.form-group select.ng-invalid.ng-dirty:focus {
+    box-shadow: 0 0 0 4px rgba(198, 40, 40, 0.12);
+}
+
 .form-group input:focus,
 .form-group select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 4px rgba(160, 132, 220, 0.1);
     outline: none;
     background-color: var(--white);
+}
+
+.field-error {
+    color: #c62828;
+    font-size: 0.85rem;
+    margin-top: 6px;
+    margin-bottom: 0;
 }
 
 .form-group select {
