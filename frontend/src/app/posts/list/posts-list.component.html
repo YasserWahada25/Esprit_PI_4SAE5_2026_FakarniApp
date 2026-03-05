@@ -1,0 +1,77 @@
+<div class="posts-container">
+    <!-- Header Section -->
+    <div class="posts-header">
+        <div class="header-content">
+            <h1><i class="fa-solid fa-square-share-nodes"></i> Posts Community</h1>
+            <p>Share and discover stories from our community</p>
+        </div>
+        <a routerLink="/posts/create" class="btn-add-post">
+            <i class="fa-solid fa-plus"></i> Add Post
+        </a>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage()">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{ errorMessage() }}
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" *ngIf="isLoading()">
+        <div class="spinner"></div>
+        <p>Loading posts...</p>
+    </div>
+
+    <!-- Filter & Search Section -->
+    <div class="filter-section" *ngIf="!isLoading()">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+                type="text"
+                placeholder="Search posts..."
+                [(ngModel)]="searchQuery"
+                class="search-input"
+            />
+        </div>
+
+        <div class="filter-controls">
+            <select [(ngModel)]="sortBy" class="filter-select">
+                <option value="recent">Most Recent</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Posts Grid -->
+    <div class="posts-grid" *ngIf="!isLoading() && filteredPosts && filteredPosts.length > 0">
+        <article class="post-card" *ngFor="let post of filteredPosts" [attr.data-post-id]="post.id">
+            <div class="post-header">
+                <div class="post-date">{{ formatDate(post.createdAt) }}</div>
+                <div class="post-actions-menu">
+                    <button class="action-menu-btn" (click)="editPost(post.id)" title="Edit post">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button class="action-menu-btn delete-btn" (click)="deletePost(post.id)" title="Delete post">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Post Content -->
+            <div class="post-content">
+                <p class="post-text">{{ post.content }}</p>
+            </div>
+
+            <!-- Post Image -->
+            <div class="post-image" *ngIf="post.imageUrl">
+                <img [src]="post.imageUrl" [alt]="'Post image'" />
+            </div>
+        </article>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!isLoading() && (!filteredPosts || filteredPosts.length === 0)">
+        <i class="fa-solid fa-inbox"></i>
+        <h2>No posts found</h2>
+        <p>Try adjusting your search or filter criteria</p>
+    </div>
+</div>

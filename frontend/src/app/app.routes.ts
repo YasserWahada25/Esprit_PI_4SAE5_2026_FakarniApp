@@ -37,6 +37,10 @@ export const routes: Routes = [
             {
                 path: 'medical',
                 loadChildren: () => import('./medical/medical.routes').then(m => m.MEDICAL_ROUTES)
+            },
+            {
+                path: 'posts',
+                loadChildren: () => import('./posts/posts.routes').then(m => m.POSTS_ROUTES)
             }
         ]
     },

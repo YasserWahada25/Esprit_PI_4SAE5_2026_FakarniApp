@@ -14,7 +14,7 @@ public class Post {
     @Column(length = 2000, nullable = false)
     private String content;
 
-    @Column(nullable = true)
+    @Column(columnDefinition = "LONGTEXT", nullable = true)
     private String imageUrl;
 
     @Column(nullable = false, updatable = false)
