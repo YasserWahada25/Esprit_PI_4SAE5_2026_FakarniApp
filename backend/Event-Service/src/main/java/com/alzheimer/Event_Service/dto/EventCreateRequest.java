@@ -19,6 +19,10 @@ public class EventCreateRequest {
 
     private Long userId;
 
+    private Double lat;
+
+    private Double lng;
+
     // Getters et Setters
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -37,4 +41,10 @@ public class EventCreateRequest {
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+
+    public Double getLat() { return lat; }
+    public void setLat(Double lat) { this.lat = lat; }
+
+    public Double getLng() { return lng; }
+    public void setLng(Double lng) { this.lng = lng; }
 }

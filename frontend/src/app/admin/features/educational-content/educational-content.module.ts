@@ -9,6 +9,7 @@ import { EventListComponent } from './components/event-list/event-list.component
 import { EventFormComponent } from './components/event-form/event-form.component';
 import { EngagementTrackingComponent } from './components/engagement-tracking/engagement-tracking.component';
 import { EngagementChartsComponent } from './components/engagement-charts/engagement-charts.component';
+import { LocationPickerComponent } from './components/location-picker/location-picker.component';
 
 // Material Imports
 import { MatTableModule } from '@angular/material/table';
@@ -61,7 +62,8 @@ import { MatBadgeModule } from '@angular/material/badge';
         MatChipsModule,
         MatSlideToggleModule,
         MatSnackBarModule,
-        MatBadgeModule
+        MatBadgeModule,
+        LocationPickerComponent
     ]
 })
 export class EducationalContentModule { }

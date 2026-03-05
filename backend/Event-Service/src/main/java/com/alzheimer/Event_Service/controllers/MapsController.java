@@ -73,4 +73,49 @@ public class MapsController {
             ));
         }
     }
+
+    /**
+     * Reverse Geocode: convert lat/lng coordinates to a human-readable address.
+     * GET /api/maps/reverse-geocode?lat=36.8065&lng=10.1815
+     */
+    @GetMapping("/reverse-geocode")
+    public ResponseEntity<?> reverseGeocode(@RequestParam double lat, @RequestParam double lng) {
+        try {
+            URI uri = UriComponentsBuilder.fromUriString("https://nominatim.openstreetmap.org/reverse")
+                    .queryParam("lat", lat)
+                    .queryParam("lon", lng)
+                    .queryParam("format", "json")
+                    .queryParam("addressdetails", 1)
+                    .build()
+                    .encode()
+                    .toUri();
+
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("User-Agent", "FakarniApp/1.0 (contact@fakarni.com)");
+            org.springframework.http.HttpEntity<Void> entity = new org.springframework.http.HttpEntity<>(headers);
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> result = restTemplate.exchange(
+                    uri,
+                    org.springframework.http.HttpMethod.GET,
+                    entity,
+                    (Class<Map<String, Object>>) (Class<?>) Map.class
+            ).getBody();
+
+            if (result == null || !result.containsKey("display_name")) {
+                return ResponseEntity.status(404).body(Map.of("error", "Address not found"));
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "lat", lat,
+                    "lng", lng,
+                    "formattedAddress", result.get("display_name")
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(502).body(Map.of(
+                    "error", "Reverse geocoding service unavailable: " + e.getMessage()
+            ));
+        }
+    }
 }

@@ -66,4 +66,9 @@ export class EducationalEventService {
             })
         );
     }
+
+    /** Déclenche l'envoi d'un email de test au backend */
+    sendTestEmail(): Observable<any> {
+        return this.http.post(`${environment.apiBaseUrl}/api/emails/test`, {});
+    }
 }

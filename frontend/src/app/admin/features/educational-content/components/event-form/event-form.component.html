@@ -10,7 +10,8 @@
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Description</mat-label>
-      <textarea matInput rows="3" formControlName="description" placeholder="Détails sur le contenu éducatif, objectifs, public cible..."></textarea>
+      <textarea matInput rows="3" formControlName="description"
+        placeholder="Détails sur le contenu éducatif, objectifs, public cible..."></textarea>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
@@ -19,12 +20,20 @@
       <mat-error *ngIf="eventForm.get('startDateTime')?.invalid">La date est obligatoire</mat-error>
     </mat-form-field>
 
+    <!-- Lieu sélectionné sur la carte (lecture seule) -->
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Lieu</mat-label>
-      <input matInput formControlName="location" placeholder="Ex: Salle de conférence">
+      <mat-label>Lieu (sélectionnez sur la carte)</mat-label>
+      <input matInput formControlName="location" placeholder="Cliquez sur la carte ci-dessous..." readonly>
+      <mat-icon matSuffix>location_on</mat-icon>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
+    <!-- Carte interactive pour choisir le lieu -->
+    <div class="map-picker-label">📍 Cliquez sur la carte ou déplacez le marqueur pour choisir un lieu :</div>
+    <app-location-picker [initialLat]="data?.lat" [initialLng]="data?.lng"
+      (locationSelected)="onLocationSelected($event)">
+    </app-location-picker>
+
+    <mat-form-field appearance="outline" class="full-width" style="margin-top: 12px">
       <mat-label>ID Patient *</mat-label>
       <input matInput type="number" formControlName="userId">
       <mat-error *ngIf="eventForm.get('userId')?.invalid">L'ID patient est obligatoire</mat-error>

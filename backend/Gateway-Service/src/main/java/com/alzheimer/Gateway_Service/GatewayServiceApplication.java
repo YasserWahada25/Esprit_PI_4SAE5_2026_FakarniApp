@@ -27,6 +27,8 @@ public class GatewayServiceApplication {
 						.uri("lb://EVENT-SERVICE"))
 				.route("maps-service", r -> r.path("/api/maps/**")
 						.uri("lb://EVENT-SERVICE"))
+				.route("emails-service", r -> r.path("/api/emails/**")
+						.uri("lb://EVENT-SERVICE"))
 				.build();
 	}
 

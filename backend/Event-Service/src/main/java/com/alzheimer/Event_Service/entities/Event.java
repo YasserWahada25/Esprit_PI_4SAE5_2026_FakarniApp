@@ -27,6 +27,15 @@ public class Event {
     private boolean remindEnabled = false;
 
     @Column(nullable = false)
+    private boolean remindSent = false;
+
+    @Column(nullable = true)
+    private Double lat;
+
+    @Column(nullable = true)
+    private Double lng;
+
+    @Column(nullable = false)
     private Long userId; // le plannificateur d'evenement
 
     @Column(nullable = false, updatable = false)
@@ -55,6 +64,15 @@ public class Event {
 
     public boolean isRemindEnabled() { return remindEnabled; }
     public void setRemindEnabled(boolean remindEnabled) { this.remindEnabled = remindEnabled; }
+
+    public boolean isRemindSent() { return remindSent; }
+    public void setRemindSent(boolean remindSent) { this.remindSent = remindSent; }
+
+    public Double getLat() { return lat; }
+    public void setLat(Double lat) { this.lat = lat; }
+
+    public Double getLng() { return lng; }
+    public void setLng(Double lng) { this.lng = lng; }
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }

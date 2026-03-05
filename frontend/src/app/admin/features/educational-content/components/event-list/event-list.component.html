@@ -14,10 +14,16 @@
     <mat-tab-nav-panel #tabPanel>
         <div class="header">
             <h2>Gestion des Événements Éducatifs</h2>
-            <button mat-raised-button color="primary" (click)="openEventDialog()">
-                <mat-icon>add</mat-icon>
-                Planifier un Événement
-            </button>
+            <div style="display: flex; gap: 10px;">
+                <button mat-stroked-button color="accent" (click)="sendTestEmail()">
+                    <mat-icon>mail</mat-icon>
+                    Envoyer Email de Test
+                </button>
+                <button mat-raised-button color="primary" (click)="openEventDialog()">
+                    <mat-icon>add</mat-icon>
+                    Planifier un Événement
+                </button>
+            </div>
         </div>
 
         <mat-form-field appearance="outline" class="search-field">

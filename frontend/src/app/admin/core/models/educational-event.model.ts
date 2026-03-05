@@ -7,6 +7,8 @@ export interface EducationalEvent {
     remindEnabled: boolean;
     userId: number;
     createdAt?: string;
+    lat?: number;
+    lng?: number;
 
     // ── Champs présents dans le DTO create/update ────────
     description?: string;

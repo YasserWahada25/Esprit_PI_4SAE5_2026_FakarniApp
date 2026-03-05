@@ -14,9 +14,11 @@ import java.util.stream.Collectors;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final EmailService emailService;
 
-    public EventService(EventRepository eventRepository) {
+    public EventService(EventRepository eventRepository, EmailService emailService) {
         this.eventRepository = eventRepository;
+        this.emailService = emailService;
     }
 
     // Création d'un événement
@@ -28,9 +30,17 @@ public class EventService {
         event.setLocation(request.getLocation());
         event.setRemindEnabled(request.isRemindEnabled());
         event.setUserId(request.getUserId());
+        event.setLat(request.getLat());
+        event.setLng(request.getLng());
         // createdAt is set automatically via @PrePersist
 
         Event savedEvent = eventRepository.save(event);
+        
+        // Envoi d'email statique immédiat si le rappel est activé
+        if (savedEvent.isRemindEnabled()) {
+            emailService.sendImmediateReminderToStaticUser(savedEvent);
+        }
+
         return new EventResponse(savedEvent);
     }
 
@@ -43,9 +53,17 @@ public class EventService {
         event.setLocation(request.getLocation());
         event.setRemindEnabled(request.isRemindEnabled());
         event.setUserId(request.getUserId());
+        event.setLat(request.getLat());
+        event.setLng(request.getLng());
         // createdAt must NOT be modified (updatable = false)
 
         Event updatedEvent = eventRepository.save(event);
+
+        // Envoi d'email statique immédiat si le rappel est toujours activé
+        if (updatedEvent.isRemindEnabled()) {
+            emailService.sendImmediateReminderToStaticUser(updatedEvent);
+        }
+
         return new EventResponse(updatedEvent);
     }
 

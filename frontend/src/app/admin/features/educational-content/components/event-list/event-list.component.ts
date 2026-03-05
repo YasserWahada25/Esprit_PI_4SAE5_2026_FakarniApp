@@ -114,4 +114,20 @@ export class EventListComponent implements OnInit {
             });
         }
     }
+
+    sendTestEmail(): void {
+        this.eventService.sendTestEmail().subscribe({
+            next: () => {
+                this.snackBar.open('Email de test envoyé avec succès à testuser@example.com !', 'Fermer', {
+                    duration: 4000
+                });
+            },
+            error: (err) => {
+                console.error('Erreur lors de l\'envoi de l\'email de test', err);
+                this.snackBar.open('Erreur : Impossible d\'envoyer l\'email de test.', 'Fermer', {
+                    duration: 5000
+                });
+            }
+        });
+    }
 }

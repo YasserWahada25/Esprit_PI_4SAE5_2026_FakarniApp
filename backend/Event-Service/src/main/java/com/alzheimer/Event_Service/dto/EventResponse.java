@@ -11,6 +11,8 @@ public class EventResponse {
     private boolean remindEnabled;
     private Long userId;
     private String createdAt;
+    private Double lat;
+    private Double lng;
 
     // Constructeur pour initialiser l'objet
     public EventResponse(Long id, String title, String description, LocalDateTime startDateTime, String location, boolean remindEnabled, Long userId, LocalDateTime createdAt) {
@@ -22,6 +24,7 @@ public class EventResponse {
         this.remindEnabled = remindEnabled;
         this.userId = userId;
         this.createdAt = createdAt != null ? createdAt.toString() : null;
+        // lat/lng not set in this constructor - use the Event entity constructor
     }
 
     // Constructeur depuis l'entité Event
@@ -34,6 +37,8 @@ public class EventResponse {
         this.remindEnabled = e.isRemindEnabled();
         this.userId = e.getUserId();
         this.createdAt = e.getCreatedAt() != null ? e.getCreatedAt().toString() : null;
+        this.lat = e.getLat();
+        this.lng = e.getLng();
     }
 
     // Getters et Setters
@@ -100,4 +105,10 @@ public class EventResponse {
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
+
+    public Double getLat() { return lat; }
+    public void setLat(Double lat) { this.lat = lat; }
+
+    public Double getLng() { return lng; }
+    public void setLng(Double lng) { this.lng = lng; }
 }

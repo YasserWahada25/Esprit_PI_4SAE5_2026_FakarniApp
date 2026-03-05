@@ -1,9 +1,16 @@
 import { Component, OnInit, Inject } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatIconModule } from '@angular/material/icon';
+import { CommonModule } from '@angular/common';
 import { EducationalEventService } from '../../../../core/services/educational-event.service';
 import { EducationalEvent } from '../../../../core/models/educational-event.model';
+import { LocationPickerComponent, LocationSelection } from '../location-picker/location-picker.component';
 
 @Component({
   selector: 'app-event-form',
@@ -30,11 +37,22 @@ export class EventFormComponent implements OnInit {
       startDateTime: [data?.startDateTime ?? '', Validators.required],
       location: [data?.location ?? ''],
       remindEnabled: [data?.remindEnabled ?? false],
-      userId: [data?.userId ?? 1, Validators.required]
+      userId: [data?.userId ?? 1, Validators.required],
+      lat: [data?.lat ?? null],
+      lng: [data?.lng ?? null]
     });
   }
 
   ngOnInit(): void { }
+
+  /** Called by LocationPickerComponent when the user clicks on the map */
+  onLocationSelected(selection: LocationSelection): void {
+    this.eventForm.patchValue({
+      location: selection.address,
+      lat: selection.lat,
+      lng: selection.lng
+    });
+  }
 
   onSubmit(): void {
     if (this.eventForm.invalid) return;
@@ -71,3 +89,4 @@ export class EventFormComponent implements OnInit {
     this.dialogRef.close(false);
   }
 }
+
