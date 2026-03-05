@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -23,12 +24,15 @@ public class MapsController {
     @GetMapping("/geocode")
     public ResponseEntity<?> geocode(@RequestParam String query) {
         try {
-            String url = UriComponentsBuilder.fromUriString(NOMINATIM_URL)
+            URI uri = UriComponentsBuilder.fromUriString(NOMINATIM_URL)
                     .queryParam("q", query)
                     .queryParam("format", "json")
                     .queryParam("limit", 1)
                     .queryParam("addressdetails", 1)
-                    .toUriString();
+                    .queryParam("countrycodes", "tn") // Restrict to Tunisia
+                    .build()
+                    .encode()
+                    .toUri();
 
             // Nominatim requires a User-Agent header
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
@@ -37,7 +41,7 @@ public class MapsController {
 
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> results = restTemplate.exchange(
-                    url,
+                    uri,
                     org.springframework.http.HttpMethod.GET,
                     entity,
                     (Class<List<Map<String, Object>>>) (Class<?>) List.class
