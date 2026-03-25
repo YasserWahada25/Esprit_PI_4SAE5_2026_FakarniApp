@@ -35,10 +35,8 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Preflight CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Swagger
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
@@ -46,23 +44,18 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // AUTH endpoints (forgot/reset/login/register)
-                        .requestMatchers(
-                                "/auth/**"
-                        ).permitAll()
+                        .requestMatchers("/auth/**").permitAll()
 
-                        // Internal communication between services
-                        .requestMatchers(
-                                "/internal/**"
-                        ).permitAll()
+                        .requestMatchers("/internal/**").permitAll()
 
-                        // Health check
                         .requestMatchers(
                                 "/actuator/health",
                                 "/actuator/health/**"
                         ).permitAll()
 
-                        // All other APIs require authentication
+                        // ✅ IMPORTANT : autoriser les users
+                        .requestMatchers("/api/users/**").permitAll()
+
                         .anyRequest().authenticated()
                 );
 
