@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
@@ -24,21 +24,62 @@ interface MeetingMember {
     isOnline: boolean;
 }
 
+type SidebarResizeAction = 'decrease' | 'increase';
+
 @Component({
     selector: 'app-meeting-sidebar',
     standalone: true,
     imports: [CommonModule, FormsModule],
     template: `
     <div class="sidebar-header">
-      <h3>{{ getTitle() }}</h3>
-      <button class="close-btn" (click)="close.emit()" aria-label="Fermer">
-        <i class="fa fa-times"></i>
+      <div class="title-group">
+        <h3>{{ getTitle() }}</h3>
+        <p>{{ getSubtitle() }}</p>
+      </div>
+      <div class="header-actions">
+        <button
+          class="resize-btn"
+          (click)="resizeSidebar.emit('decrease')"
+          [disabled]="!canDecreaseSize"
+          aria-label="Reduire la largeur">
+          <i class="fa fa-angle-left"></i>
+        </button>
+        <button
+          class="resize-btn"
+          (click)="resizeSidebar.emit('increase')"
+          [disabled]="!canIncreaseSize"
+          aria-label="Agrandir la largeur">
+          <i class="fa fa-angle-right"></i>
+        </button>
+        <button class="close-btn" (click)="close.emit()" aria-label="Fermer">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="tab-bar" role="tablist" aria-label="Sections">
+      <button type="button" class="tab-btn" [class.active]="activeTab === 'chat'" (click)="switchTab('chat')">
+        <i class="fa fa-comment-alt"></i>
+        <span>Chat</span>
+      </button>
+      <button type="button" class="tab-btn" [class.active]="activeTab === 'participants'" (click)="switchTab('participants')">
+        <i class="fa fa-users"></i>
+        <span>Participants</span>
+      </button>
+      <button type="button" class="tab-btn" [class.active]="activeTab === 'agenda'" (click)="switchTab('agenda')">
+        <i class="fa fa-list"></i>
+        <span>Agenda</span>
       </button>
     </div>
 
     <div class="sidebar-content" [ngSwitch]="activeTab">
       <div *ngSwitchCase="'chat'" class="chat-container">
-        <div class="messages-list">
+        <div class="messages-list" #messagesList>
+          <div class="empty-state" *ngIf="messages.length === 0">
+            <i class="fa fa-comments"></i>
+            <p>Aucun message pour le moment.</p>
+          </div>
+
           <div class="message" *ngFor="let msg of messages" [class.self]="msg.isSelf">
             <div class="msg-header">
               <span class="sender">{{ msg.senderLabel }}</span>
@@ -54,15 +95,15 @@ interface MeetingMember {
             [(ngModel)]="newMessage"
             (keyup.enter)="sendMessage()"
             [disabled]="!roomId"
-            placeholder="Type a message..." />
-          <button (click)="sendMessage()" [disabled]="!roomId" aria-label="Envoyer">
+            placeholder="Tapez un message..." />
+          <button class="send-btn" (click)="sendMessage()" [disabled]="!roomId" aria-label="Envoyer">
             <i class="fa fa-paper-plane"></i>
           </button>
         </div>
       </div>
 
       <div *ngSwitchCase="'participants'" class="participants-pane">
-        <ul class="participants-list">
+        <ul class="participants-list" *ngIf="members.length > 0; else emptyParticipants">
           <li *ngFor="let member of members">
             <div class="member-main">
               <span class="member-name">
@@ -78,6 +119,13 @@ interface MeetingMember {
             </div>
           </li>
         </ul>
+
+        <ng-template #emptyParticipants>
+          <div class="empty-state participants-empty">
+            <i class="fa fa-user-friends"></i>
+            <p>Aucun participant charge.</p>
+          </div>
+        </ng-template>
 
         <div class="add-participant-box">
           <label for="newParticipantId">Ajouter un participant</label>
@@ -119,119 +167,260 @@ interface MeetingMember {
       display: flex;
       flex-direction: column;
       height: 100%;
+      min-height: 0;
+      background: #f8fafc;
     }
 
     .sidebar-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid #eceff8;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid #e6ebf5;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
+      gap: 10px;
       background: #ffffff;
+    }
+
+    .title-group {
+      min-width: 0;
     }
 
     .sidebar-header h3 {
       margin: 0;
       font-size: 1.05rem;
       text-transform: capitalize;
-      color: #2f3450;
+      color: #25324d;
+    }
+
+    .title-group p {
+      margin: 3px 0 0;
+      font-size: 0.76rem;
+      color: #64748b;
     }
 
     .close-btn {
-      background: none;
-      border: none;
+      background: #f2f5fb;
+      border: 1px solid #dce3f0;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 1.1rem;
-      color: #444d6f;
+      font-size: 0.9rem;
+      color: #475569;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .close-btn:hover {
+      background: #e8eef8;
+    }
+
+    .header-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .resize-btn {
+      background: #f8fbff;
+      border: 1px solid #dce3f0;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #475569;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .resize-btn:hover:not(:disabled) {
+      background: #edf3ff;
+    }
+
+    .resize-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 8px 10px;
+      border-bottom: 1px solid #e7edf8;
+      background: #ffffff;
+    }
+
+    .tab-btn {
+      border: 1px solid #e4eaf6;
+      background: #f8faff;
+      color: #475569;
+      border-radius: 8px;
+      padding: 7px 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 34px;
+    }
+
+    .tab-btn.active {
+      border-color: #c7d7ff;
+      background: #eaf1ff;
+      color: #1e3a8a;
     }
 
     .sidebar-content {
       flex: 1;
-      overflow-y: auto;
+      min-height: 0;
       display: flex;
       flex-direction: column;
-      min-height: 0;
+      overflow: hidden;
     }
 
     .chat-container {
       flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
-      min-height: 0;
     }
 
     .messages-list {
       flex: 1;
-      padding: 14px;
+      min-height: 0;
+      padding: 12px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 10px;
+      background: linear-gradient(180deg, #f8faff 0%, #f3f6fc 100%);
+    }
+
+    .empty-state {
+      margin: auto;
+      text-align: center;
+      color: #64748b;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .empty-state i {
+      font-size: 1.35rem;
+      color: #94a3b8;
     }
 
     .message {
-      background: #f1f3fa;
-      padding: 8px 12px;
+      background: #ffffff;
+      padding: 9px 11px;
       border-radius: 10px;
-      max-width: 88%;
+      max-width: 92%;
       align-self: flex-start;
+      border: 1px solid #e3e9f5;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     }
 
     .message.self {
-      background: #e3f2fd;
+      background: #eaf2ff;
+      border-color: #cddfff;
       align-self: flex-end;
     }
 
     .msg-header {
       display: flex;
       justify-content: space-between;
-      font-size: 0.75rem;
-      color: #6b7280;
+      font-size: 0.72rem;
+      color: #64748b;
       margin-bottom: 4px;
-      gap: 10px;
+      gap: 8px;
+    }
+
+    .sender {
+      font-weight: 700;
+      color: #334155;
     }
 
     .msg-body {
       color: #1f2937;
       word-break: break-word;
+      line-height: 1.35;
+      font-size: 0.9rem;
     }
 
     .chat-input-area {
-      padding: 12px;
-      border-top: 1px solid #eceff8;
+      padding: 10px;
+      border-top: 1px solid #e6ebf5;
       display: flex;
       gap: 8px;
       background: #ffffff;
+      box-shadow: 0 -4px 10px rgba(15, 23, 42, 0.04);
     }
 
     .chat-input-area input {
       flex: 1;
-      padding: 8px 12px;
-      border: 1px solid #d8deea;
+      min-width: 0;
+      padding: 9px 12px;
+      border: 1px solid #d6ddeb;
       border-radius: 20px;
       outline: none;
+      background: #f9fbff;
+      color: #1f2937;
     }
 
-    .chat-input-area button {
-      background: none;
+    .chat-input-area input:disabled {
+      background: #eef2f7;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .send-btn {
+      width: 36px;
+      height: 36px;
       border: none;
-      color: #2563eb;
+      border-radius: 999px;
+      background: #2563eb;
+      color: #ffffff;
       cursor: pointer;
-      font-size: 1.15rem;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .send-btn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
     }
 
     .participants-pane {
-      padding: 14px;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 12px;
+      background: #f8fafc;
     }
 
     .participants-list {
       list-style: none;
       padding: 0;
       margin: 0;
-      border: 1px solid #e8ecf6;
+      border: 1px solid #e5ebf7;
       border-radius: 10px;
       overflow: hidden;
     }
@@ -249,11 +438,18 @@ interface MeetingMember {
       border-bottom: none;
     }
 
+    .participants-empty {
+      border: 1px dashed #d5deed;
+      border-radius: 10px;
+      padding: 18px 10px;
+      background: #ffffff;
+    }
+
     .member-main {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .member-name {
@@ -292,17 +488,17 @@ interface MeetingMember {
     }
 
     .add-participant-box {
-      border: 1px solid #e8ecf6;
+      border: 1px solid #e4ebf7;
       border-radius: 10px;
       padding: 10px;
-      background: #fbfcff;
+      background: #ffffff;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
 
     .add-participant-box label {
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-weight: 600;
       color: #334155;
     }
@@ -320,6 +516,7 @@ interface MeetingMember {
       border-radius: 8px;
       padding: 7px 10px;
       background: #ffffff;
+      min-width: 0;
     }
 
     .add-btn {
@@ -341,17 +538,25 @@ interface MeetingMember {
       margin: 0;
       font-size: 0.78rem;
       color: #475569;
+      word-break: break-word;
+    }
+
+    .agenda-container {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      background: #f8fafc;
     }
 
     .agenda-list {
       list-style: none;
-      padding: 14px;
+      padding: 12px;
       margin: 0;
     }
 
     .agenda-list li {
       padding: 10px 0;
-      border-bottom: 1px solid #edf0f8;
+      border-bottom: 1px solid #e6ebf5;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -369,6 +574,18 @@ interface MeetingMember {
     }
 
     @media (max-width: 640px) {
+      .resize-btn {
+        display: none;
+      }
+
+      .tab-btn span {
+        display: none;
+      }
+
+      .tab-btn {
+        padding: 7px 6px;
+      }
+
       .participants-pane {
         padding: 10px;
       }
@@ -384,7 +601,12 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
     @Input() roomId: string = '';
     @Input() currentUser: string = 'patient';
     @Input() sessionId: number = 0;
+    @Input() canDecreaseSize = true;
+    @Input() canIncreaseSize = true;
     @Output() close = new EventEmitter<void>();
+    @Output() tabChange = new EventEmitter<string>();
+    @Output() resizeSidebar = new EventEmitter<SidebarResizeAction>();
+    @ViewChild('messagesList') private messagesListRef?: ElementRef<HTMLDivElement>;
 
     messages: ChatMessage[] = [];
     members: MeetingMember[] = [];
@@ -431,6 +653,9 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
         if (changes['sessionId'] && this.sessionId) {
             this.loadSessionMembers();
         }
+        if (changes['activeTab'] && this.activeTab === 'chat') {
+            this.scrollMessagesToBottom();
+        }
     }
 
     ngOnDestroy(): void {
@@ -440,6 +665,27 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
 
     getTitle(): string {
         return this.activeTab.charAt(0).toUpperCase() + this.activeTab.slice(1);
+    }
+
+    getSubtitle(): string {
+        if (this.activeTab === 'chat') {
+            return this.roomId ? 'Discussion en direct' : 'Room indisponible';
+        }
+        if (this.activeTab === 'participants') {
+            return `${this.members.length} participant(s)`;
+        }
+        return 'Programme de la session';
+    }
+
+    switchTab(tab: string): void {
+        if (this.activeTab === tab) {
+            return;
+        }
+        this.activeTab = tab;
+        this.tabChange.emit(tab);
+        if (tab === 'chat') {
+            this.scrollMessagesToBottom();
+        }
     }
 
     sendMessage(): void {
@@ -455,6 +701,7 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
         });
         this.videoSessionService.sendChat(this.roomId, this.currentUser, text);
         this.newMessage = '';
+        this.scrollMessagesToBottom();
     }
 
     canAddParticipant(): boolean {
@@ -504,6 +751,7 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
                     time: this.formatTime(msg.sentAt),
                     isSelf: msg.fromUserId === this.currentUser
                 }));
+                this.scrollMessagesToBottom();
             },
             error: err => {
                 console.warn('Chat history not loaded', err);
@@ -547,6 +795,7 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
             time: this.formatTime(parsed.sentAt ?? parsed.time ?? new Date().toISOString()),
             isSelf: senderUserId === this.currentUser
         });
+        this.scrollMessagesToBottom();
     }
 
     private consumeParticipantAdded(payload: string): void {
@@ -590,5 +839,15 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
             return asDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
         return isoOrTime;
+    }
+
+    private scrollMessagesToBottom(): void {
+        setTimeout(() => {
+            const panel = this.messagesListRef?.nativeElement;
+            if (!panel) {
+                return;
+            }
+            panel.scrollTop = panel.scrollHeight;
+        }, 0);
     }
 }

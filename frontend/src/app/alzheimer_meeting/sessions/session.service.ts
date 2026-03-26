@@ -15,6 +15,9 @@ export interface PatientSession {
     startTime: string; // ISO string
     endTime: string;   // ISO string
     meetingUrl?: string;
+    locationAddress?: string;
+    locationLatitude?: number;
+    locationLongitude?: number;
     status: SessionStatus;
     visibility: SessionVisibility;
     sessionType?: SessionType;
@@ -29,7 +32,10 @@ interface VirtualSessionResponse {
     description: string;
     startTime: string;
     endTime: string;
-    meetingUrl?: string;
+    meetingUrl?: string | null;
+    locationAddress?: string | null;
+    locationLatitude?: number | null;
+    locationLongitude?: number | null;
     createdBy: string;
     status?: string;
     visibility?: string;
@@ -42,7 +48,10 @@ interface CreateSessionRequest {
     description: string;
     startTime: string;
     endTime: string;
-    meetingUrl: string;
+    meetingUrl?: string;
+    locationAddress?: string;
+    locationLatitude?: number;
+    locationLongitude?: number;
     createdBy: string;
     status: SessionStatus;
     visibility: SessionVisibility;
@@ -79,13 +88,19 @@ export class SessionService {
             ?? (session.visibility === 'PUBLIC' ? 'GROUP' : 'PRIVATE');
         const visibility: SessionVisibility = session.visibility
             ?? (sessionType === 'GROUP' ? 'PUBLIC' : 'PRIVATE');
+        const locationAddress = session.locationAddress?.trim();
+        const locationLatitude = this.normalizeCoordinate(session.locationLatitude);
+        const locationLongitude = this.normalizeCoordinate(session.locationLongitude);
 
         return {
             title: session.title,
             description: session.description,
             startTime: session.startTime,
             endTime: session.endTime,
-            meetingUrl: meetingMode === 'ONLINE' ? (session.meetingUrl?.trim() ?? '') : '',
+            meetingUrl: meetingMode === 'ONLINE' ? (session.meetingUrl?.trim() || undefined) : undefined,
+            locationAddress: meetingMode === 'IN_PERSON' ? (locationAddress || undefined) : undefined,
+            locationLatitude: meetingMode === 'IN_PERSON' ? locationLatitude : undefined,
+            locationLongitude: meetingMode === 'IN_PERSON' ? locationLongitude : undefined,
             createdBy: session.createdBy?.trim() || this.resolveCurrentUserId(),
             status: session.status ?? 'DRAFT',
             visibility,
@@ -109,7 +124,10 @@ export class SessionService {
             description: s.description,
             startTime: s.startTime,
             endTime: s.endTime,
-            meetingUrl: s.meetingUrl,
+            meetingUrl: s.meetingUrl ?? undefined,
+            locationAddress: s.locationAddress ?? undefined,
+            locationLatitude: this.normalizeCoordinate(s.locationLatitude),
+            locationLongitude: this.normalizeCoordinate(s.locationLongitude),
             status: (s.status as SessionStatus) || 'DRAFT',
             visibility,
             sessionType,
@@ -129,5 +147,14 @@ export class SessionService {
             || localStorageRef.getItem('user_id')
             || localStorageRef.getItem('uid')
             || 'patient';
+    }
+
+    private normalizeCoordinate(value: unknown): number | undefined {
+        if (value === null || value === undefined || value === '') {
+            return undefined;
+        }
+
+        const numericValue = typeof value === 'number' ? value : Number(value);
+        return Number.isFinite(numericValue) ? numericValue : undefined;
     }
 }

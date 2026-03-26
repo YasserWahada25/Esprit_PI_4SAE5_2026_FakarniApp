@@ -47,13 +47,46 @@ public class VirtualSessionService {
             throw new BadRequestException("endTime must be after startTime");
         }
 
+        SessionType sessionType = req.getSessionType() != null ? req.getSessionType() : session.getSessionType();
+        String normalizedMeetingUrl = req.getMeetingUrl() != null
+                ? normalizeMeetingUrl(req.getMeetingUrl())
+                : normalizeMeetingUrl(session.getMeetingUrl());
+        MeetingMode meetingMode = req.getMeetingMode() != null
+                ? req.getMeetingMode()
+                : (session.getMeetingMode() != null
+                ? session.getMeetingMode()
+                : resolveMeetingMode(null, normalizedMeetingUrl));
+        String locationAddress = req.getLocationAddress() != null
+                ? normalizeLocationAddress(req.getLocationAddress())
+                : normalizeLocationAddress(session.getLocationAddress());
+        Double locationLatitude = req.getLocationLatitude() != null
+                ? normalizeLatitude(req.getLocationLatitude())
+                : session.getLocationLatitude();
+        Double locationLongitude = req.getLocationLongitude() != null
+                ? normalizeLongitude(req.getLocationLongitude())
+                : session.getLocationLongitude();
+
+        if (meetingMode == MeetingMode.IN_PERSON) {
+            normalizedMeetingUrl = null;
+            validateLocationCoordinates(locationLatitude, locationLongitude);
+        } else {
+            locationAddress = null;
+            locationLatitude = null;
+            locationLongitude = null;
+        }
+
         session.setTitle(req.getTitle());
         session.setDescription(req.getDescription());
         session.setStartTime(req.getStartTime());
         session.setEndTime(req.getEndTime());
-        session.setMeetingUrl(req.getMeetingUrl());
+        session.setMeetingUrl(normalizedMeetingUrl);
         session.setStatus(req.getStatus());
         session.setVisibility(req.getVisibility());
+        session.setSessionType(sessionType);
+        session.setMeetingMode(meetingMode);
+        session.setLocationAddress(locationAddress);
+        session.setLocationLatitude(locationLatitude);
+        session.setLocationLongitude(locationLongitude);
         session.setUpdatedAt(Instant.now());
 
         return repository.save(session);
@@ -214,14 +247,19 @@ public class VirtualSessionService {
         SessionVisibility visibility = resolveVisibility(req.getVisibility(), sessionType);
         MeetingMode meetingMode = resolveMeetingMode(req.getMeetingMode(), req.getMeetingUrl());
         String meetingUrl = normalizeMeetingUrl(req.getMeetingUrl());
+        String locationAddress = normalizeLocationAddress(req.getLocationAddress());
+        Double locationLatitude = normalizeLatitude(req.getLocationLatitude());
+        Double locationLongitude = normalizeLongitude(req.getLocationLongitude());
         String createdBy = normalizeCreatedBy(req.getCreatedBy());
         SessionStatus status = resolveStatus(createdBy, req.getStatus());
 
-        if (meetingMode == MeetingMode.ONLINE && meetingUrl == null) {
-            throw new BadRequestException("meetingUrl is required for online sessions");
-        }
         if (meetingMode == MeetingMode.IN_PERSON) {
             meetingUrl = null;
+            validateLocationCoordinates(locationLatitude, locationLongitude);
+        } else {
+            locationAddress = null;
+            locationLatitude = null;
+            locationLongitude = null;
         }
 
         VirtualSession session = VirtualSession.builder()
@@ -235,6 +273,9 @@ public class VirtualSessionService {
                 .visibility(visibility)
                 .sessionType(sessionType)
                 .meetingMode(meetingMode)
+                .locationAddress(locationAddress)
+                .locationLatitude(locationLatitude)
+                .locationLongitude(locationLongitude)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
@@ -287,5 +328,38 @@ public class VirtualSessionService {
             return null;
         }
         return meetingUrl.trim();
+    }
+
+    private String normalizeLocationAddress(String locationAddress) {
+        if (locationAddress == null || locationAddress.trim().isEmpty()) {
+            return null;
+        }
+        return locationAddress.trim();
+    }
+
+    private Double normalizeLatitude(Double latitude) {
+        if (latitude == null) {
+            return null;
+        }
+        if (latitude < -90 || latitude > 90) {
+            throw new BadRequestException("locationLatitude must be between -90 and 90");
+        }
+        return latitude;
+    }
+
+    private Double normalizeLongitude(Double longitude) {
+        if (longitude == null) {
+            return null;
+        }
+        if (longitude < -180 || longitude > 180) {
+            throw new BadRequestException("locationLongitude must be between -180 and 180");
+        }
+        return longitude;
+    }
+
+    private void validateLocationCoordinates(Double latitude, Double longitude) {
+        if (latitude == null || longitude == null) {
+            throw new BadRequestException("locationLatitude and locationLongitude are required for in-person sessions");
+        }
     }
 }

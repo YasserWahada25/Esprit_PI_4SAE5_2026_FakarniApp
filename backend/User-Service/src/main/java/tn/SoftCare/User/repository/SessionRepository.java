@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface SessionRepository extends MongoRepository<Session, String> {
     Optional<Session> findByRefreshTokenHash(String refreshTokenHash);
     List<Session> findByUserIdAndRevokedFalse(String userId);
+    List<Session> findAllByUserId(String userId);
 }

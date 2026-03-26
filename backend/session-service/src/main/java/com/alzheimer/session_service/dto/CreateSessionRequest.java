@@ -42,4 +42,10 @@ public class CreateSessionRequest {
     private SessionType sessionType;
 
     private MeetingMode meetingMode;
+
+    private String locationAddress;
+
+    private Double locationLatitude;
+
+    private Double locationLongitude;
 }

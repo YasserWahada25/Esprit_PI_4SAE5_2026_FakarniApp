@@ -1,4 +1,4 @@
-<div class="meeting-container">
+<div class="meeting-container" [style.--sidebar-width.px]="sidebarWidth">
     <!-- Main Content Area -->
     <div class="main-content">
         <!-- Header/Top Bar (Optional, can be overlay) -->
@@ -31,6 +31,10 @@
             [roomId]="roomId"
             [currentUser]="currentUser"
             [sessionId]="sessionId"
+            [canDecreaseSize]="canDecreaseSidebar()"
+            [canIncreaseSize]="canIncreaseSidebar()"
+            (tabChange)="activeSidebarTab = $event"
+            (resizeSidebar)="onResizeSidebar($event)"
             (close)="isSidebarOpen = false">
         </app-meeting-sidebar>
     </div>

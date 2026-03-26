@@ -71,7 +71,7 @@ export class SessionListComponent implements OnInit, AfterViewInit {
     }
 
     deleteSession(session: Session) {
-        if (confirm(`Êtes-vous sûr de vouloir supprimer la session "${session.title}" ?`)) {
+        if (confirm(`Etes-vous sur de vouloir supprimer la session "${session.title}" ?`)) {
             this.sessionService.deleteSession(session.id).subscribe(() => {
                 this.loadSessions();
             });

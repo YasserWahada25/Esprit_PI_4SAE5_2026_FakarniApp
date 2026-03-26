@@ -21,6 +21,7 @@ export class VirtualMeetingComponent implements OnInit, OnDestroy {
     sessionTitle: string = 'Virtual Meeting';
     isSidebarOpen: boolean = true;
     activeSidebarTab: string = 'chat'; // chat, participants, agenda, docs
+    sidebarWidth = 360;
 
     // Variables WebRTC
     roomId: string = '';
@@ -30,6 +31,10 @@ export class VirtualMeetingComponent implements OnInit, OnDestroy {
     participantCount = 0;
 
     private subscriptions: Subscription[] = [];
+    private readonly sidebarMinWidth = 300;
+    private readonly sidebarMaxWidth = 560;
+    private readonly sidebarStep = 40;
+    private readonly sidebarStorageKey = 'alzheimer_meeting_sidebar_width';
 
     constructor(
         private route: ActivatedRoute,
@@ -40,6 +45,8 @@ export class VirtualMeetingComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
+        this.sidebarWidth = this.restoreSidebarWidth();
+
         this.subscriptions.push(this.route.params.subscribe(params => {
             this.sessionId = +params['id'];
             this.loadSessionDetails();
@@ -125,5 +132,44 @@ export class VirtualMeetingComponent implements OnInit, OnDestroy {
         } catch (err) {
             console.error('Partage d\'écran impossible', err);
         }
+    }
+
+    canDecreaseSidebar(): boolean {
+        return this.sidebarWidth > this.sidebarMinWidth;
+    }
+
+    canIncreaseSidebar(): boolean {
+        return this.sidebarWidth < this.sidebarMaxWidth;
+    }
+
+    onResizeSidebar(action: 'decrease' | 'increase'): void {
+        const nextWidth = action === 'increase'
+            ? this.sidebarWidth + this.sidebarStep
+            : this.sidebarWidth - this.sidebarStep;
+        this.sidebarWidth = this.clampSidebarWidth(nextWidth);
+        this.persistSidebarWidth(this.sidebarWidth);
+    }
+
+    private clampSidebarWidth(width: number): number {
+        return Math.max(this.sidebarMinWidth, Math.min(this.sidebarMaxWidth, width));
+    }
+
+    private restoreSidebarWidth(): number {
+        if (typeof window === 'undefined') {
+            return 360;
+        }
+        const raw = window.localStorage.getItem(this.sidebarStorageKey);
+        const value = raw ? Number.parseInt(raw, 10) : Number.NaN;
+        if (Number.isNaN(value)) {
+            return 360;
+        }
+        return this.clampSidebarWidth(value);
+    }
+
+    private persistSidebarWidth(width: number): void {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        window.localStorage.setItem(this.sidebarStorageKey, String(width));
     }
 }

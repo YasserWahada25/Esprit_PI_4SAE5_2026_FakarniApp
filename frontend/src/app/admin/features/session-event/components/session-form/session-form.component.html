@@ -3,7 +3,7 @@
     <form [formGroup]="sessionForm" class="form-grid">
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Titre de la session</mat-label>
-            <input matInput formControlName="title" placeholder="Ex. Atelier MÃ©moire">
+            <input matInput formControlName="title" placeholder="Ex. Atelier Memoire">
             <mat-icon matPrefix>event</mat-icon>
             <mat-error *ngIf="sessionForm.get('title')?.hasError('required')">Le titre est requis</mat-error>
         </mat-form-field>
@@ -24,7 +24,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-            <mat-label>Heure de dÃ©but</mat-label>
+            <mat-label>Heure de debut</mat-label>
             <input matInput type="time" formControlName="startTime">
             <mat-error *ngIf="sessionForm.get('startTime')?.hasError('required')">Requis</mat-error>
         </mat-form-field>
@@ -36,7 +36,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-            <mat-label>VisibilitÃ©</mat-label>
+            <mat-label>Visibilite</mat-label>
             <mat-select formControlName="visibility">
                 <mat-option *ngFor="let opt of visibilityOptions" [value]="opt.value">{{ opt.label }}</mat-option>
             </mat-select>
@@ -64,17 +64,48 @@
             <mat-icon matPrefix>group</mat-icon>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>URL de la rÃ©union</mat-label>
-            <input matInput formControlName="meetingUrl" placeholder="https://meet.example.com/...">
-            <mat-icon matPrefix>videocam</mat-icon>
-        </mat-form-field>
+        <div class="form-alert info full-width" *ngIf="sessionForm.get('meetingMode')?.value === 'ONLINE'">
+            L URL de reunion est generee automatiquement a la creation de la reunion video.
+        </div>
+
+        <div class="location-block full-width" *ngIf="sessionForm.get('meetingMode')?.value === 'IN_PERSON'">
+            <div class="location-head">
+                <strong>Localisation presentielle</strong>
+                <button
+                    mat-stroked-button
+                    type="button"
+                    color="primary"
+                    (click)="useCurrentLocation()"
+                    [disabled]="isLocating || !isBrowser">
+                    <mat-icon>my_location</mat-icon>
+                    {{ isLocating ? 'Localisation...' : 'Utiliser ma position' }}
+                </button>
+            </div>
+
+            <div #locationMap class="location-map"></div>
+
+            <div class="location-hint">
+                Cliquez sur la carte pour selectionner la position exacte de la session presentielle.
+            </div>
+
+            <div class="location-grid">
+                <mat-form-field appearance="outline" class="location-address">
+                    <mat-label>Adresse</mat-label>
+                    <input matInput formControlName="locationAddress" placeholder="Ex. Centre Fakarni, salle 2">
+                </mat-form-field>
+            </div>
+
+            <div class="form-alert error location-error" *ngIf="hasLocationError()">
+                Veuillez selectionner une position valide sur la carte.
+            </div>
+        </div>
 
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Description</mat-label>
             <textarea matInput formControlName="description" rows="3"
                 placeholder="Description de la session..."></textarea>
         </mat-form-field>
+
         <div class="form-alert error full-width" *ngIf="formError">
             {{ formError }}
         </div>
@@ -82,11 +113,13 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
     <button mat-button (click)="onCancel()" class="cancel-btn" [disabled]="isSubmitting">Annuler</button>
-    <button mat-raised-button color="primary" [disabled]="sessionForm.invalid || isSubmitting" (click)="onSubmit()"
+    <button
+        mat-raised-button
+        color="primary"
+        [disabled]="sessionForm.invalid || isSubmitting"
+        (click)="onSubmit()"
         class="submit-btn">
         <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
         {{ isSubmitting ? 'Enregistrement...' : (isEditMode ? 'Enregistrer' : 'Creer la session') }}
     </button>
 </mat-dialog-actions>
-
-

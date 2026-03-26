@@ -11,6 +11,9 @@ export interface Session {
     sessionType?: 'PRIVATE' | 'GROUP';
     meetingMode?: 'ONLINE' | 'IN_PERSON';
     meetingUrl?: string;
+    locationAddress?: string;
+    locationLatitude?: number;
+    locationLongitude?: number;
     createdBy?: string;
     createdAt?: string;
 }

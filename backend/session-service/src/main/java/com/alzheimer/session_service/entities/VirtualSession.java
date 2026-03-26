@@ -61,6 +61,13 @@ public class VirtualSession {
     @Enumerated(EnumType.STRING)
     private MeetingMode meetingMode; // Ajout pour meeting mode
 
+    @Column(length = 512)
+    private String locationAddress;
+
+    private Double locationLatitude;
+
+    private Double locationLongitude;
+
     @Column(updatable = false)
     private Instant createdAt;
     private Instant updatedAt;

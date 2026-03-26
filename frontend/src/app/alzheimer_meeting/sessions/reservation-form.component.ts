@@ -1,21 +1,20 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, PLATFORM_ID, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatRadioModule } from '@angular/material/radio';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { SessionService, PatientSession } from './session.service';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { Subscription } from 'rxjs';
+import { PatientSession, SessionService } from './session.service';
 
 type SessionMode = 'online' | 'presential';
 type SessionType = 'PRIVATE' | 'GROUP';
-
-const URL_PATTERN = /^https?:\/\/[\w.-]+(?:\.[\w.-]+)+(?:[/?#].*)?$/i;
 
 function timeRangeValidator(group: AbstractControl): ValidationErrors | null {
     const startTime = group.get('startTime')?.value;
@@ -48,8 +47,8 @@ function timeRangeValidator(group: AbstractControl): ValidationErrors | null {
     <div class="reservation-form-container">
       <header class="form-header">
         <div>
-          <h2><mat-icon>event_note</mat-icon> Nouvelle demande de sÃ©ance</h2>
-          <p>Envoyez votre demande. Le docteur lâ€™acceptera ou la refusera.</p>
+          <h2><mat-icon>event_note</mat-icon> Nouvelle demande de seance</h2>
+          <p>Envoyez votre demande. Le docteur l'acceptera ou la refusera.</p>
         </div>
         <button mat-icon-button type="button" (click)="onCancel()" aria-label="Fermer le formulaire">
           <mat-icon>close</mat-icon>
@@ -59,16 +58,16 @@ function timeRangeValidator(group: AbstractControl): ValidationErrors | null {
       <form [formGroup]="reservationForm" (ngSubmit)="onSubmit()" class="reservation-form">
         <section class="grid two">
           <mat-form-field appearance="outline">
-            <mat-label>Titre de la sÃ©ance</mat-label>
-            <input matInput formControlName="title" placeholder="Ex: Suivi mÃ©moire hebdomadaire">
+            <mat-label>Titre de la seance</mat-label>
+            <input matInput formControlName="title" placeholder="Ex: Suivi memoire hebdomadaire">
             <mat-error *ngIf="hasError('title', 'required')">Le titre est obligatoire.</mat-error>
-            <mat-error *ngIf="hasError('title', 'minlength')">Minimum 3 caractÃ¨res.</mat-error>
+            <mat-error *ngIf="hasError('title', 'minlength')">Minimum 3 caracteres.</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Type de sÃ©ance</mat-label>
+            <mat-label>Type de seance</mat-label>
             <mat-select formControlName="sessionType">
-              <mat-option value="PRIVATE">PrivÃ©e (patient + docteur)</mat-option>
+              <mat-option value="PRIVATE">Privee (patient + docteur)</mat-option>
               <mat-option value="GROUP">Groupe</mat-option>
             </mat-select>
           </mat-form-field>
@@ -80,9 +79,9 @@ function timeRangeValidator(group: AbstractControl): ValidationErrors | null {
             matInput
             rows="3"
             formControlName="description"
-            placeholder="PrÃ©cisez votre besoin ou contexte mÃ©dical..."></textarea>
+            placeholder="Precisez votre besoin ou contexte medical..."></textarea>
           <mat-error *ngIf="hasError('description', 'required')">La description est obligatoire.</mat-error>
-          <mat-error *ngIf="hasError('description', 'minlength')">Minimum 10 caractÃ¨res.</mat-error>
+          <mat-error *ngIf="hasError('description', 'minlength')">Minimum 10 caracteres.</mat-error>
         </mat-form-field>
 
         <section class="grid three">
@@ -95,9 +94,9 @@ function timeRangeValidator(group: AbstractControl): ValidationErrors | null {
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>DÃ©but</mat-label>
+            <mat-label>Debut</mat-label>
             <input matInput type="time" formControlName="startTime">
-            <mat-error *ngIf="hasError('startTime', 'required')">Heure de dÃ©but requise.</mat-error>
+            <mat-error *ngIf="hasError('startTime', 'required')">Heure de debut requise.</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -109,27 +108,65 @@ function timeRangeValidator(group: AbstractControl): ValidationErrors | null {
 
         <div class="time-range-error" *ngIf="reservationForm.hasError('invalidTimeRange') && submittedOnce">
           <mat-icon>warning</mat-icon>
-          <span>Lâ€™heure de fin doit Ãªtre aprÃ¨s lâ€™heure de dÃ©but.</span>
+          <span>L'heure de fin doit etre apres l'heure de debut.</span>
         </div>
 
         <section class="mode-section">
-          <label id="mode-label">Mode de sÃ©ance</label>
+          <label id="mode-label">Mode de seance</label>
           <mat-radio-group aria-labelledby="mode-label" formControlName="mode" class="radio-group">
-            <mat-radio-button value="presential">PrÃ©sentielle</mat-radio-button>
+            <mat-radio-button value="presential">Presentielle</mat-radio-button>
             <mat-radio-button value="online">En ligne</mat-radio-button>
           </mat-radio-group>
         </section>
 
-        <mat-form-field appearance="outline" *ngIf="isOnlineMode">
-          <mat-label>Lien de rÃ©union</mat-label>
-          <input matInput formControlName="meetingUrl" placeholder="https://meet.google.com/...">
-          <mat-error *ngIf="hasError('meetingUrl', 'required')">Le lien est obligatoire pour une sÃ©ance en ligne.</mat-error>
-          <mat-error *ngIf="hasError('meetingUrl', 'pattern')">Entrez une URL valide (http/https).</mat-error>
-        </mat-form-field>
+        <div class="auto-link-info" *ngIf="isOnlineMode">
+          <mat-icon>videocam</mat-icon>
+          <span>Lien de reunion genere automatiquement lors de la creation de la reunion video.</span>
+        </div>
+
+        <section class="location-section" *ngIf="isPresentialMode">
+          <div class="location-header">
+            <strong>Localisation presentielle</strong>
+            <button
+              mat-stroked-button
+              color="primary"
+              type="button"
+              (click)="useCurrentLocation()"
+              [disabled]="isLocating || !isBrowser">
+              <mat-icon>my_location</mat-icon>
+              {{ isLocating ? 'Localisation...' : 'Utiliser ma position' }}
+            </button>
+          </div>
+
+          <div #locationMap class="location-map"></div>
+          <p class="location-hint">Cliquez sur la carte pour definir la localisation exacte de la seance.</p>
+
+          <section class="grid three location-fields">
+            <mat-form-field appearance="outline" class="address-field">
+              <mat-label>Adresse</mat-label>
+              <input matInput formControlName="locationAddress" placeholder="Ex: Centre Fakarni, salle 2">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Latitude</mat-label>
+              <input matInput type="number" formControlName="locationLatitude" step="0.000001">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Longitude</mat-label>
+              <input matInput type="number" formControlName="locationLongitude" step="0.000001">
+            </mat-form-field>
+          </section>
+
+          <div class="time-range-error" *ngIf="hasLocationError()">
+            <mat-icon>warning</mat-icon>
+            <span>Selectionnez une latitude et une longitude valides pour une seance presentielle.</span>
+          </div>
+        </section>
 
         <div class="auto-visibility">
           <mat-icon>lock</mat-icon>
-          <span>VisibilitÃ© appliquÃ©e automatiquement: <strong>{{ visibilityLabel }}</strong></span>
+          <span>Visibilite appliquee automatiquement: <strong>{{ visibilityLabel }}</strong></span>
         </div>
 
         <div class="form-actions">
@@ -229,6 +266,44 @@ function timeRangeValidator(group: AbstractControl): ValidationErrors | null {
       border-radius: 10px;
     }
 
+    .location-section {
+      border: 1px solid #dbe6f5;
+      border-radius: 12px;
+      background: #f8fbff;
+      padding: 12px;
+    }
+
+    .location-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: #1f2a44;
+    }
+
+    .location-map {
+      width: 100%;
+      height: 220px;
+      border-radius: 10px;
+      border: 1px solid #d6e3f7;
+      overflow: hidden;
+    }
+
+    .location-hint {
+      margin: 8px 0 0;
+      font-size: 0.82rem;
+      color: #4d5f7a;
+    }
+
+    .location-fields {
+      margin-top: 12px;
+    }
+
+    .address-field {
+      grid-column: span 3;
+    }
+
     .auto-visibility {
       display: inline-flex;
       align-items: center;
@@ -240,6 +315,18 @@ function timeRangeValidator(group: AbstractControl): ValidationErrors | null {
       padding: 9px 12px;
       font-size: 0.84rem;
       margin-top: 2px;
+    }
+
+    .auto-link-info {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f3f6fb;
+      border: 1px solid #dbe6f5;
+      color: #334155;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 0.84rem;
     }
 
     .time-range-error {
@@ -299,21 +386,45 @@ function timeRangeValidator(group: AbstractControl): ValidationErrors | null {
       .grid.three {
         grid-template-columns: 1fr;
       }
+
+      .address-field {
+        grid-column: span 1;
+      }
+
+      .location-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
     }
   `]
 })
-export class ReservationFormComponent implements OnInit {
+export class ReservationFormComponent implements OnInit, AfterViewInit, OnDestroy {
+    @ViewChild('locationMap') locationMapRef?: ElementRef<HTMLDivElement>;
+
     @Input() selectedDate: Date | null = null;
     @Output() submitted = new EventEmitter<PatientSession>();
     @Output() cancelled = new EventEmitter<void>();
 
     reservationForm: FormGroup;
     isSubmitting = false;
+    isLocating = false;
     submittedOnce = false;
     submitError: string | null = null;
-    private readonly plannedStatuses = new Set(['DRAFT', 'SCHEDULED', 'ACCEPTED', 'PLANNED']);
+    readonly isBrowser: boolean;
 
-    constructor(private fb: FormBuilder, private sessionService: SessionService) {
+    private readonly plannedStatuses = new Set(['DRAFT', 'SCHEDULED', 'ACCEPTED', 'PLANNED']);
+    private readonly defaultMapCenter: [number, number] = [36.8065, 10.1815];
+    private modeSubscription?: Subscription;
+    private leaflet: any | null = null;
+    private map: any | null = null;
+    private locationMarker: any | null = null;
+
+    constructor(
+        private fb: FormBuilder,
+        private sessionService: SessionService,
+        @Inject(PLATFORM_ID) platformId: Object
+    ) {
+        this.isBrowser = isPlatformBrowser(platformId);
         this.reservationForm = this.fb.group(
             {
                 title: ['', [Validators.required, Validators.minLength(3)]],
@@ -323,7 +434,9 @@ export class ReservationFormComponent implements OnInit {
                 endTime: ['', Validators.required],
                 mode: ['presential', Validators.required],
                 sessionType: ['PRIVATE', Validators.required],
-                meetingUrl: ['']
+                locationAddress: [''],
+                locationLatitude: [null],
+                locationLongitude: [null]
             },
             { validators: timeRangeValidator }
         );
@@ -334,26 +447,35 @@ export class ReservationFormComponent implements OnInit {
             this.reservationForm.patchValue({ date: this.selectedDate });
         }
 
-        this.reservationForm.get('mode')?.valueChanges.subscribe(mode => {
-            const meetingUrlControl = this.reservationForm.get('meetingUrl');
-            if (mode === 'online') {
-                meetingUrlControl?.setValidators([Validators.required, Validators.pattern(URL_PATTERN)]);
-            } else {
-                meetingUrlControl?.setValue('');
-                meetingUrlControl?.clearValidators();
-            }
-            meetingUrlControl?.updateValueAndValidity();
+        this.updateLocationControls(this.reservationForm.get('mode')?.value as SessionMode);
+        this.modeSubscription = this.reservationForm.get('mode')?.valueChanges.subscribe(mode => {
+            this.updateLocationControls(mode as SessionMode);
         });
+    }
+
+    ngAfterViewInit(): void {
+        if (this.isPresentialMode) {
+            this.scheduleMapInitialization();
+        }
+    }
+
+    ngOnDestroy(): void {
+        this.modeSubscription?.unsubscribe();
+        this.destroyMap();
     }
 
     get isOnlineMode(): boolean {
         return this.reservationForm.get('mode')?.value === 'online';
     }
 
+    get isPresentialMode(): boolean {
+        return this.reservationForm.get('mode')?.value === 'presential';
+    }
+
     get visibilityLabel(): string {
         return this.reservationForm.get('sessionType')?.value === 'GROUP'
-            ? 'Publique (sÃ©ance de groupe)'
-            : 'PrivÃ©e (sÃ©ance individuelle)';
+            ? 'Publique (seance de groupe)'
+            : 'Privee (seance individuelle)';
     }
 
     onSubmit(): void {
@@ -373,17 +495,20 @@ export class ReservationFormComponent implements OnInit {
         const endTime = this.combineDateAndTime(sessionDate, formValue.endTime);
         const sessionType = formValue.sessionType as SessionType;
         const mode = formValue.mode as SessionMode;
+        const isPresential = mode === 'presential';
 
         const session: PatientSession = {
             title: formValue.title.trim(),
             description: formValue.description.trim(),
             startTime: startTime.toISOString(),
             endTime: endTime.toISOString(),
-            meetingUrl: mode === 'online' ? (formValue.meetingUrl?.trim() || '') : '',
             visibility: sessionType === 'GROUP' ? 'PUBLIC' : 'PRIVATE',
             sessionType,
             status: 'DRAFT',
-            type: mode
+            type: mode,
+            locationAddress: isPresential ? this.normalizeText(formValue.locationAddress) : undefined,
+            locationLatitude: isPresential ? this.toCoordinate(formValue.locationLatitude) : undefined,
+            locationLongitude: isPresential ? this.toCoordinate(formValue.locationLongitude) : undefined
         };
 
         this.sessionService.getSessions().subscribe({
@@ -419,9 +544,12 @@ export class ReservationFormComponent implements OnInit {
                             endTime: '',
                             mode: 'presential',
                             sessionType: 'PRIVATE',
-                            meetingUrl: ''
+                            locationAddress: '',
+                            locationLatitude: null,
+                            locationLongitude: null
                         });
                         this.submittedOnce = false;
+                        this.updateLocationControls('presential');
                     },
                     error: () => {
                         this.isSubmitting = false;
@@ -438,6 +566,40 @@ export class ReservationFormComponent implements OnInit {
 
     onCancel(): void {
         this.cancelled.emit();
+    }
+
+    useCurrentLocation(): void {
+        if (!this.isBrowser || !navigator.geolocation) {
+            this.submitError = 'La geolocalisation est indisponible sur ce navigateur.';
+            return;
+        }
+
+        this.isLocating = true;
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                this.isLocating = false;
+                this.setLocation(position.coords.latitude, position.coords.longitude, true);
+            },
+            () => {
+                this.isLocating = false;
+                this.submitError = 'Impossible d obtenir votre position actuelle.';
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    }
+
+    hasError(controlName: string, errorCode: string): boolean {
+        const control = this.reservationForm.get(controlName);
+        return !!control && control.hasError(errorCode) && (control.touched || control.dirty || this.submittedOnce);
+    }
+
+    hasLocationError(): boolean {
+        const hasInvalidLocation = !!this.reservationForm.get('locationLatitude')?.invalid
+            || !!this.reservationForm.get('locationLongitude')?.invalid;
+        const hasTouchedLocation = !!this.reservationForm.get('locationLatitude')?.touched
+            || !!this.reservationForm.get('locationLongitude')?.touched
+            || this.submittedOnce;
+        return this.isPresentialMode && hasInvalidLocation && hasTouchedLocation;
     }
 
     private combineDateAndTime(date: Date, time: string): Date {
@@ -460,9 +622,144 @@ export class ReservationFormComponent implements OnInit {
         return startA.getTime() < endB.getTime() && endA.getTime() > startB.getTime();
     }
 
-    hasError(controlName: string, errorCode: string): boolean {
-        const control = this.reservationForm.get(controlName);
-        return !!control && control.hasError(errorCode) && (control.touched || control.dirty || this.submittedOnce);
+    private updateLocationControls(mode: SessionMode): void {
+        const latitudeControl = this.reservationForm.get('locationLatitude');
+        const longitudeControl = this.reservationForm.get('locationLongitude');
+
+        if (!latitudeControl || !longitudeControl) {
+            return;
+        }
+
+        if (mode === 'presential') {
+            latitudeControl.setValidators([Validators.required, Validators.min(-90), Validators.max(90)]);
+            longitudeControl.setValidators([Validators.required, Validators.min(-180), Validators.max(180)]);
+            latitudeControl.updateValueAndValidity({ emitEvent: false });
+            longitudeControl.updateValueAndValidity({ emitEvent: false });
+            this.scheduleMapInitialization();
+            return;
+        }
+
+        latitudeControl.clearValidators();
+        longitudeControl.clearValidators();
+        this.reservationForm.patchValue(
+            {
+                locationAddress: '',
+                locationLatitude: null,
+                locationLongitude: null
+            },
+            { emitEvent: false }
+        );
+        latitudeControl.updateValueAndValidity({ emitEvent: false });
+        longitudeControl.updateValueAndValidity({ emitEvent: false });
+        this.destroyMap();
+    }
+
+    private scheduleMapInitialization(): void {
+        if (!this.isBrowser) {
+            return;
+        }
+
+        setTimeout(() => {
+            void this.initializeMap();
+        });
+    }
+
+    private async initializeMap(): Promise<void> {
+        if (!this.isBrowser || !this.isPresentialMode) {
+            return;
+        }
+
+        const mapElement = this.locationMapRef?.nativeElement;
+        if (!mapElement) {
+            return;
+        }
+
+        if (!this.leaflet) {
+            this.leaflet = await import('leaflet');
+        }
+
+        if (!this.map) {
+            this.map = this.leaflet.map(mapElement, { zoomControl: true }).setView(this.defaultMapCenter, 13);
+            this.leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(this.map);
+            this.map.on('click', this.onMapClick);
+        } else {
+            this.map.invalidateSize();
+        }
+
+        const latitude = this.toCoordinate(this.reservationForm.get('locationLatitude')?.value);
+        const longitude = this.toCoordinate(this.reservationForm.get('locationLongitude')?.value);
+        if (latitude !== undefined && longitude !== undefined) {
+            this.setLocation(latitude, longitude, true);
+        } else {
+            this.map.setView(this.defaultMapCenter, 13);
+        }
+    }
+
+    private readonly onMapClick = (event: any): void => {
+        this.setLocation(event.latlng.lat, event.latlng.lng, false);
+    };
+
+    private setLocation(latitude: number, longitude: number, centerMap: boolean): void {
+        const roundedLatitude = this.roundCoordinate(latitude);
+        const roundedLongitude = this.roundCoordinate(longitude);
+
+        this.reservationForm.patchValue({
+            locationLatitude: roundedLatitude,
+            locationLongitude: roundedLongitude
+        });
+        this.reservationForm.get('locationLatitude')?.markAsTouched();
+        this.reservationForm.get('locationLongitude')?.markAsTouched();
+
+        if (!this.map || !this.leaflet) {
+            return;
+        }
+
+        if (!this.locationMarker) {
+            this.locationMarker = this.leaflet.circleMarker([roundedLatitude, roundedLongitude], {
+                radius: 8,
+                color: '#1f6feb',
+                fillColor: '#1f6feb',
+                fillOpacity: 0.85,
+                weight: 2
+            }).addTo(this.map);
+        } else {
+            this.locationMarker.setLatLng([roundedLatitude, roundedLongitude]);
+        }
+
+        if (centerMap) {
+            this.map.setView([roundedLatitude, roundedLongitude], 15);
+        }
+    }
+
+    private destroyMap(): void {
+        if (!this.map) {
+            return;
+        }
+        this.map.off('click', this.onMapClick);
+        this.map.remove();
+        this.map = null;
+        this.locationMarker = null;
+    }
+
+    private toCoordinate(value: unknown): number | undefined {
+        if (value === null || value === undefined || value === '') {
+            return undefined;
+        }
+        const numericValue = typeof value === 'number' ? value : Number(value);
+        return Number.isFinite(numericValue) ? numericValue : undefined;
+    }
+
+    private roundCoordinate(value: number): number {
+        return Math.round(value * 1000000) / 1000000;
+    }
+
+    private normalizeText(value: unknown): string | undefined {
+        if (typeof value !== 'string') {
+            return undefined;
+        }
+        const trimmedValue = value.trim();
+        return trimmedValue.length > 0 ? trimmedValue : undefined;
     }
 }
-

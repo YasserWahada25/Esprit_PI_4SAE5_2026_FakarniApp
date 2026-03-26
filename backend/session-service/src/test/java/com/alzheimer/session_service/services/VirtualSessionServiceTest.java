@@ -1,7 +1,10 @@
 package com.alzheimer.session_service.services;
 
+import com.alzheimer.session_service.dto.CreateSessionRequest;
 import com.alzheimer.session_service.dto.UpdateParticipantPrefsRequest;
+import com.alzheimer.session_service.dto.UpdateSessionRequest;
 import com.alzheimer.session_service.entities.JoinStatus;
+import com.alzheimer.session_service.entities.MeetingMode;
 import com.alzheimer.session_service.entities.ParticipantRole;
 import com.alzheimer.session_service.entities.SessionParticipant;
 import com.alzheimer.session_service.entities.SessionStatus;
@@ -22,6 +25,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -123,6 +127,51 @@ class VirtualSessionServiceTest {
         assertEquals(1, result.size());
         assertEquals(SessionStatus.DRAFT, result.get(0).getStatus());
         verify(repository).findByStatus(SessionStatus.DRAFT);
+    }
+
+    @Test
+    void createReservation_onlineWithoutMeetingUrl_keepsCreationFlow() {
+        CreateSessionRequest request = CreateSessionRequest.builder()
+                .title("Session video")
+                .description("Session sans url saisie manuellement")
+                .startTime(Instant.parse("2026-03-12T08:00:00Z"))
+                .endTime(Instant.parse("2026-03-12T09:00:00Z"))
+                .createdBy("admin")
+                .status(SessionStatus.SCHEDULED)
+                .visibility(SessionVisibility.PUBLIC)
+                .sessionType(SessionType.GROUP)
+                .meetingMode(MeetingMode.ONLINE)
+                .build();
+
+        when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        VirtualSession created = service.createReservation(request);
+
+        assertNotNull(created);
+        assertEquals(MeetingMode.ONLINE, created.getMeetingMode());
+        assertNull(created.getMeetingUrl());
+    }
+
+    @Test
+    void update_withoutMeetingUrl_preservesExistingMeetingUrl() {
+        VirtualSession existing = buildSession(30L);
+        existing.setMeetingUrl("https://meet.example.com/existing-room");
+
+        UpdateSessionRequest request = UpdateSessionRequest.builder()
+                .title("Session test mise a jour")
+                .description("description mise a jour")
+                .startTime(Instant.parse("2026-02-21T11:00:00Z"))
+                .endTime(Instant.parse("2026-02-21T12:00:00Z"))
+                .status(SessionStatus.SCHEDULED)
+                .visibility(SessionVisibility.PUBLIC)
+                .build();
+
+        when(repository.findById(30L)).thenReturn(Optional.of(existing));
+        when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        VirtualSession updated = service.update(30L, request);
+
+        assertEquals("https://meet.example.com/existing-room", updated.getMeetingUrl());
     }
 
     private VirtualSession buildSession(Long id) {

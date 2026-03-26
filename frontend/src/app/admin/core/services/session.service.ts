@@ -11,7 +11,10 @@ interface VirtualSessionResponse {
     description: string;
     startTime: string;
     endTime: string;
-    meetingUrl: string;
+    meetingUrl?: string | null;
+    locationAddress?: string | null;
+    locationLatitude?: number | null;
+    locationLongitude?: number | null;
     createdBy: string;
     status: string;
     visibility: string;
@@ -28,6 +31,9 @@ interface CreateSessionRequest {
     startTime: string;
     endTime: string;
     meetingUrl?: string;
+    locationAddress?: string;
+    locationLatitude?: number;
+    locationLongitude?: number;
     createdBy: string;
     status: string;
     visibility: string;
@@ -41,8 +47,13 @@ interface UpdateSessionRequest {
     startTime: string;
     endTime: string;
     meetingUrl?: string;
+    locationAddress?: string;
+    locationLatitude?: number;
+    locationLongitude?: number;
     status: string;
     visibility: string;
+    sessionType?: string;
+    meetingMode?: string;
 }
 
 @Injectable({
@@ -147,7 +158,10 @@ export class SessionService {
             visibility: s.visibility as Session['visibility'],
             sessionType: s.sessionType as Session['sessionType'],
             meetingMode: s.meetingMode as Session['meetingMode'],
-            meetingUrl: s.meetingUrl,
+            meetingUrl: s.meetingUrl ?? undefined,
+            locationAddress: s.locationAddress ?? undefined,
+            locationLatitude: s.locationLatitude ?? undefined,
+            locationLongitude: s.locationLongitude ?? undefined,
             createdBy: s.createdBy,
             createdAt: s.createdAt
         };
@@ -157,18 +171,26 @@ export class SessionService {
         const sessionDate = this.normalizeDate(session.date);
         const startTime = this.buildDateTime(sessionDate, session.startTime);
         const endTime = this.buildDateTime(sessionDate, session.endTime);
+        const meetingUrl = session.meetingUrl?.trim();
+        const locationAddress = session.locationAddress?.trim();
+        const locationLatitude = this.normalizeCoordinate(session.locationLatitude);
+        const locationLongitude = this.normalizeCoordinate(session.locationLongitude);
+        const meetingMode = session.meetingMode || 'ONLINE';
 
         return {
             title: session.title,
             description: session.description,
             startTime: startTime.toISOString(),
             endTime: endTime.toISOString(),
-            meetingUrl: session.meetingUrl || '',
+            meetingUrl: meetingMode === 'ONLINE' ? (meetingUrl || undefined) : undefined,
+            locationAddress: meetingMode === 'IN_PERSON' ? (locationAddress || undefined) : undefined,
+            locationLatitude: meetingMode === 'IN_PERSON' ? locationLatitude : undefined,
+            locationLongitude: meetingMode === 'IN_PERSON' ? locationLongitude : undefined,
             createdBy: session.createdBy || 'admin',
             status: session.status || 'SCHEDULED',
             visibility: session.visibility || 'PUBLIC',
             sessionType: session.sessionType || 'GROUP',
-            meetingMode: session.meetingMode || 'ONLINE'
+            meetingMode
         };
     }
 
@@ -176,15 +198,25 @@ export class SessionService {
         const sessionDate = this.normalizeDate(session.date);
         const startTime = this.buildDateTime(sessionDate, session.startTime);
         const endTime = this.buildDateTime(sessionDate, session.endTime);
+        const meetingUrl = session.meetingUrl?.trim();
+        const locationAddress = session.locationAddress?.trim();
+        const locationLatitude = this.normalizeCoordinate(session.locationLatitude);
+        const locationLongitude = this.normalizeCoordinate(session.locationLongitude);
+        const meetingMode = session.meetingMode || 'ONLINE';
 
         return {
             title: session.title,
             description: session.description,
             startTime: startTime.toISOString(),
             endTime: endTime.toISOString(),
-            meetingUrl: session.meetingUrl || '',
+            meetingUrl: meetingMode === 'ONLINE' ? (meetingUrl || undefined) : undefined,
+            locationAddress: meetingMode === 'IN_PERSON' ? (locationAddress || undefined) : undefined,
+            locationLatitude: meetingMode === 'IN_PERSON' ? locationLatitude : undefined,
+            locationLongitude: meetingMode === 'IN_PERSON' ? locationLongitude : undefined,
             status: session.status || 'SCHEDULED',
-            visibility: session.visibility || 'PUBLIC'
+            visibility: session.visibility || 'PUBLIC',
+            sessionType: session.sessionType || 'GROUP',
+            meetingMode
         };
     }
 
@@ -213,5 +245,14 @@ export class SessionService {
         const hours = dateTime.getHours().toString().padStart(2, '0');
         const minutes = dateTime.getMinutes().toString().padStart(2, '0');
         return `${hours}:${minutes}`;
+    }
+
+    private normalizeCoordinate(value: unknown): number | undefined {
+        if (value === null || value === undefined || value === '') {
+            return undefined;
+        }
+
+        const numericValue = typeof value === 'number' ? value : Number(value);
+        return Number.isFinite(numericValue) ? numericValue : undefined;
     }
 }
