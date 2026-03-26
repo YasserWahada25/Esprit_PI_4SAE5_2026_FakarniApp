@@ -30,7 +30,7 @@ public class GatewayServiceApplication {
 			@Value("${gateway.routes.user.uri:lb://USER-SERVICE}") String userUri
 	) {
 		return builder.routes()
-				.route("User-Auth", r -> r.path("/auth/**")
+				.route("user-auth", r -> r.path("/auth/**", "/internal/users/**")
 						.uri(userAuthUri))
 				.route("session_service", r -> r.path("/session/**")
 						.uri(sessionUri))
@@ -38,18 +38,8 @@ public class GatewayServiceApplication {
 						.uri(sessionUri))
 				.route("Event-Service", r -> r.path("/api/events/**")
 						.uri(eventUri))
-				.route("User-Service", r -> r.path("/api/users/**")
+				.route("user-service", r -> r.path("/api/users", "/api/users/**")
 						.uri(userUri))
-
-				// USER-SERVICE
-				.route("user-service-api",
-						r -> r.path("/api/users", "/api/users/**")
-								.uri("lb://USER-SERVICE"))
-
-				.route("user-service-auth",
-						r -> r.path("/auth/**", "/internal/users/**")
-								.uri("lb://USER-SERVICE"))
-
 				.build();
 	}
 
