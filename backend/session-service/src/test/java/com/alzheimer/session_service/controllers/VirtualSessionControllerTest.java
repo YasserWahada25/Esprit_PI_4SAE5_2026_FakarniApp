@@ -29,51 +29,31 @@ class VirtualSessionControllerTest {
     private VirtualSessionController controller;
 
     @Test
-    void addFavorite_delegatesToServiceWithTrueState() {
-        VirtualSession session = buildSession(1L);
-        when(service.setFavorite(1L, "user-1", true)).thenReturn(session);
-
-        VirtualSession result = controller.addFavorite(1L, "user-1");
-
-        assertSame(session, result);
-        verify(service).setFavorite(1L, "user-1", true);
-    }
-
-    @Test
-    void removeFavorite_delegatesToServiceWithFalseState() {
-        VirtualSession session = buildSession(2L);
-        when(service.setFavorite(2L, "user-2", false)).thenReturn(session);
-
-        VirtualSession result = controller.removeFavorite(2L, "user-2");
-
-        assertSame(session, result);
-        verify(service).setFavorite(2L, "user-2", false);
-    }
-
-    @Test
-    void updateParticipantPrefs_delegatesToService() {
+    void updateMyParticipantPrefs_delegatesToService_withoutJwt() {
         UpdateParticipantPrefsRequest request = UpdateParticipantPrefsRequest.builder()
                 .isFavorite(true)
                 .build();
-        VirtualSession session = buildSession(3L);
-        when(service.updateParticipantPrefs(3L, "user-3", request)).thenReturn(session);
 
-        VirtualSession result = controller.updateParticipantPrefs(3L, "user-3", request);
+        VirtualSession session = buildSession(3L);
+
+        when(service.updateParticipantPrefs(3L, request)).thenReturn(session);
+
+        VirtualSession result = controller.updateMyParticipantPrefs(3L, request);
 
         assertSame(session, result);
-        verify(service).updateParticipantPrefs(3L, "user-3", request);
+        verify(service).updateParticipantPrefs(3L, request);
     }
 
     @Test
-    void favorites_delegatesToService() {
+    void favorites_delegatesToService_withoutJwt() {
         VirtualSession session = buildSession(4L);
-        when(service.listUserFavorites("user-4")).thenReturn(List.of(session));
+        when(service.listUserFavorites()).thenReturn(List.of(session));
 
-        List<VirtualSession> result = controller.favorites("user-4");
+        List<VirtualSession> result = controller.favorites();
 
         assertEquals(1, result.size());
         assertEquals(4L, result.get(0).getId());
-        verify(service).listUserFavorites("user-4");
+        verify(service).listUserFavorites();
     }
 
     private VirtualSession buildSession(Long id) {

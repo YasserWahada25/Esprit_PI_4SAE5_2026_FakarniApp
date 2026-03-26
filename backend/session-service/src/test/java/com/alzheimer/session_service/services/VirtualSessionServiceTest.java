@@ -1,10 +1,14 @@
 package com.alzheimer.session_service.services;
 
+import com.alzheimer.session_service.dto.CreateSessionRequest;
 import com.alzheimer.session_service.dto.UpdateParticipantPrefsRequest;
+import com.alzheimer.session_service.dto.UpdateSessionRequest;
 import com.alzheimer.session_service.entities.JoinStatus;
+import com.alzheimer.session_service.entities.MeetingMode;
 import com.alzheimer.session_service.entities.ParticipantRole;
 import com.alzheimer.session_service.entities.SessionParticipant;
 import com.alzheimer.session_service.entities.SessionStatus;
+import com.alzheimer.session_service.entities.SessionType;
 import com.alzheimer.session_service.entities.SessionVisibility;
 import com.alzheimer.session_service.entities.VirtualSession;
 import com.alzheimer.session_service.repositories.VirtualSessionRepository;
@@ -21,6 +25,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -45,12 +50,12 @@ class VirtualSessionServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(session));
         when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        VirtualSession updated = service.updateParticipantPrefs(1L, " patient-001 ", request);
+        VirtualSession updated = service.updateParticipantPrefs(1L, request);
 
         assertNotNull(updated);
         assertEquals(1, updated.getParticipants().size());
         SessionParticipant participant = updated.getParticipants().get(0);
-        assertEquals("patient-001", participant.getUserId());
+        assertEquals("admin", participant.getUserId());
         assertEquals(ParticipantRole.PARTICIPANT, participant.getRole());
         assertEquals(JoinStatus.INVITED, participant.getJoinStatus());
         assertTrue(participant.isFavorite());
@@ -62,7 +67,7 @@ class VirtualSessionServiceTest {
         VirtualSession session = buildSession(2L);
         session.getParticipants().add(
                 SessionParticipant.builder()
-                        .userId("patient-002")
+                        .userId("admin")
                         .role(ParticipantRole.PARTICIPANT)
                         .joinStatus(JoinStatus.CONFIRMED)
                         .isFavorite(true)
@@ -72,7 +77,7 @@ class VirtualSessionServiceTest {
         when(repository.findById(2L)).thenReturn(Optional.of(session));
         when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        VirtualSession updated = service.setFavorite(2L, "patient-002", false);
+        VirtualSession updated = service.setFavorite(2L, false);
 
         assertNotNull(updated);
         assertFalse(updated.getParticipants().get(0).isFavorite());
@@ -84,7 +89,7 @@ class VirtualSessionServiceTest {
         VirtualSession favoriteSession = buildSession(10L);
         favoriteSession.getParticipants().add(
                 SessionParticipant.builder()
-                        .userId("patient-003")
+                        .userId("admin")
                         .role(ParticipantRole.PARTICIPANT)
                         .joinStatus(JoinStatus.CONFIRMED)
                         .isFavorite(true)
@@ -94,20 +99,79 @@ class VirtualSessionServiceTest {
         VirtualSession nonFavoriteSession = buildSession(11L);
         nonFavoriteSession.getParticipants().add(
                 SessionParticipant.builder()
-                        .userId("patient-003")
+                        .userId("admin")
                         .role(ParticipantRole.PARTICIPANT)
                         .joinStatus(JoinStatus.CONFIRMED)
                         .isFavorite(false)
                         .build()
         );
 
-        when(repository.findByParticipantUserId("patient-003"))
+        when(repository.findByParticipantUserId("admin"))
                 .thenReturn(List.of(favoriteSession, nonFavoriteSession));
 
-        List<VirtualSession> favorites = service.listUserFavorites(" patient-003 ");
+        List<VirtualSession> favorites = service.listUserFavorites();
 
         assertEquals(1, favorites.size());
         assertEquals(10L, favorites.get(0).getId());
+    }
+
+    @Test
+    void list_withOnlyStatus_filtersByStatus() {
+        VirtualSession pending = buildSession(20L);
+        pending.setStatus(SessionStatus.DRAFT);
+
+        when(repository.findByStatus(SessionStatus.DRAFT)).thenReturn(List.of(pending));
+
+        List<VirtualSession> result = service.list(null, null, SessionStatus.DRAFT);
+
+        assertEquals(1, result.size());
+        assertEquals(SessionStatus.DRAFT, result.get(0).getStatus());
+        verify(repository).findByStatus(SessionStatus.DRAFT);
+    }
+
+    @Test
+    void createReservation_onlineWithoutMeetingUrl_keepsCreationFlow() {
+        CreateSessionRequest request = CreateSessionRequest.builder()
+                .title("Session video")
+                .description("Session sans url saisie manuellement")
+                .startTime(Instant.parse("2026-03-12T08:00:00Z"))
+                .endTime(Instant.parse("2026-03-12T09:00:00Z"))
+                .createdBy("admin")
+                .status(SessionStatus.SCHEDULED)
+                .visibility(SessionVisibility.PUBLIC)
+                .sessionType(SessionType.GROUP)
+                .meetingMode(MeetingMode.ONLINE)
+                .build();
+
+        when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        VirtualSession created = service.createReservation(request);
+
+        assertNotNull(created);
+        assertEquals(MeetingMode.ONLINE, created.getMeetingMode());
+        assertNull(created.getMeetingUrl());
+    }
+
+    @Test
+    void update_withoutMeetingUrl_preservesExistingMeetingUrl() {
+        VirtualSession existing = buildSession(30L);
+        existing.setMeetingUrl("https://meet.example.com/existing-room");
+
+        UpdateSessionRequest request = UpdateSessionRequest.builder()
+                .title("Session test mise a jour")
+                .description("description mise a jour")
+                .startTime(Instant.parse("2026-02-21T11:00:00Z"))
+                .endTime(Instant.parse("2026-02-21T12:00:00Z"))
+                .status(SessionStatus.SCHEDULED)
+                .visibility(SessionVisibility.PUBLIC)
+                .build();
+
+        when(repository.findById(30L)).thenReturn(Optional.of(existing));
+        when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        VirtualSession updated = service.update(30L, request);
+
+        assertEquals("https://meet.example.com/existing-room", updated.getMeetingUrl());
     }
 
     private VirtualSession buildSession(Long id) {
@@ -120,6 +184,7 @@ class VirtualSessionServiceTest {
                 .createdBy("admin")
                 .status(SessionStatus.SCHEDULED)
                 .visibility(SessionVisibility.PUBLIC)
+                .sessionType(SessionType.GROUP)
                 .build();
     }
 }
