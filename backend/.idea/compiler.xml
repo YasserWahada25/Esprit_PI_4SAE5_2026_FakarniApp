@@ -9,7 +9,6 @@
         <outputRelativeToContentRoot value="true" />
         <module name="Eureka-Service" />
         <module name="Gateway-Service" />
-        <module name="Group-Service" />
         <module name="User-Service" />
       </profile>
       <profile name="Annotation profile for session-service" enabled="true">
@@ -30,16 +29,15 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
         <module name="meeting-insights-service" />
-        <module name="Event-Service" />
       </profile>
-      <profile name="Annotation profile for Post-Service" enabled="true">
+      <profile name="Annotation profile for Event-Service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
-        <module name="Post-Service" />
+        <module name="Event-Service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
