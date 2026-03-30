@@ -1,17 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { SignUpRequest } from '../models/sign-up.model';
 import { AuthResponse, User, UserUpdateRequest } from '../models/user.model';
 
-// Gateway (microservices) – le front appelle la gateway, qui route vers User-Service, etc.
 const API_BASE = 'http://localhost:8090';
 const API = `${API_BASE}/api`;
 const AUTH = `${API_BASE}/auth`;
 
 const STORAGE_KEY = 'fakarni_user';
-
-// ✅ Tokens dans sessionStorage
 const TOKEN_KEY = 'fakarni_token';
 const REFRESH_TOKEN_KEY = 'fakarni_refresh';
 
@@ -28,9 +26,20 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(this.loadStoredUser());
   currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  // ✅ Injecter PLATFORM_ID pour détecter browser vs serveur
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
+
+  // ✅ Helper : est-ce qu'on est dans le navigateur ?
+  private isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
+  }
 
   private loadStoredUser(): User | null {
+    // ✅ Guard SSR
+    if (typeof window === 'undefined') return null;
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : null;
@@ -40,6 +49,7 @@ export class AuthService {
   }
 
   private storeUser(user: User | null): void {
+    if (!this.isBrowser()) return; // ✅ Guard SSR
     if (user) {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));
     } else {
@@ -55,6 +65,7 @@ export class AuthService {
   login(body: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${AUTH}/login`, body).pipe(
       tap((res) => {
+        if (!this.isBrowser()) return; // ✅ Guard SSR
         if (res?.accessToken) {
           sessionStorage.setItem(TOKEN_KEY, res.accessToken);
         }
@@ -68,7 +79,6 @@ export class AuthService {
     );
   }
 
-  /** Appelle POST /auth/logout puis efface tokens et user localement. */
   logout(): void {
     const refresh = this.getRefreshToken();
     if (refresh) {
@@ -77,12 +87,12 @@ export class AuthService {
         error: () => {}
       });
     }
+    if (!this.isBrowser()) return; // ✅ Guard SSR
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(REFRESH_TOKEN_KEY);
     this.storeUser(null);
   }
 
-  /** Retourne l'utilisateur connecté (mémoire ou sessionStorage). */
   getCurrentUser(): User | null {
     let user = this.currentUserSubject.value;
     if (!user) {
@@ -94,17 +104,18 @@ export class AuthService {
     return user;
   }
 
-  // ✅ Lire le token depuis sessionStorage (pas depuis une variable)
   getAccessToken(): string | null {
+    if (!this.isBrowser()) return null; // ✅ Guard SSR
     return sessionStorage.getItem(TOKEN_KEY);
   }
 
   getRefreshToken(): string | null {
+    if (!this.isBrowser()) return null; // ✅ Guard SSR
     return sessionStorage.getItem(REFRESH_TOKEN_KEY);
   }
 
   isLoggedIn(): boolean {
-    // user déjà en mémoire OU persistant
+    if (!this.isBrowser()) return false; // ✅ Guard SSR
     return this.currentUserSubject.value !== null
       || sessionStorage.getItem(STORAGE_KEY) !== null;
   }
@@ -124,12 +135,10 @@ export class AuthService {
     );
   }
 
-  /** Envoie un email de réinitialisation de mot de passe */
   forgotPassword(email: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${AUTH}/forgot-password`, { email });
   }
 
-  /** Réinitialise le mot de passe avec le token reçu par email */
   resetPassword(token: string, newPassword: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${AUTH}/reset-password`, { token, newPassword });
   }
