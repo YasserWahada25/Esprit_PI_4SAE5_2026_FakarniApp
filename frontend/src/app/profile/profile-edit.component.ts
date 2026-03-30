@@ -1,9 +1,16 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, Inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ROLE_OPTIONS, Role } from '../auth/models/sign-up.model';
 import { UserUpdateRequest } from '../auth/models/user.model';
 import { AuthService } from '../auth/services/auth.service';
+import {
+  nomValidators,
+  prenomValidators,
+  emailValidators,
+  numTelValidators,
+  getControlErrorMessage,
+} from '../auth/validators/form.validators';
 
 @Component({
   selector: 'app-profile-edit',
@@ -21,18 +28,20 @@ export class ProfileEditComponent implements OnInit {
   loading = false;
   loadingUser = true;
 
+  readonly getError = getControlErrorMessage;
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private authService: AuthService,
+    @Inject(AuthService) private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {
     this.profileForm = this.fb.group({
-      nom: ['', Validators.required],
-      prenom: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
+      nom: ['', nomValidators],
+      prenom: ['', prenomValidators],
+      email: ['', emailValidators],
       role: [Role.PATIENT_PROFILE, Validators.required],
-      numTel: [''],
+      numTel: ['', numTelValidators],
       adresse: [''],
     });
   }
@@ -105,7 +114,7 @@ export class ProfileEditComponent implements OnInit {
     console.log('current user:', user);
 
     if (!user || this.profileForm.invalid || this.loading) {
-      console.log('blocked - user:', !!user, 'valid:', this.profileForm.valid, 'loading:', this.loading);
+      this.profileForm.markAllAsTouched();
       return;
     }
 
