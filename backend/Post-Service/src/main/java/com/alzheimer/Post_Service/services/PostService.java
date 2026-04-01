@@ -31,7 +31,7 @@ public class PostService {
     }
 
     public List<PostResponse> getAllPosts() {
-        List<Post> posts = (List<Post>) postRepository.findAll();
+        List<Post> posts = postRepository.findAll();
         return posts.stream()
             .map(this::toResponse)
             .collect(Collectors.toList());

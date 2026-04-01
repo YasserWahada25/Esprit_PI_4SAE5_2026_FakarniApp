@@ -65,6 +65,24 @@
             <div class="post-image" *ngIf="post.imageUrl">
                 <img [src]="post.imageUrl" [alt]="'Post image'" />
             </div>
+
+            <!-- Reactions -->
+            <app-post-reactions [postId]="post.id"></app-post-reactions>
+
+            <!-- Comments Toggle -->
+            <div class="comments-toggle">
+                <button (click)="toggleComments(post.id)" class="toggle-comments-btn">
+                    <i class="fa-solid" [class.fa-chevron-down]="!isCommentsExpanded(post.id)" 
+                       [class.fa-chevron-up]="isCommentsExpanded(post.id)"></i>
+                    {{ isCommentsExpanded(post.id) ? 'Hide' : 'Show' }} Comments
+                </button>
+            </div>
+
+            <!-- Comments Section -->
+            <app-post-comments 
+                *ngIf="isCommentsExpanded(post.id)"
+                [postId]="post.id">
+            </app-post-comments>
         </article>
     </div>
 

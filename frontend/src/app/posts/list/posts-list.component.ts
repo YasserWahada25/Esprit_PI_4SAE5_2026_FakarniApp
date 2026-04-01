@@ -3,11 +3,13 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { PostsService } from '../services/posts.service';
+import { PostReactionsComponent } from '../shared/post-reactions/post-reactions.component';
+import { PostCommentsComponent } from '../shared/post-comments/post-comments.component';
 
 @Component({
     selector: 'app-posts-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, RouterModule, PostReactionsComponent, PostCommentsComponent],
     templateUrl: './posts-list.component.html',
     styleUrl: './posts-list.component.css'
 })
@@ -17,6 +19,7 @@ export class PostsListComponent implements OnInit {
     isLoading = signal(true);
     errorMessage = signal('');
     posts = signal<any[]>([]);
+    expandedComments = signal<Set<number>>(new Set());
 
     private platformId = inject(PLATFORM_ID);
 
@@ -153,5 +156,19 @@ export class PostsListComponent implements OnInit {
     editPost(postId: number) {
         // Navigate to edit page
         this.router.navigate(['/posts/edit', postId]);
+    }
+
+    toggleComments(postId: number) {
+        const expanded = this.expandedComments();
+        if (expanded.has(postId)) {
+            expanded.delete(postId);
+        } else {
+            expanded.add(postId);
+        }
+        this.expandedComments.set(new Set(expanded));
+    }
+
+    isCommentsExpanded(postId: number): boolean {
+        return this.expandedComments().has(postId);
     }
 }

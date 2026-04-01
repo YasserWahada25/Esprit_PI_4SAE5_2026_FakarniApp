@@ -1,0 +1,263 @@
+.comments-section {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.comments-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.comments-header i {
+    color: #2196f3;
+}
+
+/* Add Comment Form */
+.add-comment {
+    margin-bottom: 20px;
+}
+
+.add-comment textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    transition: border-color 0.3s;
+}
+
+.add-comment textarea:focus {
+    outline: none;
+    border-color: #2196f3;
+}
+
+.add-comment button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.add-comment button:hover {
+    background: #1976d2;
+}
+
+.add-comment button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* Comments List */
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.comment {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 3px solid #2196f3;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.user {
+    font-weight: 600;
+    color: #333;
+}
+
+.date {
+    font-size: 12px;
+    color: #999;
+}
+
+.comment-content {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.comment-actions button {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #666;
+    transition: all 0.3s;
+}
+
+.comment-actions button:hover {
+    background: #f0f0f0;
+    border-color: #2196f3;
+    color: #2196f3;
+}
+
+.comment-actions button i {
+    margin-right: 4px;
+}
+
+/* Reply Form */
+.reply-form {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 6px;
+}
+
+.reply-form textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.reply-form textarea:focus {
+    outline: none;
+    border-color: #2196f3;
+}
+
+.reply-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.reply-form-actions button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.reply-form-actions button:first-child {
+    background: #2196f3;
+    color: white;
+}
+
+.reply-form-actions button:first-child:hover {
+    background: #1976d2;
+}
+
+.reply-form-actions button:last-child {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.reply-form-actions button:last-child:hover {
+    background: #e0e0e0;
+}
+
+/* Replies */
+.replies {
+    margin-left: 30px;
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.reply {
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 3px solid #4caf50;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    padding: 15px;
+}
+
+.pagination button {
+    padding: 8px 16px;
+    background: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: #1976d2;
+}
+
+.pagination button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.pagination span {
+    color: #666;
+    font-weight: 600;
+}
+
+/* Loading & Error */
+.loading-spinner {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.error-message {
+    padding: 15px;
+    background: #ffebee;
+    color: #c62828;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: #ddd;
+}
