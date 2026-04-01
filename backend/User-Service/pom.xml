@@ -101,6 +101,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Google API Client (pour vérifier les ID tokens Google) -->
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>2.4.1</version>
+        </dependency>
+
         <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

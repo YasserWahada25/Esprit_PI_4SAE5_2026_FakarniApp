@@ -24,6 +24,13 @@ public class AuthController {
         return authService.login(req, userAgent, ip);
     }
 
+    @PostMapping("/google")
+    public AuthResponse googleLogin(@Valid @RequestBody GoogleLoginRequest req, HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        String ip = request.getRemoteAddr();
+        return authService.googleLogin(req, userAgent, ip);
+    }
+
     @PostMapping("/refresh")
     public AuthResponse refresh(@Valid @RequestBody RefreshRequest req) {
         return authService.refresh(req);
@@ -34,4 +41,4 @@ public class AuthController {
     public void logout(@Valid @RequestBody RefreshRequest req) {
         authService.logout(req.getRefreshToken());
     }
-}
+}

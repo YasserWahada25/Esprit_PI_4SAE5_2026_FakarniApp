@@ -47,6 +47,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/login",
+                                "/auth/google",
                                 "/auth/refresh",
                                 "/auth/logout",
                                 "/internal/users/**",

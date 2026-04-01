@@ -1,8 +1,14 @@
 package tn.SoftCare.User.service;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import tn.SoftCare.User.dto.*;
+import tn.SoftCare.User.model.Role;
 import tn.SoftCare.User.model.Session;
 import tn.SoftCare.User.model.User;
 import tn.SoftCare.User.repository.SessionRepository;
@@ -13,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.UUID;
 
 @Service
@@ -20,8 +27,11 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
-    private final PasswordEncoder passwordEncoder; // ✅ uniquement pour password user
+    private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+
+    @Value("${google.client-id}")
+    private String googleClientId;
 
     public AuthService(UserRepository userRepository,
                        SessionRepository sessionRepository,
@@ -121,6 +131,70 @@ public class AuthService {
             s.setRevoked(true);
             sessionRepository.save(s);
         });
+    }
+
+    public AuthResponse googleLogin(GoogleLoginRequest req, String userAgent, String ip) {
+        // 1. Vérifier le credential Google
+        GoogleIdToken.Payload payload = verifyGoogleToken(req.getCredential());
+
+        String email = payload.getEmail();
+        String firstName = (String) payload.get("given_name");
+        String lastName = (String) payload.get("family_name");
+        if (firstName == null) firstName = "";
+        if (lastName == null) lastName = "";
+
+        // 2. Chercher ou créer l'utilisateur
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = new User();
+            newUser.setId(UUID.randomUUID().toString());
+            newUser.setEmail(email);
+            newUser.setPrenom(firstName);
+            newUser.setNom(lastName);
+            newUser.setPassword(""); // pas de mot de passe pour les comptes Google
+            newUser.setRole(Role.PATIENT_PROFILE);
+            return userRepository.save(newUser);
+        });
+
+        // 3. Créer une session et retourner les tokens
+        Session s = new Session();
+        s.setId(UUID.randomUUID().toString());
+        s.setUserId(user.getId());
+        s.setCreatedAt(Instant.now());
+        s.setExpiresAt(Instant.now().plusSeconds(jwtService.getRefreshDays() * 24 * 3600));
+        s.setRevoked(false);
+        s.setUserAgent(userAgent);
+        s.setIp(ip);
+
+        String refreshToken = jwtService.generateRefreshToken(user.getId(), s.getId());
+        s.setRefreshTokenHash(hashTokenSha256(refreshToken));
+        sessionRepository.save(s);
+
+        String accessToken = jwtService.generateAccessToken(user);
+
+        AuthResponse res = new AuthResponse();
+        res.setAccessToken(accessToken);
+        res.setRefreshToken(refreshToken);
+        res.setUser(toUserResponse(user));
+        return res;
+    }
+
+    private GoogleIdToken.Payload verifyGoogleToken(String idTokenString) {
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    new NetHttpTransport(), GsonFactory.getDefaultInstance())
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(idTokenString);
+            if (idToken == null) {
+                throw new RuntimeException("Token Google invalide ou expiré");
+            }
+            return idToken.getPayload();
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur de vérification du token Google: " + e.getMessage(), e);
+        }
     }
 
     private UserResponse toUserResponse(User u) {
