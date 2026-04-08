@@ -1,12 +1,13 @@
 package SoftCare.Detection_Maladie_Service.service;
 
 import SoftCare.Detection_Maladie_Service.dto.AnalyseIRMResponse;
-import SoftCare.Detection_Maladie_Service.dto.AjouterAnalyseRequest;  // ← NOUVEAU
+import SoftCare.Detection_Maladie_Service.dto.AjouterAnalyseRequest;
 import SoftCare.Detection_Maladie_Service.dto.PredictionResponse;
 import SoftCare.Detection_Maladie_Service.entity.AnalyseIRM;
 import SoftCare.Detection_Maladie_Service.repository.AnalyseIRMRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -15,17 +16,22 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 
 @Service
 @Slf4j
-public class DetectionService {  // ← SUPPRIMÉ @RequiredArgsConstructor
+public class DetectionService {
 
     private final AnalyseIRMRepository repository;
     private final RestClient flaskRestClient;
-    private final DossierMedicalClient dossierMedicalClient;  // ← NOUVEAU
+    private final DossierMedicalClient dossierMedicalClient;
 
-    // ← NOUVEAU constructeur (remplace @RequiredArgsConstructor)
+    @Value("${app.upload-dir:uploads/mri}")
+    private String uploadDir;
+
     public DetectionService(AnalyseIRMRepository repository,
                             @Qualifier("flaskRestClient") RestClient flaskRestClient,
                             DossierMedicalClient dossierMedicalClient) {
@@ -34,16 +40,25 @@ public class DetectionService {  // ← SUPPRIMÉ @RequiredArgsConstructor
         this.dossierMedicalClient = dossierMedicalClient;
     }
 
+    // ── ONE single analyserIRM method ──────────────────────────
     public AnalyseIRMResponse analyserIRM(MultipartFile image) throws Exception {
 
-        log.info("📤 Envoi image '{}' vers Flask IA...", image.getOriginalFilename());
+        // 1. Save image to disk
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        String filename = System.currentTimeMillis() + "_" + image.getOriginalFilename();
+        Path filePath = uploadPath.resolve(filename);
+        Files.write(filePath, image.getBytes());
+        log.info("💾 Image saved → {}", filePath);
 
+        // 2. Send to Flask IA
+        log.info("📤 Envoi image '{}' vers Flask IA...", filename);
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("image", new ByteArrayResource(image.getBytes()) {
             @Override
-            public String getFilename() {
-                return image.getOriginalFilename();
-            }
+            public String getFilename() { return filename; }
         });
 
         PredictionResponse prediction = flaskRestClient.post()
@@ -60,8 +75,9 @@ public class DetectionService {  // ← SUPPRIMÉ @RequiredArgsConstructor
         log.info("✅ IA → {} | Confiance : {}%",
                 prediction.getPrediction(), prediction.getConfidence());
 
+        // 3. Save result to DB (using disk filename)
         AnalyseIRM analyse = AnalyseIRM.builder()
-                .nomFichier(image.getOriginalFilename())
+                .nomFichier(filename)                          // ← disk filename
                 .prediction(prediction.getPrediction())
                 .confidence(prediction.getConfidence())
                 .niveauRisque(prediction.getRisk().getLabel())
@@ -78,7 +94,7 @@ public class DetectionService {  // ← SUPPRIMÉ @RequiredArgsConstructor
         AnalyseIRM saved = repository.save(analyse);
         log.info("💾 Sauvegardé en base → ID = {}", saved.getId());
 
-        // ── 4. ✅ NOUVEAU — Notifier Dossier_Medical-Service ──
+        // 4. Notify Dossier_Medical-Service
         AjouterAnalyseRequest dossierRequest = AjouterAnalyseRequest.builder()
                 .analyseIrmId(saved.getId())
                 .patientId(saved.getPatientId())
@@ -95,7 +111,7 @@ public class DetectionService {  // ← SUPPRIMÉ @RequiredArgsConstructor
                 .dateAnalyse(saved.getDateAnalyse())
                 .build();
 
-        dossierMedicalClient.envoyerAnalyseAuDossier(dossierRequest);  // ← NOUVEAU
+        dossierMedicalClient.envoyerAnalyseAuDossier(dossierRequest);
 
         return mapToResponse(saved);
     }

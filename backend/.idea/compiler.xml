@@ -26,9 +26,10 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="Eureka-Service" />
+        <module name="Gateway-Service" />
         <module name="Detection_Maladie-Service" />
         <module name="Dossier_Medical-service" />
-        <module name="Gateway-Service" />
       </profile>
     </annotationProcessing>
   </component>
@@ -36,6 +37,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Detection_Maladie-Service" options="-parameters" />
       <module name="Dossier_Medical-service" options="-parameters" />
+      <module name="Eureka-Service" options="-parameters" />
       <module name="Gateway-Service" options="-parameters" />
       <module name="meeting-insights-service" options="-parameters" />
       <module name="session-service" options="-parameters" />
