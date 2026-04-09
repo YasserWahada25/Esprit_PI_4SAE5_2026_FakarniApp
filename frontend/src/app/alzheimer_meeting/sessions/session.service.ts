@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../auth/services/auth.service';
 
 type SessionStatus = 'DRAFT' | 'SCHEDULED' | 'CANCELLED' | 'DONE';
 type SessionVisibility = 'PUBLIC' | 'PRIVATE';
@@ -65,7 +66,7 @@ interface CreateSessionRequest {
 export class SessionService {
     private apiUrl = `${environment.apiUrl}/session`;
 
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient, private authService: AuthService) { }
 
     getSessions(): Observable<PatientSession[]> {
         return this.http.get<VirtualSessionResponse[]>(`${this.apiUrl}/sessions`).pipe(
@@ -138,15 +139,7 @@ export class SessionService {
     }
 
     private resolveCurrentUserId(): string {
-        if (typeof window === 'undefined') {
-            return 'patient';
-        }
-
-        const localStorageRef = window.localStorage;
-        return localStorageRef.getItem('userId')
-            || localStorageRef.getItem('user_id')
-            || localStorageRef.getItem('uid')
-            || 'patient';
+        return this.authService.getCurrentUser()?.id?.trim() || 'patient';
     }
 
     private normalizeCoordinate(value: unknown): number | undefined {

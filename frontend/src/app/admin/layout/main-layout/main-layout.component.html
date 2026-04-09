@@ -40,8 +40,12 @@
     <mat-toolbar color="primary" class="main-toolbar">
       <span class="toolbar-title">Fakarni - Tableau de bord Administratif</span>
       <span class="spacer"></span>
-      <button mat-icon-button>
+      <span class="admin-name">{{ adminDisplayName }}</span>
+      <button mat-icon-button title="Profil administrateur">
         <mat-icon>account_circle</mat-icon>
+      </button>
+      <button mat-icon-button title="Deconnexion" (click)="onLogout()">
+        <mat-icon>logout</mat-icon>
       </button>
     </mat-toolbar>
     <div class="content">

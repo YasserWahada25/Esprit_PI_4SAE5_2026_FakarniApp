@@ -24,8 +24,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class VirtualSessionService {
 
-    private static final String GENERIC_USER_ID = "admin";
-
     private final VirtualSessionRepository repository;
 
     public static class NotFoundException extends RuntimeException {
@@ -36,12 +34,13 @@ public class VirtualSessionService {
         public BadRequestException(String message) { super(message); }
     }
 
-    public VirtualSession create(CreateSessionRequest req) {
-        return createReservation(req);
+    public VirtualSession create(CreateSessionRequest req, String requesterRole) {
+        return createReservation(req, requesterRole);
     }
 
-    public VirtualSession update(Long id, UpdateSessionRequest req) {
+    public VirtualSession update(Long id, UpdateSessionRequest req, String requesterUserId, String requesterRole) {
         VirtualSession session = getById(id);
+        ensureCanManage(session, requesterUserId, requesterRole);
 
         if (req.getEndTime().isBefore(req.getStartTime()) || req.getEndTime().equals(req.getStartTime())) {
             throw new BadRequestException("endTime must be after startTime");
@@ -92,8 +91,9 @@ public class VirtualSessionService {
         return repository.save(session);
     }
 
-    public void delete(Long id) {
-        getById(id);
+    public void delete(Long id, String requesterUserId, String requesterRole) {
+        VirtualSession session = getById(id);
+        ensureCanManage(session, requesterUserId, requesterRole);
         repository.deleteById(id);
     }
 
@@ -102,28 +102,43 @@ public class VirtualSessionService {
                 .orElseThrow(() -> new NotFoundException("Session not found: " + id));
     }
 
-    public List<VirtualSession> list(Instant from, Instant to, SessionStatus status) {
-        if (from != null && to != null) {
-            if (status != null) {
-                return repository.findByStatusAndStartTimeBetween(status, from, to);
-            }
-            return repository.findByStartTimeBetween(from, to);
-        }
-        if (status != null) {
-            return repository.findByStatus(status);
-        }
-        if (from != null) {
-            return repository.findByStartTimeGreaterThanEqual(from);
-        }
-        if (to != null) {
-            return repository.findByStartTimeLessThanEqual(to);
-        }
-        return repository.findAll();
+    public VirtualSession getById(Long id, String requesterUserId, String requesterRole) {
+        VirtualSession session = getById(id);
+        ensureCanRead(session, requesterUserId, requesterRole);
+        return session;
     }
 
-    public VirtualSession addParticipant(Long sessionId, AddParticipantRequest req) {
+    public List<VirtualSession> list(Instant from, Instant to, SessionStatus status, String requesterUserId, String requesterRole) {
+        List<VirtualSession> sessions;
+        if (from != null && to != null) {
+            if (status != null) {
+                sessions = repository.findByStatusAndStartTimeBetween(status, from, to);
+            } else {
+                sessions = repository.findByStartTimeBetween(from, to);
+            }
+        } else if (status != null) {
+            sessions = repository.findByStatus(status);
+        } else if (from != null) {
+            sessions = repository.findByStartTimeGreaterThanEqual(from);
+        } else if (to != null) {
+            sessions = repository.findByStartTimeLessThanEqual(to);
+        } else {
+            sessions = repository.findAll();
+        }
+        return sessions.stream()
+                .filter(s -> canRead(s, requesterUserId, requesterRole))
+                .toList();
+    }
+
+    public VirtualSession addParticipant(
+            Long sessionId,
+            AddParticipantRequest req,
+            String requesterUserId,
+            String requesterRole
+    ) {
         String participantUserId = normalizeParticipantUserId(req.getUserId());
         VirtualSession session = getById(sessionId);
+        ensureCanManage(session, requesterUserId, requesterRole);
 
         boolean exists = session.getParticipants().stream()
                 .anyMatch(p -> p.getUserId().equals(participantUserId));
@@ -144,9 +159,15 @@ public class VirtualSessionService {
         return repository.save(session);
     }
 
-    public VirtualSession updateParticipantStatus(Long sessionId, UpdateParticipantStatusRequest req) {
+    public VirtualSession updateParticipantStatus(
+            Long sessionId,
+            UpdateParticipantStatusRequest req,
+            String requesterUserId,
+            String requesterRole
+    ) {
         VirtualSession session = getById(sessionId);
-        SessionParticipant participant = findParticipant(session, GENERIC_USER_ID);
+        ensureCanRead(session, requesterUserId, requesterRole);
+        SessionParticipant participant = findParticipant(session, requesterUserId);
 
         participant.setJoinStatus(req.getJoinStatus());
         if (req.isSetJoinedNow()) {
@@ -157,9 +178,15 @@ public class VirtualSessionService {
         return repository.save(session);
     }
 
-    public VirtualSession updateParticipantPrefs(Long sessionId, UpdateParticipantPrefsRequest req) {
+    public VirtualSession updateParticipantPrefs(
+            Long sessionId,
+            UpdateParticipantPrefsRequest req,
+            String requesterUserId,
+            String requesterRole
+    ) {
         VirtualSession session = getById(sessionId);
-        SessionParticipant participant = findOrCreateParticipant(session, GENERIC_USER_ID);
+        ensureCanRead(session, requesterUserId, requesterRole);
+        SessionParticipant participant = findOrCreateParticipant(session, requesterUserId);
 
         if (req.getIsFavorite() != null) {
             participant.setFavorite(req.getIsFavorite());
@@ -170,27 +197,31 @@ public class VirtualSessionService {
         return repository.save(session);
     }
 
-    public VirtualSession setFavorite(Long sessionId, boolean favorite) {
+    public VirtualSession setFavorite(Long sessionId, boolean favorite, String requesterUserId, String requesterRole) {
         UpdateParticipantPrefsRequest req = UpdateParticipantPrefsRequest.builder()
                 .isFavorite(favorite)
                 .build();
-        return updateParticipantPrefs(sessionId, req);
+        return updateParticipantPrefs(sessionId, req, requesterUserId, requesterRole);
     }
 
 
-    public List<SessionParticipant> listParticipants(Long sessionId) {
-        return getById(sessionId).getParticipants();
+    public List<SessionParticipant> listParticipants(Long sessionId, String requesterUserId, String requesterRole) {
+        VirtualSession session = getById(sessionId);
+        ensureCanRead(session, requesterUserId, requesterRole);
+        return session.getParticipants();
     }
 
-    public List<VirtualSession> listUserFavorites() {
-        return repository.findByParticipantUserId(GENERIC_USER_ID).stream()
+    public List<VirtualSession> listUserFavorites(String requesterUserId, String requesterRole) {
+        return repository.findByParticipantUserId(requesterUserId).stream()
+                .filter(session -> canRead(session, requesterUserId, requesterRole))
                 .filter(session -> session.getParticipants().stream()
-                        .anyMatch(p -> p.getUserId().equals(GENERIC_USER_ID) && p.isFavorite()))
+                        .anyMatch(p -> p.getUserId().equals(requesterUserId) && p.isFavorite()))
                 .toList();
     }
 
-    public List<VirtualSession> listUserReminders(Instant from, Instant to) {
-        return repository.findByParticipantUserId(GENERIC_USER_ID).stream()
+    public List<VirtualSession> listUserReminders(Instant from, Instant to, String requesterUserId, String requesterRole) {
+        return repository.findByParticipantUserId(requesterUserId).stream()
+                .filter(session -> canRead(session, requesterUserId, requesterRole))
                 .filter(session -> {
                     if (from != null && session.getStartTime().isBefore(from)) {
                         return false;
@@ -200,7 +231,7 @@ public class VirtualSessionService {
                     }
 
                     return session.getParticipants().stream().anyMatch(p ->
-                            p.getUserId().equals(GENERIC_USER_ID) && p.getReminderMinutesBefore() != null
+                            p.getUserId().equals(requesterUserId) && p.getReminderMinutesBefore() != null
                     );
                 })
                 .toList();
@@ -233,12 +264,12 @@ public class VirtualSessionService {
 
     private String normalizeParticipantUserId(String userId) {
         if (userId == null || userId.trim().isEmpty()) {
-            return GENERIC_USER_ID;
+            throw new BadRequestException("userId is required");
         }
         return userId.trim();
     }
 
-    public VirtualSession createReservation(CreateSessionRequest req) {
+    public VirtualSession createReservation(CreateSessionRequest req, String requesterRole) {
         if (req.getEndTime().isBefore(req.getStartTime()) || req.getEndTime().equals(req.getStartTime())) {
             throw new BadRequestException("endTime must be after startTime");
         }
@@ -251,7 +282,7 @@ public class VirtualSessionService {
         Double locationLatitude = normalizeLatitude(req.getLocationLatitude());
         Double locationLongitude = normalizeLongitude(req.getLocationLongitude());
         String createdBy = normalizeCreatedBy(req.getCreatedBy());
-        SessionStatus status = resolveStatus(createdBy, req.getStatus());
+        SessionStatus status = resolveStatus(requesterRole, req.getStatus());
 
         if (meetingMode == MeetingMode.IN_PERSON) {
             meetingUrl = null;
@@ -283,8 +314,9 @@ public class VirtualSessionService {
         return repository.save(session);
     }
 
-    public VirtualSession respondToReservation(Long sessionId, boolean accept) {
+    public VirtualSession respondToReservation(Long sessionId, boolean accept, String requesterUserId, String requesterRole) {
         VirtualSession session = getById(sessionId);
+        ensureCanRead(session, requesterUserId, requesterRole);
 
         if (accept) {
             session.setStatus(SessionStatus.SCHEDULED);
@@ -309,8 +341,8 @@ public class VirtualSessionService {
         return normalizeMeetingUrl(meetingUrl) != null ? MeetingMode.ONLINE : MeetingMode.IN_PERSON;
     }
 
-    private SessionStatus resolveStatus(String createdBy, SessionStatus requestedStatus) {
-        if (GENERIC_USER_ID.equalsIgnoreCase(createdBy) && requestedStatus != null) {
+    private SessionStatus resolveStatus(String requesterRole, SessionStatus requestedStatus) {
+        if (isAdmin(requesterRole) && requestedStatus != null) {
             return requestedStatus;
         }
         return SessionStatus.DRAFT;
@@ -318,7 +350,7 @@ public class VirtualSessionService {
 
     private String normalizeCreatedBy(String createdBy) {
         if (createdBy == null || createdBy.trim().isEmpty()) {
-            return GENERIC_USER_ID;
+            throw new BadRequestException("createdBy is required");
         }
         return createdBy.trim();
     }
@@ -360,6 +392,41 @@ public class VirtualSessionService {
     private void validateLocationCoordinates(Double latitude, Double longitude) {
         if (latitude == null || longitude == null) {
             throw new BadRequestException("locationLatitude and locationLongitude are required for in-person sessions");
+        }
+    }
+
+    private boolean isAdmin(String requesterRole) {
+        return requesterRole != null && "ADMIN".equalsIgnoreCase(requesterRole);
+    }
+
+    private boolean canRead(VirtualSession session, String requesterUserId, String requesterRole) {
+        if (isAdmin(requesterRole)) {
+            return true;
+        }
+        if (requesterUserId != null && requesterUserId.equals(session.getCreatedBy())) {
+            return true;
+        }
+        if (session.getVisibility() == SessionVisibility.PUBLIC) {
+            return true;
+        }
+        return session.getParticipants().stream().anyMatch(p -> requesterUserId.equals(p.getUserId()));
+    }
+
+    private void ensureCanRead(VirtualSession session, String requesterUserId, String requesterRole) {
+        if (!canRead(session, requesterUserId, requesterRole)) {
+            throw new VideoSessionService.UnauthorizedException("Acces refuse a cette session.");
+        }
+    }
+
+    private void ensureCanManage(VirtualSession session, String requesterUserId, String requesterRole) {
+        if (isAdmin(requesterRole) || requesterUserId.equals(session.getCreatedBy())) {
+            return;
+        }
+        boolean canManage = session.getParticipants().stream()
+                .anyMatch(p -> requesterUserId.equals(p.getUserId())
+                        && (p.getRole() == ParticipantRole.HOST || p.getRole() == ParticipantRole.ORGANIZER));
+        if (!canManage) {
+            throw new VideoSessionService.UnauthorizedException("Action reservee a l'organisateur.");
         }
     }
 }

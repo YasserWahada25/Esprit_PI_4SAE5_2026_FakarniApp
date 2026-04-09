@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../auth/services/auth.service';
+import { Role } from '../../auth/models/sign-up.model';
 
 @Component({
     selector: 'app-navbar',
@@ -21,6 +22,10 @@ export class NavbarComponent {
 
     get isLoggedIn(): boolean {
         return this.authService.isLoggedIn();
+    }
+
+    get isAdmin(): boolean {
+        return this.authService.getCurrentUser()?.role === Role.ADMIN;
     }
 
     toggleMobileMenu(): void {

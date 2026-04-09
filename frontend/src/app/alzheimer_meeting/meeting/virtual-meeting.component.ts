@@ -7,6 +7,7 @@ import { MeetingSidebarComponent } from './meeting-sidebar.component';
 import { AlzheimerService } from '../shared/alzheimer.service';
 import { VideoSessionService } from './video-session.service';
 import { WebrtcPeerService } from './webrtc-peer.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -25,7 +26,7 @@ export class VirtualMeetingComponent implements OnInit, OnDestroy {
 
     // Variables WebRTC
     roomId: string = '';
-    currentUser: string = this.resolveCurrentUserId();
+    currentUser: string = '';
     isMuted = false;
     isVideoOff = false;
     participantCount = 0;
@@ -41,10 +42,12 @@ export class VirtualMeetingComponent implements OnInit, OnDestroy {
         private router: Router,
         private alzheimerService: AlzheimerService,
         private videoSessionService: VideoSessionService,
-        private webrtcService: WebrtcPeerService
+        private webrtcService: WebrtcPeerService,
+        private authService: AuthService
     ) { }
 
     ngOnInit(): void {
+        this.currentUser = this.resolveCurrentUserId();
         this.sidebarWidth = this.restoreSidebarWidth();
 
         this.subscriptions.push(this.route.params.subscribe(params => {
@@ -88,13 +91,7 @@ export class VirtualMeetingComponent implements OnInit, OnDestroy {
     }
 
     private resolveCurrentUserId(): string {
-        if (typeof window === 'undefined') return 'patient';
-        const storage = window.localStorage;
-        return storage.getItem('userId')
-            || storage.getItem('user_id')
-            || storage.getItem('uid')
-            || storage.getItem('username')
-            || 'patient';
+        return this.authService.getCurrentUser()?.id?.trim() || 'patient';
     }
 
     toggleSidebar(tab?: string): void {

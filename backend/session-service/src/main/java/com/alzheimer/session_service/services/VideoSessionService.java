@@ -80,7 +80,7 @@ public class VideoSessionService {
         VideoSession videoSession = getVideoSessionByRoomIdOrThrow(req.getRoomId());
 
         validateSessionJoinable(videoSession);
-        validateParticipantAccess(videoSession, req.getUserId());
+        validateParticipantAccess(videoSession, req.getUserId(), null);
         Set<String> activeParticipants = getOrInitActiveParticipants(videoSession);
         boolean changed = normalizeLegacyVideoSessionState(videoSession, activeParticipants);
 
@@ -127,23 +127,30 @@ public class VideoSessionService {
     }
 
     @Transactional(readOnly = true)
-    public VideoSessionDTO getVideoSession(Long id) {
-        return VideoSessionDTO.from(getVideoSessionOrThrow(id));
+    public VideoSessionDTO getVideoSession(Long id, String requesterUserId, String requesterRole) {
+        VideoSession videoSession = getVideoSessionOrThrow(id);
+        validateParticipantAccess(videoSession, normalizeRequiredUserId(requesterUserId, "requesterUserId"), requesterRole);
+        return VideoSessionDTO.from(videoSession);
     }
 
     @Transactional(readOnly = true)
-    public VideoSessionDTO getVideoSessionByVirtualSessionId(Long virtualSessionId) {
-        return videoSessionRepository.findByVirtualSessionId(virtualSessionId)
+    public VideoSessionDTO getVideoSessionByVirtualSessionId(
+            Long virtualSessionId,
+            String requesterUserId,
+            String requesterRole
+    ) {
+        VideoSession videoSession = videoSessionRepository.findByVirtualSessionId(virtualSessionId)
                 .filter(vs -> vs.getStatus() != VideoSessionStatus.ENDED)
-                .map(VideoSessionDTO::from)
                 .orElseThrow(() -> new VirtualSessionService.NotFoundException(
                         "Aucune session video active pour la session virtuelle : " + virtualSessionId));
+        validateParticipantAccess(videoSession, normalizeRequiredUserId(requesterUserId, "requesterUserId"), requesterRole);
+        return VideoSessionDTO.from(videoSession);
     }
 
     @Transactional(readOnly = true)
-    public List<VideoChatMessageDTO> listRoomMessages(String roomId, String userId) {
+    public List<VideoChatMessageDTO> listRoomMessages(String roomId, String userId, String requesterRole) {
         VideoSession videoSession = getVideoSessionByRoomIdOrThrow(roomId);
-        validateParticipantAccess(videoSession, normalizeRequiredUserId(userId, "userId"));
+        validateParticipantAccess(videoSession, normalizeRequiredUserId(userId, "userId"), requesterRole);
         return videoChatMessageRepository.findByRoomIdOrderBySentAtAsc(roomId).stream()
                 .map(VideoChatMessageDTO::from)
                 .toList();
@@ -156,7 +163,7 @@ public class VideoSessionService {
 
         VideoSession videoSession = getVideoSessionByRoomIdOrThrow(roomId);
         validateSessionJoinable(videoSession);
-        validateParticipantAccess(videoSession, normalizedSender);
+        validateParticipantAccess(videoSession, normalizedSender, null);
 
         VideoChatMessage chatMessage = VideoChatMessage.builder()
                 .roomId(roomId)
@@ -250,6 +257,11 @@ public class VideoSessionService {
     }
 
     private void validateHostAuthorization(VirtualSession session, String userId) {
+        // For public group meetings, any authenticated user can open the room if none exists.
+        if (session.getVisibility() == SessionVisibility.PUBLIC && session.getSessionType() == SessionType.GROUP) {
+            return;
+        }
+
         boolean isCreator = session.getCreatedBy().equals(userId);
         boolean isHostOrOrganizer = session.getParticipants().stream()
                 .anyMatch(p -> p.getUserId().equals(userId)
@@ -276,7 +288,10 @@ public class VideoSessionService {
         }
     }
 
-    private void validateParticipantAccess(VideoSession videoSession, String userId) {
+    private void validateParticipantAccess(VideoSession videoSession, String userId, String requesterRole) {
+        if ("ADMIN".equalsIgnoreCase(requesterRole)) {
+            return;
+        }
         if (videoSession.getHostUserId().equals(userId)) {
             return;
         }

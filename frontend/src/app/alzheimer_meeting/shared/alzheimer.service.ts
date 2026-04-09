@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, map, catchError, of, retry } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../auth/services/auth.service';
 
 export interface Session {
     id: number;
@@ -38,7 +39,12 @@ interface VirtualSessionResponse {
     meetingMode?: string;
     createdAt: string;
     updatedAt: string;
-    participants: any[];
+    participants: SessionParticipantResponse[];
+}
+
+interface SessionParticipantResponse {
+    userId: string;
+    isFavorite?: boolean;
 }
 
 @Injectable({
@@ -46,12 +52,12 @@ interface VirtualSessionResponse {
 })
 export class AlzheimerService {
     private apiUrl = `${environment.apiUrl}/session`;
-    private genericUserId = 'admin';
 
     private sessionsSubject = new BehaviorSubject<Session[]>([]);
 
     constructor(
         private http: HttpClient,
+        private authService: AuthService,
         @Inject(PLATFORM_ID) private platformId: object
     ) {
         // Uniquement côté navigateur pour éviter NG0205 lors du SSR/hydration.
@@ -64,7 +70,9 @@ export class AlzheimerService {
     loadSessions(): void {
         this.http.get<VirtualSessionResponse[]>(`${this.apiUrl}/sessions`).pipe(
             retry({ count: 2, delay: 500 }),
-            map(data => data.map(s => this.mapToSession(s)))
+            map(data => data
+                .filter(s => this.isVisibleForCurrentUser(s))
+                .map(s => this.mapToSession(s)))
         ).subscribe({
             next: sessions => {
                 this.sessionsSubject.next(sessions);
@@ -80,6 +88,7 @@ export class AlzheimerService {
         const startDate = new Date(s.startTime);
         const participantCount = s.participants?.length || 0;
         const meetingMode = s.meetingMode ?? (s.meetingUrl ? 'ONLINE' : 'IN_PERSON');
+        const currentUserId = this.getCurrentUserId();
 
         return {
             id: s.id,
@@ -87,7 +96,9 @@ export class AlzheimerService {
             date: startDate,
             type: this.inferType(s.title, s.description),
             description: s.description,
-            isFavorite: s.participants?.some((p: any) => p.userId === this.genericUserId && p.isFavorite) || false,
+            isFavorite: currentUserId
+                ? s.participants?.some((p) => p.userId === currentUserId && !!p.isFavorite) || false
+                : false,
             time: startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
             startTime: s.startTime,
             endTime: s.endTime,
@@ -117,7 +128,9 @@ export class AlzheimerService {
 
     getFavorites(): Observable<Session[]> {
         return this.http.get<VirtualSessionResponse[]>(`${this.apiUrl}/me/favorites`).pipe(
-            map(data => data.map(s => ({ ...this.mapToSession(s), isFavorite: true }))),
+            map(data => data
+                .filter(s => this.isVisibleForCurrentUser(s))
+                .map(s => ({ ...this.mapToSession(s), isFavorite: true }))),
             catchError(() => {
                 return this.sessionsSubject.pipe(map(sessions => sessions.filter(s => s.isFavorite)));
             })
@@ -162,5 +175,28 @@ export class AlzheimerService {
             sessions[index] = updatedSession;
             this.sessionsSubject.next([...sessions]);
         }
+    }
+
+    private getCurrentUserId(): string | null {
+        return this.authService.getCurrentUser()?.id?.trim() || null;
+    }
+
+    private isVisibleForCurrentUser(session: VirtualSessionResponse): boolean {
+        const userId = this.getCurrentUserId();
+        const visibility = (session.visibility ?? '').toUpperCase();
+
+        if (visibility === 'PUBLIC') {
+            return true;
+        }
+
+        if (!userId) {
+            return false;
+        }
+
+        if (session.createdBy === userId) {
+            return true;
+        }
+
+        return session.participants?.some(p => p.userId === userId) || false;
     }
 }

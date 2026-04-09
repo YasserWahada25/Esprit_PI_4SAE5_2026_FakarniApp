@@ -6,6 +6,7 @@ import tn.SoftCare.User.dto.UpdateUserRequest;
 import tn.SoftCare.User.dto.UserResponse;
 import tn.SoftCare.User.service.UserService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,7 +38,12 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public UserResponse update(@PathVariable String id, @Valid @RequestBody UpdateUserRequest req) {
+    public UserResponse update(
+            @PathVariable String id,
+            @Valid @RequestBody UpdateUserRequest req,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal Jwt jwt
+    ) {
+        ensureSelfOrAdmin(id, jwt);
         return userService.update(id, req);
     }
 
@@ -45,5 +51,18 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String id) {
         userService.delete(id);
+    }
+
+    private void ensureSelfOrAdmin(String targetUserId, Jwt jwt) {
+        if (jwt == null) {
+            throw new org.springframework.security.access.AccessDeniedException("Utilisateur non authentifie.");
+        }
+        String requesterId = jwt.getSubject();
+        String role = jwt.getClaimAsString("role");
+        boolean isAdmin = role != null && "ADMIN".equalsIgnoreCase(role);
+        boolean isSelf = requesterId != null && requesterId.equals(targetUserId);
+        if (!isAdmin && !isSelf) {
+            throw new org.springframework.security.access.AccessDeniedException("Acces refuse.");
+        }
     }
 }

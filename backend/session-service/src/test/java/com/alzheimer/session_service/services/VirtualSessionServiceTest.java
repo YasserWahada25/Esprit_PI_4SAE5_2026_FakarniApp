@@ -50,7 +50,7 @@ class VirtualSessionServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(session));
         when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        VirtualSession updated = service.updateParticipantPrefs(1L, request);
+        VirtualSession updated = service.updateParticipantPrefs(1L, request, "admin", "ADMIN");
 
         assertNotNull(updated);
         assertEquals(1, updated.getParticipants().size());
@@ -77,7 +77,7 @@ class VirtualSessionServiceTest {
         when(repository.findById(2L)).thenReturn(Optional.of(session));
         when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        VirtualSession updated = service.setFavorite(2L, false);
+        VirtualSession updated = service.setFavorite(2L, false, "admin", "ADMIN");
 
         assertNotNull(updated);
         assertFalse(updated.getParticipants().get(0).isFavorite());
@@ -109,7 +109,7 @@ class VirtualSessionServiceTest {
         when(repository.findByParticipantUserId("admin"))
                 .thenReturn(List.of(favoriteSession, nonFavoriteSession));
 
-        List<VirtualSession> favorites = service.listUserFavorites();
+        List<VirtualSession> favorites = service.listUserFavorites("admin", "ADMIN");
 
         assertEquals(1, favorites.size());
         assertEquals(10L, favorites.get(0).getId());
@@ -122,7 +122,7 @@ class VirtualSessionServiceTest {
 
         when(repository.findByStatus(SessionStatus.DRAFT)).thenReturn(List.of(pending));
 
-        List<VirtualSession> result = service.list(null, null, SessionStatus.DRAFT);
+        List<VirtualSession> result = service.list(null, null, SessionStatus.DRAFT, "admin", "ADMIN");
 
         assertEquals(1, result.size());
         assertEquals(SessionStatus.DRAFT, result.get(0).getStatus());
@@ -145,7 +145,7 @@ class VirtualSessionServiceTest {
 
         when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        VirtualSession created = service.createReservation(request);
+        VirtualSession created = service.createReservation(request, "ADMIN");
 
         assertNotNull(created);
         assertEquals(MeetingMode.ONLINE, created.getMeetingMode());
@@ -169,7 +169,7 @@ class VirtualSessionServiceTest {
         when(repository.findById(30L)).thenReturn(Optional.of(existing));
         when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        VirtualSession updated = service.update(30L, request);
+        VirtualSession updated = service.update(30L, request, "admin", "ADMIN");
 
         assertEquals("https://meet.example.com/existing-room", updated.getMeetingUrl());
     }

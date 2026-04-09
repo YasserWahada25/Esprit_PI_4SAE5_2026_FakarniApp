@@ -9,11 +9,15 @@ import com.alzheimer.session_service.dto.VideoSessionDTO;
 import com.alzheimer.session_service.entities.JoinStatus;
 import com.alzheimer.session_service.entities.ParticipantRole;
 import com.alzheimer.session_service.entities.SessionParticipant;
+import com.alzheimer.session_service.security.AuthenticatedUser;
 import com.alzheimer.session_service.services.VideoSessionService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -38,43 +41,61 @@ public class VideoSessionController {
 
     @PostMapping("/start")
     @ResponseStatus(HttpStatus.CREATED)
-    public VideoSessionDTO startVideoSession(@Valid @RequestBody StartVideoSessionRequest req) {
+    public VideoSessionDTO startVideoSession(
+            @Valid @RequestBody StartVideoSessionRequest req,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        AuthenticatedUser authUser = AuthenticatedUser.fromJwt(jwt);
+        req.setHostUserId(authUser.userId());
         return videoSessionService.startVideoSession(req);
     }
 
     @PostMapping("/join")
-    public VideoSessionDTO joinVideoSession(@Valid @RequestBody JoinVideoSessionRequest req) {
+    public VideoSessionDTO joinVideoSession(
+            @Valid @RequestBody JoinVideoSessionRequest req,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        req.setUserId(AuthenticatedUser.fromJwt(jwt).userId());
         return videoSessionService.joinVideoSession(req);
     }
 
     @GetMapping("/{id}")
-    public VideoSessionDTO getVideoSession(@PathVariable Long id) {
-        return videoSessionService.getVideoSession(id);
+    public VideoSessionDTO getVideoSession(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        AuthenticatedUser authUser = AuthenticatedUser.fromJwt(jwt);
+        return videoSessionService.getVideoSession(id, authUser.userId(), authUser.role());
     }
 
     @PostMapping("/{id}/end")
-    public VideoSessionDTO endVideoSession(@PathVariable Long id, @RequestParam String userId) {
-        return videoSessionService.endVideoSession(id, userId);
+    public VideoSessionDTO endVideoSession(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        return videoSessionService.endVideoSession(id, AuthenticatedUser.fromJwt(jwt).userId());
     }
 
     @GetMapping("/by-virtual-session/{virtualSessionId}")
-    public VideoSessionDTO getByVirtualSession(@PathVariable Long virtualSessionId) {
-        return videoSessionService.getVideoSessionByVirtualSessionId(virtualSessionId);
+    public VideoSessionDTO getByVirtualSession(@PathVariable Long virtualSessionId, @AuthenticationPrincipal Jwt jwt) {
+        AuthenticatedUser authUser = AuthenticatedUser.fromJwt(jwt);
+        return videoSessionService.getVideoSessionByVirtualSessionId(
+                virtualSessionId,
+                authUser.userId(),
+                authUser.role()
+        );
     }
 
     @GetMapping("/rooms/{roomId}/messages")
     public List<VideoChatMessageDTO> getRoomMessages(
             @PathVariable String roomId,
-            @RequestParam String userId
+            @AuthenticationPrincipal Jwt jwt
     ) {
-        return videoSessionService.listRoomMessages(roomId, userId);
+        AuthenticatedUser authUser = AuthenticatedUser.fromJwt(jwt);
+        return videoSessionService.listRoomMessages(roomId, authUser.userId(), authUser.role());
     }
 
     @PostMapping("/rooms/{roomId}/participants")
     public List<SessionParticipant> addParticipantToRoom(
             @PathVariable String roomId,
-            @Valid @RequestBody AddRoomParticipantRequest req
+            @Valid @RequestBody AddRoomParticipantRequest req,
+            @AuthenticationPrincipal Jwt jwt
     ) {
+        req.setRequesterUserId(AuthenticatedUser.fromJwt(jwt).userId());
         List<SessionParticipant> participants = videoSessionService.addParticipantToRoom(roomId, req);
         broadcastParticipantAdded(roomId, req);
         return participants;

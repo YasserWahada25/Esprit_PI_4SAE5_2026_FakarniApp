@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
@@ -8,6 +8,8 @@ import {
     SessionParticipantDTO,
     VideoSessionService
 } from './video-session.service';
+import { AuthService } from '../../auth/services/auth.service';
+import { Role } from '../../auth/models/sign-up.model';
 
 interface ChatMessage {
     senderId: string;
@@ -19,6 +21,7 @@ interface ChatMessage {
 
 interface MeetingMember {
     userId: string;
+    displayName: string;
     role: ParticipantRole;
     joinStatus: JoinStatus;
     isOnline: boolean;
@@ -107,12 +110,12 @@ type SidebarResizeAction = 'decrease' | 'increase';
           <li *ngFor="let member of members">
             <div class="member-main">
               <span class="member-name">
-                {{ member.userId }}{{ member.userId === currentUser ? ' (You)' : '' }}
+                {{ member.displayName }}{{ member.userId === currentUser ? ' (You)' : '' }}
               </span>
-              <span class="member-role">{{ member.role }}</span>
+              <span class="member-role">{{ getParticipantRoleLabel(member.role) }}</span>
             </div>
             <div class="member-meta">
-              <span class="member-join">{{ member.joinStatus }}</span>
+              <span class="member-join">{{ getJoinStatusLabel(member.joinStatus) }}</span>
               <span class="status" [class.online]="member.isOnline">
                 {{ member.isOnline ? 'Online' : 'Offline' }}
               </span>
@@ -134,11 +137,7 @@ type SidebarResizeAction = 'decrease' | 'increase';
               id="newParticipantId"
               type="text"
               [(ngModel)]="newParticipantId"
-              placeholder="userId ex: doctor-2" />
-            <select [(ngModel)]="newParticipantRole">
-              <option value="PARTICIPANT">Participant</option>
-              <option value="ORGANIZER">Organizer</option>
-            </select>
+              placeholder="userId du participant" />
             <button
               class="add-btn"
               (click)="addParticipant()"
@@ -613,7 +612,6 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
 
     newMessage = '';
     newParticipantId = '';
-    newParticipantRole: ParticipantRole = 'PARTICIPANT';
     isAddingParticipant = false;
     participantActionMessage = '';
 
@@ -621,10 +619,21 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
     private subscriptions: Subscription[] = [];
     private loadedRoomId = '';
     private loadedSessionId = 0;
+    private readonly userLabelCache = new Map<string, string>();
+    private readonly labelLoading = new Set<string>();
 
-    constructor(private readonly videoSessionService: VideoSessionService) { }
+    constructor(
+        private readonly videoSessionService: VideoSessionService,
+        private readonly authService: AuthService,
+        private readonly cdr: ChangeDetectorRef
+    ) { }
 
     ngOnInit(): void {
+        const current = this.authService.getCurrentUser();
+        if (current) {
+            this.userLabelCache.set(current.id, `${current.prenom} ${current.nom}`.trim());
+        }
+
         this.subscriptions.push(
             this.videoSessionService.signal$.subscribe(signal => {
                 if (signal.type === 'chat') {
@@ -638,6 +647,7 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
         this.subscriptions.push(
             this.videoSessionService.participants$.subscribe(ids => {
                 this.onlineUsers = new Set(ids);
+                this.ensureMembersFromOnlineUsers();
                 this.syncOnlineFlags();
             })
         );
@@ -717,22 +727,30 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
         this.isAddingParticipant = true;
         this.participantActionMessage = '';
 
-        this.videoSessionService.addParticipantToRoom(
-            this.roomId,
-            this.currentUser,
-            userId,
-            this.newParticipantRole,
-            'CONFIRMED'
-        ).subscribe({
-            next: participants => {
-                this.hydrateMembers(participants);
-                this.newParticipantId = '';
-                this.newParticipantRole = 'PARTICIPANT';
-                this.participantActionMessage = 'Participant ajoute avec succes.';
-                this.isAddingParticipant = false;
+        this.authService.getUserById(userId).subscribe({
+            next: user => {
+                const roomRole = this.mapUserRoleToParticipantRole(user.role);
+                this.videoSessionService.addParticipantToRoom(
+                    this.roomId,
+                    this.currentUser,
+                    userId,
+                    roomRole,
+                    'CONFIRMED'
+                ).subscribe({
+                    next: participants => {
+                        this.hydrateMembers(participants);
+                        this.newParticipantId = '';
+                        this.participantActionMessage = `Participant ajoute: ${user.prenom} ${user.nom} (${this.getParticipantRoleLabel(roomRole)}).`;
+                        this.isAddingParticipant = false;
+                    },
+                    error: err => {
+                        this.participantActionMessage = err?.error?.message ?? 'Ajout impossible.';
+                        this.isAddingParticipant = false;
+                    }
+                });
             },
-            error: err => {
-                this.participantActionMessage = err?.error?.message ?? 'Ajout impossible.';
+            error: () => {
+                this.participantActionMessage = "Utilisateur introuvable. Verifiez le userId saisi.";
                 this.isAddingParticipant = false;
             }
         });
@@ -742,11 +760,11 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
         if (!this.roomId || !this.currentUser) return;
         if (this.loadedRoomId === this.roomId) return;
         this.loadedRoomId = this.roomId;
-        this.videoSessionService.getRoomMessages(this.roomId, this.currentUser).subscribe({
+        this.videoSessionService.getRoomMessages(this.roomId).subscribe({
             next: history => {
                 this.messages = history.map(msg => ({
                     senderId: msg.fromUserId,
-                    senderLabel: msg.fromUserId === this.currentUser ? 'You' : msg.fromUserId,
+                    senderLabel: msg.fromUserId === this.currentUser ? 'You' : this.getDisplayName(msg.fromUserId),
                     text: msg.text,
                     time: this.formatTime(msg.sentAt),
                     isSelf: msg.fromUserId === this.currentUser
@@ -765,17 +783,22 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
         this.loadedSessionId = this.sessionId;
         this.videoSessionService.getSessionParticipants(this.sessionId).subscribe({
             next: participants => this.hydrateMembers(participants),
-            error: err => console.warn('Participants not loaded', err)
+            error: err => {
+                console.warn('Participants not loaded', err);
+                this.ensureMembersFromOnlineUsers();
+            }
         });
     }
 
     private hydrateMembers(participants: SessionParticipantDTO[]): void {
         this.members = participants.map(p => ({
             userId: p.userId,
+            displayName: this.getDisplayName(p.userId),
             role: p.role,
             joinStatus: p.joinStatus,
             isOnline: this.onlineUsers.has(p.userId)
         }));
+        this.ensureMembersFromOnlineUsers();
     }
 
     private consumeRealtimeChat(payload: string, senderUserId: string): void {
@@ -790,7 +813,7 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
 
         this.messages.push({
             senderId: senderUserId,
-            senderLabel: senderUserId,
+            senderLabel: senderUserId === this.currentUser ? 'You' : this.getDisplayName(senderUserId),
             text,
             time: this.formatTime(parsed.sentAt ?? parsed.time ?? new Date().toISOString()),
             isSelf: senderUserId === this.currentUser
@@ -816,9 +839,11 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
             existing.role = role;
             existing.joinStatus = joinStatus;
             existing.isOnline = this.onlineUsers.has(existing.userId);
+            existing.displayName = this.getDisplayName(existing.userId);
         } else {
             this.members.push({
                 userId,
+                displayName: this.getDisplayName(userId),
                 role,
                 joinStatus,
                 isOnline: this.onlineUsers.has(userId)
@@ -829,8 +854,95 @@ export class MeetingSidebarComponent implements OnInit, OnChanges, OnDestroy {
     private syncOnlineFlags(): void {
         this.members = this.members.map(member => ({
             ...member,
+            displayName: this.getDisplayName(member.userId),
             isOnline: this.onlineUsers.has(member.userId)
         }));
+    }
+
+    private ensureMembersFromOnlineUsers(): void {
+        for (const userId of this.onlineUsers) {
+            if (this.members.some(m => m.userId === userId)) {
+                continue;
+            }
+            this.members.push({
+                userId,
+                displayName: this.getDisplayName(userId),
+                role: 'PARTICIPANT',
+                joinStatus: 'ATTENDED',
+                isOnline: true
+            });
+        }
+    }
+
+    private getDisplayName(userId: string): string {
+        const cached = this.userLabelCache.get(userId);
+        if (cached) {
+            return cached;
+        }
+        this.resolveUserLabel(userId);
+        return this.shortenUserId(userId);
+    }
+
+    private resolveUserLabel(userId: string): void {
+        if (!userId || this.labelLoading.has(userId) || this.userLabelCache.has(userId)) {
+            return;
+        }
+        this.labelLoading.add(userId);
+        this.authService.getUserById(userId).subscribe({
+            next: user => {
+                this.userLabelCache.set(userId, this.formatUserDisplayName(user.prenom, user.nom, userId));
+                this.labelLoading.delete(userId);
+                this.syncOnlineFlags();
+                this.messages = this.messages.map(m => ({
+                    ...m,
+                    senderLabel: m.isSelf ? 'You' : this.getDisplayName(m.senderId)
+                }));
+                this.cdr.markForCheck();
+            },
+            error: () => {
+                this.userLabelCache.set(userId, this.shortenUserId(userId));
+                this.labelLoading.delete(userId);
+                this.cdr.markForCheck();
+            }
+        });
+    }
+
+    private shortenUserId(userId: string): string {
+        if (!userId) return 'Utilisateur';
+        return userId.length <= 12 ? userId : `${userId.slice(0, 5)}...${userId.slice(-4)}`;
+    }
+
+    private formatUserDisplayName(prenom?: string, nom?: string, fallbackUserId?: string): string {
+        const first = (prenom ?? '').trim();
+        const last = (nom ?? '').trim();
+        if (first && last) {
+            if (first.toLowerCase() === last.toLowerCase()) {
+                return first;
+            }
+            return `${first} ${last}`;
+        }
+        if (first) return first;
+        if (last) return last;
+        return this.shortenUserId(fallbackUserId ?? '');
+    }
+
+    getParticipantRoleLabel(role: ParticipantRole): string {
+        if (role === 'HOST') return 'Hote';
+        if (role === 'ORGANIZER') return 'Organisateur';
+        return 'Participant';
+    }
+
+    getJoinStatusLabel(status: JoinStatus): string {
+        if (status === 'CONFIRMED') return 'Confirme';
+        if (status === 'ATTENDED') return 'Present';
+        return 'Invite';
+    }
+
+    private mapUserRoleToParticipantRole(role: Role): ParticipantRole {
+        if (role === Role.DOCTOR_PROFILE || role === Role.ADMIN) {
+            return 'ORGANIZER';
+        }
+        return 'PARTICIPANT';
     }
 
     private formatTime(isoOrTime: string): string {
