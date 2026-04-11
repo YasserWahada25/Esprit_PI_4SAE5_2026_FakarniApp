@@ -70,7 +70,7 @@ export class FollowUpComponent implements OnInit {
      MRI IMAGE URL
   ════════════════════════════════════════════════════════ */
   getMriImageUrl(nomFichier: string): string {
-    return `http://localhost:8080/api/detection/image/${nomFichier}`;
+    return `http://localhost:8058/api/detection/image/${nomFichier}`;
   }
 
   onImageError(event: Event): void {
