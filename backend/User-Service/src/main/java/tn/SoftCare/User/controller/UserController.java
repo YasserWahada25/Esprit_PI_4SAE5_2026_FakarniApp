@@ -27,16 +27,19 @@ public class UserController {
     }
 
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     public List<UserResponse> getAll() {
         return userService.findAll();
     }
 
     @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
     public UserResponse getById(@PathVariable String id) {
         return userService.findById(id);
     }
 
     @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
     public UserResponse update(@PathVariable String id, @Valid @RequestBody UpdateUserRequest req) {
         return userService.update(id, req);
     }

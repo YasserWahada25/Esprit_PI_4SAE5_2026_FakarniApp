@@ -21,7 +21,7 @@ public class DossierMedical {
 
     // Identifiant du patient (sera lié au User-Service plus tard)
     @Column(name = "patient_id", nullable = false, unique = true)
-    private Long patientId;
+    private String patientId;
 
     // Informations du dossier
     @Column(name = "date_creation")

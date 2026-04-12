@@ -13,11 +13,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Files;   // ← fixes "Cannot resolve symbol 'Files'"
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-@Slf4j                         // ← fixes "Cannot resolve symbol 'log'"
+@Slf4j
 @RestController
 @RequestMapping("/api/detection")
 @RequiredArgsConstructor
@@ -29,13 +29,15 @@ public class DetectionController {
     @Value("${app.upload-dir:uploads/mri}")
     private String uploadDir;
 
-    /** POST /api/detection/analyser */
+    /** POST /api/detection/analyser?patientId=42 */
     @PostMapping("/analyser")
     public ResponseEntity<AnalyseIRMResponse> analyser(
-            @RequestParam("image") MultipartFile image) {
+            @RequestParam("image") MultipartFile image,
+            @RequestParam("patientId") String patientId) {  // ✅ patientId dynamique
         try {
-            return ResponseEntity.ok(service.analyserIRM(image));
+            return ResponseEntity.ok(service.analyserIRM(image, patientId));
         } catch (Exception e) {
+            log.error("❌ Erreur analyse: {}", e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -53,7 +55,6 @@ public class DetectionController {
             Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
             Path filePath = uploadPath.resolve(filename).normalize();
 
-            // If exact file not found, search for timestamped version
             if (!filePath.toFile().exists()) {
                 filePath = Files.list(uploadPath)
                         .filter(p -> p.getFileName().toString().endsWith("_" + filename)

@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public class AjouterAnalyseRequest {
 
     private Long analyseIrmId;
-    private Long patientId;
+    private String patientId;
 
     private String nomFichier;
     private String prediction;

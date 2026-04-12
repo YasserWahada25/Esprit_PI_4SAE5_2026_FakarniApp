@@ -40,10 +40,10 @@ public class DetectionService {
         this.dossierMedicalClient = dossierMedicalClient;
     }
 
-    // ── ONE single analyserIRM method ──────────────────────────
-    public AnalyseIRMResponse analyserIRM(MultipartFile image) throws Exception {
+    // ✅ patientId dynamique passé en paramètre
+    public AnalyseIRMResponse analyserIRM(MultipartFile image, String patientId) throws Exception {
 
-        // 1. Save image to disk
+        // 1. Sauvegarde image sur disque
         Path uploadPath = Paths.get(uploadDir);
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
@@ -53,7 +53,7 @@ public class DetectionService {
         Files.write(filePath, image.getBytes());
         log.info("💾 Image saved → {}", filePath);
 
-        // 2. Send to Flask IA
+        // 2. Envoi vers Flask IA
         log.info("📤 Envoi image '{}' vers Flask IA...", filename);
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("image", new ByteArrayResource(image.getBytes()) {
@@ -75,9 +75,9 @@ public class DetectionService {
         log.info("✅ IA → {} | Confiance : {}%",
                 prediction.getPrediction(), prediction.getConfidence());
 
-        // 3. Save result to DB (using disk filename)
+        // 3. Sauvegarde en base avec patientId dynamique ✅
         AnalyseIRM analyse = AnalyseIRM.builder()
-                .nomFichier(filename)                          // ← disk filename
+                .nomFichier(filename)
                 .prediction(prediction.getPrediction())
                 .confidence(prediction.getConfidence())
                 .niveauRisque(prediction.getRisk().getLabel())
@@ -88,13 +88,13 @@ public class DetectionService {
                 .probNonDemented(prediction.getProbabilities().get("Non_Demented"))
                 .probVeryMildDemented(prediction.getProbabilities().get("Very_Mild_Demented"))
                 .dateAnalyse(LocalDateTime.now())
-                .patientId(1L)
+                .patientId(patientId)  // ✅ plus de 1L hardcodé
                 .build();
 
         AnalyseIRM saved = repository.save(analyse);
         log.info("💾 Sauvegardé en base → ID = {}", saved.getId());
 
-        // 4. Notify Dossier_Medical-Service
+        // 4. Notification au Dossier_Medical-Service
         AjouterAnalyseRequest dossierRequest = AjouterAnalyseRequest.builder()
                 .analyseIrmId(saved.getId())
                 .patientId(saved.getPatientId())

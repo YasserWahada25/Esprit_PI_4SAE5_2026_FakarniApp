@@ -16,7 +16,7 @@ public class AjouterAnalyseRequest {
     private Long analyseIrmId;
 
     // Identifiant du patient
-    private Long patientId;
+    private String patientId;
 
     // Résultats de l'analyse
     private String nomFichier;

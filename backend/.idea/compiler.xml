@@ -25,15 +25,15 @@
         </processorPath>
         <module name="session-service" />
       </profile>
-      <profile name="Annotation profile for Event-Service" enabled="true">
+      <profile name="Annotation profile for meeting-insights-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
-        <module name="Event-Service" />
         <module name="meeting-insights-service" />
+        <module name="Event-Service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

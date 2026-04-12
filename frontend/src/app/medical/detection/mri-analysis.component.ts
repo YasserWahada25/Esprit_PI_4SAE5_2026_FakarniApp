@@ -339,36 +339,43 @@ export class MriAnalysisComponent implements OnDestroy {
   // ══════════════════════════════════════════════════════
   //  ANALYSE IA
   // ══════════════════════════════════════════════════════
-  runAIAnalysis(): void {
-    if (!this.selectedFile || !this.imageConfirmed) {
-      this.errorMessage = 'Veuillez sélectionner une image IRM valide.';
-      return;
-    }
-    this.isAnalyzing      = true;
-    this.analysisComplete = false;
-    this.errorMessage     = '';
-    this.procStep         = 0;
-    this.startProcAnim();
-
-    this.detectionService.analyserIRM(this.selectedFile).subscribe({
-      next: (result) => {
-        this.clearProc();
-        this.procStep  = 5;
-        this.aiRiskPct = this.stageToAiRisk(result.prediction);
-        setTimeout(() => {
-          this.analyseResult    = result;
-          this.isAnalyzing      = false;
-          this.analysisComplete = true;
-          this.computeGlobalRisk();
-        }, 500);
-      },
-      error: () => {
-        this.clearProc();
-        this.isAnalyzing  = false;
-        this.errorMessage = 'Analyse échouée. Vérifiez que le service backend est actif.';
-      }
-    });
+// ✅ Après
+runAIAnalysis(): void {
+  if (!this.selectedFile || !this.imageConfirmed) {
+    this.errorMessage = 'Veuillez sélectionner une image IRM valide.';
+    return;
   }
+
+  if (!this.patientId || this.patientId.trim() === '') {
+    this.errorMessage = 'Veuillez saisir un ID patient valide.';
+    return;
+  }
+
+  this.isAnalyzing      = true;
+  this.analysisComplete = false;
+  this.errorMessage     = '';
+  this.procStep         = 0;
+  this.startProcAnim();
+
+  this.detectionService.analyserIRM(this.selectedFile, this.patientId).subscribe({  // ✅ string directement
+    next: (result) => {
+      this.clearProc();
+      this.procStep  = 5;
+      this.aiRiskPct = this.stageToAiRisk(result.prediction);
+      setTimeout(() => {
+        this.analyseResult    = result;
+        this.isAnalyzing      = false;
+        this.analysisComplete = true;
+        this.computeGlobalRisk();
+      }, 500);
+    },
+    error: () => {
+      this.clearProc();
+      this.isAnalyzing  = false;
+      this.errorMessage = 'Analyse échouée. Vérifiez que le service backend est actif.';
+    }
+  });
+}
 
   private startProcAnim(): void {
     this.procInterval = setInterval(() => { if (this.procStep < 4) this.procStep++; }, 850);

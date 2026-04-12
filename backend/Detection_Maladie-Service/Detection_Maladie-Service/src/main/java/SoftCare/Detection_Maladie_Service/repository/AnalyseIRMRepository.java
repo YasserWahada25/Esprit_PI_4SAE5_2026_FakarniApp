@@ -7,5 +7,4 @@ import java.util.List;
 
 @Repository
 public interface AnalyseIRMRepository extends JpaRepository<AnalyseIRM, Long> {
-    List<AnalyseIRM> findByPatientId(Long patientId);
-}
+    List<AnalyseIRM> findByPatientId(String patientId);}

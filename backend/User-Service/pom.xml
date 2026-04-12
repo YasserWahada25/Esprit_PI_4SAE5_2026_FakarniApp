@@ -16,22 +16,16 @@
     <artifactId>User-Service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>User-Service</name>
+    <description>Microservice User avec MongoDB</description>
 
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2025.1.0</spring-cloud.version>
+        <springdoc.version>2.3.0</springdoc.version>
         <jjwt.version>0.12.6</jjwt.version>
-
-        <!-- ✅ Springdoc compatible Spring Boot 4 -->
-        <springdoc.version>3.0.2</springdoc.version>
-
-        <!-- ✅ UTF-8 everywhere -->
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
     <dependencies>
-
         <!-- REST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -50,7 +44,7 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Swagger / OpenAPI -->
+        <!-- Swagger -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -69,20 +63,18 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
-        <!-- JWT -->
+        <!-- JWT (JJWT) ✅ -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
             <version>${jjwt.version}</version>
         </dependency>
-
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
             <version>${jjwt.version}</version>
             <scope>runtime</scope>
         </dependency>
-
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
@@ -90,7 +82,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Eureka -->
+        <!-- Eureka client (optionnel) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -102,7 +94,7 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Email -->
+        <!-- Mail (JavaMailSender bean for EmailService, password reset, etc.) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
@@ -115,13 +107,19 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Google API Client (pour vérifier les ID tokens Google) -->
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>2.4.1</version>
+        </dependency>
+
         <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <dependencyManagement>
@@ -137,34 +135,20 @@
     </dependencyManagement>
 
     <build>
-
-        <!-- ✅ disable filtering for application.properties -->
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-            </resource>
-        </resources>
-
         <plugins>
-
-            <!-- ✅ Force UTF-8 in resources plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.3.1</version>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
-
         </plugins>
-
     </build>
 
 </project>

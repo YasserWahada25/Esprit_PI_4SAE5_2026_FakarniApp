@@ -34,7 +34,7 @@ public class DossierMedicalController {
     // ══════════════════════════════════════════════════
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<DossierMedicalResponse> getDossierByPatientId(
-            @PathVariable Long patientId) {
+            @PathVariable String patientId) {
         log.info("📂 Chargement dossier patient {}", patientId);
         return ResponseEntity.ok(service.getDossierByPatientId(patientId));
     }

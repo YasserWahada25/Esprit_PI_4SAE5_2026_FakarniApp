@@ -11,8 +11,8 @@ import java.util.Optional;
 public interface DossierMedicalRepository extends JpaRepository<DossierMedical, Long> {
 
     // Trouver le dossier d'un patient par son ID
-    Optional<DossierMedical> findByPatientId(Long patientId);
+    Optional<DossierMedical> findByPatientId(String patientId);
 
     // Vérifier si un dossier existe pour un patient
-    boolean existsByPatientId(Long patientId);
+    boolean existsByPatientId(String patientId);
 }

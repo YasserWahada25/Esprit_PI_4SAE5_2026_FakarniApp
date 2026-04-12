@@ -23,5 +23,5 @@ public class AnalyseIRMResponse {
     private Double probNonDemented;
     private Double probVeryMildDemented;
     private LocalDateTime dateAnalyse;
-    private Long patientId;
+    private String patientId;
 }

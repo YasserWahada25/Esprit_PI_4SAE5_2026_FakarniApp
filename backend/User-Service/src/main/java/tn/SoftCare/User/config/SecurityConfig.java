@@ -2,18 +2,20 @@ package tn.SoftCare.User.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-
 public class SecurityConfig {
 
     @Bean
@@ -22,52 +24,42 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-
-                .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable())
-
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-
-                        // Preflight CORS
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // Swagger
                         .requestMatchers(
+                                "/auth/login",
+                                "/auth/google",
+                                "/auth/facebook",
+                                "/auth/refresh",
+                                "/auth/logout",
+                                "/auth/forgot-password",
+                                "/auth/reset-password",
+                                "/internal/users/**",
+                                "/api/users/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/webjars/**",
-                                "/error"
+                                "/swagger-ui.html"
                         ).permitAll()
-
-                        // AUTH endpoints (forgot/reset/login/register)
-                        .requestMatchers(
-                                "/auth/**"
-                        ).permitAll()
-
-                        // Public signup endpoint used by frontend
-                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-
-                        // Internal communication between services
-                        .requestMatchers(
-                                "/internal/**"
-                        ).permitAll()
-
-                        // Health check
-                        .requestMatchers(
-                                "/actuator/health",
-                                "/actuator/health/**"
-                        ).permitAll()
-
-                        // All other APIs require authentication
                         .anyRequest().authenticated()
                 );
 

@@ -155,7 +155,7 @@ public class DossierMedicalService {
     //   GET DOSSIER (INCHANGÉ)
     // ══════════════════════════════════════════════════
     @Transactional(readOnly = true)
-    public DossierMedicalResponse getDossierByPatientId(Long patientId) {
+    public DossierMedicalResponse getDossierByPatientId(String patientId) {
         DossierMedical dossier = dossierRepository
                 .findByPatientId(patientId)
                 .orElseThrow(() -> new RuntimeException("Aucun dossier pour patient ID: " + patientId));

@@ -14,7 +14,7 @@ import java.util.List;
 public class DossierMedicalResponse {
 
     private Long id;
-    private Long patientId;
+    private String patientId;
     private LocalDateTime dateCreation;
     private LocalDateTime dateDerniereMaj;
 

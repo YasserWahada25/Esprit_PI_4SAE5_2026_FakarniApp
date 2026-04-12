@@ -35,5 +35,5 @@ public class AnalyseIRM {
 
     // ── Méta ──
     private LocalDateTime dateAnalyse;
-    private Long patientId; // statique = 1L pour l'instant
+    private String patientId;
 }

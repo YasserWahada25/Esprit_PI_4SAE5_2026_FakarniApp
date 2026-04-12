@@ -823,4 +823,176 @@
   .compare-panel { grid-template-columns: 1fr; }
   .tl-entry-body { grid-template-columns: 1fr; }
   .kpi-row { grid-template-columns: 1fr 1fr; }
+}/* ══════════════════════════════════════════════════
+   PATIENT LIST VIEW
+══════════════════════════════════════════════════ */
+.patient-list-view {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.pl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.pl-header-left { display: flex; align-items: center; gap: 1rem; }
+.pl-logo-mark   { flex-shrink: 0; }
+
+.pl-title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #1e1b4b;
+  margin: 0;
+}
+.pl-title-accent { color: #818cf8; }
+.pl-subtitle     { font-size: .82rem; color: #94a3b8; margin: .2rem 0 0; }
+
+.pl-stat       { text-align: center; }
+.pl-stat-val   { display: block; font-size: 2rem; font-weight: 900; color: #818cf8; }
+.pl-stat-lbl   { font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; }
+
+/* Search */
+.pl-search-wrap  { margin-bottom: 1.5rem; }
+.pl-search-box   {
+  display: flex; align-items: center; gap: .75rem;
+  background: #fff; border: 1.5px solid #e2e8f0;
+  border-radius: 12px; padding: .7rem 1rem;
+  box-shadow: 0 2px 8px #818cf811;
+  transition: border-color .2s;
+}
+.pl-search-box:focus-within { border-color: #818cf8; }
+.pl-search-icon  { color: #818cf8; font-size: .9rem; }
+.pl-search-input {
+  flex: 1; border: none; outline: none;
+  font-size: .88rem; color: #1e1b4b; background: transparent;
+}
+.pl-search-count { font-size: .72rem; color: #818cf8; font-weight: 700; white-space: nowrap; }
+
+/* Grid */
+.pl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.pl-card {
+  position: relative;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  overflow: hidden;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+}
+.pl-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px #818cf822;
+  border-color: #818cf855;
+}
+.pl-card:hover .plc-glow  { opacity: .06; }
+.pl-card:hover .plc-arrow { transform: translateX(4px); }
+
+.plc-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity .3s;
+  pointer-events: none;
+  border-radius: 16px;
+}
+
+.plc-avatar {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  border: 2px solid;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.plc-initials { font-size: 1.1rem; font-weight: 900; }
+
+.plc-info     { flex: 1; }
+.plc-name     { font-size: .95rem; font-weight: 800; color: #1e1b4b; margin-bottom: .25rem; }
+.plc-meta     { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .4rem; }
+.plc-email, .plc-age {
+  font-size: .68rem; color: #94a3b8;
+  display: flex; align-items: center; gap: .25rem;
+}
+.plc-role-badge {
+  font-size: .65rem; font-weight: 700;
+  padding: .2rem .6rem; border-radius: 99px;
+  border: 1px solid; display: inline-flex; align-items: center; gap: .3rem;
+}
+
+.plc-btn {
+  width: 100%;
+  display: flex; align-items: center; gap: .5rem;
+  padding: .55rem .8rem; border-radius: 10px;
+  border: none; cursor: pointer;
+  font-size: .78rem; font-weight: 700;
+  transition: filter .2s;
+}
+.plc-btn:hover { filter: brightness(1.1); }
+.plc-arrow { margin-left: auto; transition: transform .2s; }
+
+/* Loading / Error / Empty */
+.pl-loading { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 4rem; }
+.pl-error   { text-align: center; padding: 3rem; color: #fb7185; }
+.pl-empty   { grid-column: 1/-1; text-align: center; padding: 3rem; color: #94a3b8; font-size: .9rem; }
+.pl-empty i { font-size: 2rem; display: block; margin-bottom: .75rem; opacity: .4; }
+
+/* ══════════════════════════════════════════════════
+   BREADCRUMB / BACK
+══════════════════════════════════════════════════ */
+.dossier-breadcrumb {
+  display: flex; align-items: center; gap: .75rem;
+  padding: 1rem 1.5rem;
+  background: #fff; border-bottom: 1px solid #e2e8f0;
+}
+
+.btn-back {
+  display: flex; align-items: center; gap: .4rem;
+  background: #f1f5f9; border: none; border-radius: 8px;
+  padding: .4rem .8rem; font-size: .78rem; font-weight: 700;
+  color: #475569; cursor: pointer; transition: background .2s;
+}
+.btn-back:hover { background: #e2e8f0; }
+
+.bc-sep     { color: #cbd5e1; font-size: .8rem; }
+.bc-patient { display: flex; align-items: center; gap: .5rem; }
+.bc-avatar  {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .65rem; font-weight: 900;
+}
+.bc-patient span { font-size: .82rem; font-weight: 700; color: #1e1b4b; }
+.bc-role { font-size: .7rem; padding: .1rem .5rem; border-radius: 99px; background: #f1f5f9; }
+/* ═══════════════════════════════════════
+   PATCH : spinner pleine page (vue dossier)
+   Ajouter à la fin de follow-up.component.css
+═══════════════════════════════════════ */
+
+/* Loading / Error centré sur toute la hauteur restante */
+.loading-overlay.full-page,
+.error-panel.full-page {
+  min-height: calc(100vh - 58px - 52px); /* 58px header app, 52px breadcrumb */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--text-muted);
+  background: var(--bg);
+}
+
+.error-panel.full-page i {
+  font-size: 2.5rem;
+  color: var(--s4);
 }
