@@ -1,4 +1,5 @@
 export const environment = {
     production: true,
-    apiBaseUrl: 'http://localhost:8090'  // API Gateway
+    /** Adapter si le front est servi derrière le même domaine que /api (proxy). */
+    apiBaseUrl: 'http://localhost:8090'
 };

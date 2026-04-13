@@ -1,0 +1,16 @@
+[
+  {
+    "context": ["/uploads"],
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
+  },
+  {
+    "context": ["/api"],
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
+  }
+]

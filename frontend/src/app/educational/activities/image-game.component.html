@@ -1,0 +1,37 @@
+<div class="memory-game" *ngIf="session">
+    <div class="memory-header">
+        <h2>{{ activity.name }}</h2>
+        <div class="stats">
+            <span>Coups : <strong>{{ moves }}</strong></span>
+            <span>Paires : <strong>{{ pairsFound }} / {{ pairTotal }}</strong></span>
+        </div>
+    </div>
+
+    <div class="card-grid">
+        <button
+            type="button"
+            class="mem-card"
+            *ngFor="let c of cards"
+            [class.face-up]="isFaceUp(c.id)"
+            [class.matched]="matchedIds.has(c.id)"
+            [disabled]="busy || matchedIds.has(c.id)"
+            [attr.aria-label]="c.backLabel ? 'Carte : ' + c.backLabel : 'Carte memory'"
+            (click)="onCardClick(c)"
+        >
+            <span class="back" *ngIf="!isFaceUp(c.id)">?</span>
+            <ng-container *ngIf="isFaceUp(c.id)">
+                <img
+                    *ngIf="c.imageUrl && !failedImageIds.has(c.id)"
+                    [src]="c.imageUrl"
+                    [alt]="c.backLabel || ''"
+                    (error)="onCardImageError(c.id)"
+                />
+                <span *ngIf="!c.imageUrl || failedImageIds.has(c.id)" class="img-fallback">{{
+                    c.backLabel || 'Image'
+                }}</span>
+            </ng-container>
+        </button>
+    </div>
+
+    <button type="button" class="link-cancel" (click)="cancel()" [disabled]="busy">Quitter</button>
+</div>

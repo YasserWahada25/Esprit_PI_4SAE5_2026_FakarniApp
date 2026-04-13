@@ -1,6 +1,6 @@
-package com.alzheimer.Event_Service.controllers;
+package com.alzheimer.event_service.controllers;
 
-import com.alzheimer.Event_Service.services.EmailService;
+import com.alzheimer.event_service.services.EmailService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

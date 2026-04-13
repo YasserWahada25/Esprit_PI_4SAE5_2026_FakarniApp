@@ -1,4 +1,4 @@
-package com.alzheimer.Event_Service.dto;
+package com.alzheimer.event_service.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

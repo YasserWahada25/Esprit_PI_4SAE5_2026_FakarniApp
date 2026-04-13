@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- Projet réacteur uniquement : chaque sous-module garde son propre parent Spring Boot dans son pom.xml -->
+	<groupId>com.alzheimer</groupId>
+	<artifactId>fakarni-backend</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>Fakarni Backend (multi-module)</name>
+
+	<modules>
+		<module>Eureka-Service</module>
+		<module>Gateway-Service</module>
+		<module>User-Service</module>
+		<module>UserSession-Service</module>
+		<module>Event-Service</module>
+		<module>activite-educative-service</module>
+		<module>suivi-engagement-service</module>
+		<module>session-service</module>
+		<module>meeting-insights-service</module>
+	</modules>
+</project>

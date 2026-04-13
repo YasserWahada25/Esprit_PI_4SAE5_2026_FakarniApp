@@ -99,6 +99,7 @@ export class EventListComponent implements OnInit {
         });
     }
 
+    
     deleteEvent(event: EducationalEvent): void {
         if (confirm(`Êtes-vous sûr de vouloir supprimer l'événement "${event.title}" ?`)) {
             this.eventService.deleteEvent(event.id).subscribe({

@@ -9,7 +9,7 @@ export const EDUCATIONAL_ROUTES: Routes = [
             { path: '', redirectTo: 'activities', pathMatch: 'full' },
             {
                 path: 'activities',
-                loadComponent: () => import('./activities/activities.component').then(m => m.ActivitiesComponent)
+                loadChildren: () => import('./activities/activities.routes').then(m => m.default)
             },
             {
                 path: 'events',

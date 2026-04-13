@@ -1,0 +1,76 @@
+.aq-dialog {
+    min-width: 320px;
+    max-width: 720px;
+}
+
+.hint {
+    font-size: 0.9rem;
+    color: #006064;
+    margin-top: 0;
+}
+
+.muted {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.error {
+    color: #c0392b;
+}
+
+.table-wrap {
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+.aq-table {
+    width: 100%;
+}
+
+.thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 8px;
+    vertical-align: middle;
+}
+
+.section-title {
+    font-size: 1rem;
+    margin: 16px 0 8px 0;
+    color: #2c3e50;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.aq-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.img-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.file-label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.9rem;
+    color: #444;
+}
+
+.preview-box img {
+    max-width: 220px;
+    max-height: 140px;
+    border-radius: 10px;
+    object-fit: contain;
+    border: 1px solid #e0e0e0;
+}

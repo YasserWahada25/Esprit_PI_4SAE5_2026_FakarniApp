@@ -4,6 +4,10 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { EducationalEventService } from '../../admin/core/services/educational-event.service';
 import { EducationalEvent } from '../../admin/core/models/educational-event.model';
 import { MapModalComponent } from '../../admin/features/educational-content/components/map-modal/map-modal.component';
+import {
+    eventCoverGradientCss,
+    eventCoverImageUrl
+} from './event-cover-image.util';
 
 @Component({
   selector: 'app-events',
@@ -16,6 +20,8 @@ export class EventsComponent implements OnInit {
   events: EducationalEvent[] = [];
   loading = false;
   error = '';
+  /** IDs dont la couverture Picsum n’a pas chargé → dégradé de secours. */
+  readonly failedCoverIds = new Set<number>();
 
   constructor(
     private eventService: EducationalEventService,
@@ -32,6 +38,7 @@ export class EventsComponent implements OnInit {
       next: (data) => {
         console.log('[EventsComponent] Données reçues via events$ :', data);
         this.events = data;
+        this.failedCoverIds.clear();
         this.loading = false;
         this.cdr.detectChanges();
       }
@@ -69,5 +76,18 @@ export class EventsComponent implements OnInit {
 
     // Forcer la détection de changements pour Angular Zoneless
     this.cdr.detectChanges();
+  }
+
+  coverUrl(event: EducationalEvent): string {
+    return eventCoverImageUrl(event);
+  }
+
+  coverGradient(event: EducationalEvent): string {
+    return eventCoverGradientCss(event);
+  }
+
+  onCoverError(eventId: number): void {
+    this.failedCoverIds.add(eventId);
+    this.cdr.markForCheck();
   }
 }

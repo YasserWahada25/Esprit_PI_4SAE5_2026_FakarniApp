@@ -7,3 +7,32 @@ mat-dialog-content {
     min-width: 500px;
     padding: 20px;
 }
+
+.thumb-block {
+    margin-bottom: 16px;
+}
+
+.thumb-label {
+    display: block;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.thumb-hint {
+    margin: 0 0 8px 0;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+.thumb-preview {
+    margin-top: 10px;
+}
+
+.thumb-preview img {
+    max-width: 100%;
+    max-height: 160px;
+    border-radius: 10px;
+    object-fit: contain;
+    border: 1px solid #e0e0e0;
+}

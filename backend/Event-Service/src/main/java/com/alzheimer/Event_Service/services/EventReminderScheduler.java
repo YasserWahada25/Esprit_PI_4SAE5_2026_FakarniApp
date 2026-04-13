@@ -1,7 +1,7 @@
-package com.alzheimer.Event_Service.services;
+package com.alzheimer.event_service.services;
 
-import com.alzheimer.Event_Service.entities.Event;
-import com.alzheimer.Event_Service.repositories.EventRepository;
+import com.alzheimer.event_service.entities.Event;
+import com.alzheimer.event_service.repositories.EventRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;

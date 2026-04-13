@@ -1,4 +1,4 @@
-package com.alzheimer.Event_Service.entities;
+package com.alzheimer.event_service.entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

@@ -1,9 +1,9 @@
-package com.alzheimer.Event_Service.services;
+package com.alzheimer.event_service.services;
 
-import com.alzheimer.Event_Service.dto.EventCreateRequest;
-import com.alzheimer.Event_Service.dto.EventResponse;
-import com.alzheimer.Event_Service.entities.Event;
-import com.alzheimer.Event_Service.repositories.EventRepository;
+import com.alzheimer.event_service.dto.EventCreateRequest;
+import com.alzheimer.event_service.dto.EventResponse;
+import com.alzheimer.event_service.entities.Event;
+import com.alzheimer.event_service.repositories.EventRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

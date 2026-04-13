@@ -10,6 +10,7 @@ import { EventFormComponent } from './components/event-form/event-form.component
 import { EngagementTrackingComponent } from './components/engagement-tracking/engagement-tracking.component';
 import { EngagementChartsComponent } from './components/engagement-charts/engagement-charts.component';
 import { LocationPickerComponent } from './components/location-picker/location-picker.component';
+import { ActivityQuestionsDialogComponent } from './components/activity-questions-dialog/activity-questions-dialog.component';
 
 // Material Imports
 import { MatTableModule } from '@angular/material/table';
@@ -38,7 +39,8 @@ import { MatBadgeModule } from '@angular/material/badge';
         EventListComponent,
         EventFormComponent,
         EngagementTrackingComponent,
-        EngagementChartsComponent
+        EngagementChartsComponent,
+        ActivityQuestionsDialogComponent
     ],
     imports: [
         CommonModule,

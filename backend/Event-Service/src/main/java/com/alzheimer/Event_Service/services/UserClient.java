@@ -1,4 +1,4 @@
-package com.alzheimer.Event_Service.services;
+package com.alzheimer.event_service.services;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

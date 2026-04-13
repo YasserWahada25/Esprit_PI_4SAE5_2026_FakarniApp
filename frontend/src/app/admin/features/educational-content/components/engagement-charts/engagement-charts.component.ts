@@ -20,4 +20,14 @@ export class EngagementChartsComponent implements OnInit {
         if (!this.statistics) return 0;
         return Math.max(...Object.values(this.statistics.engagementByType));
     }
+
+    typeLabel(key: string): string {
+        const labels: Record<string, string> = {
+            quiz: 'Quiz',
+            cognitive_game: 'Jeu cognitif',
+            video: 'Vidéo',
+            content: 'Contenu'
+        };
+        return labels[key] ?? key;
+    }
 }

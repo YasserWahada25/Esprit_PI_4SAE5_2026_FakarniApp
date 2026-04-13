@@ -1,4 +1,4 @@
-package com.alzheimer.Event_Service.services;
+package com.alzheimer.event_service.services;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -46,7 +46,7 @@ public class EmailService {
         emailSender.send(message);
     }
 
-    public void sendImmediateReminderToStaticUser(com.alzheimer.Event_Service.entities.Event event) {
+    public void sendImmediateReminderToStaticUser(com.alzheimer.event_service.entities.Event event) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("noreply@fakarni.com");
         message.setTo("testuser@example.com");

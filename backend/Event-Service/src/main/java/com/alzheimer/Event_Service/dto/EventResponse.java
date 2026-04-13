@@ -1,4 +1,4 @@
-package com.alzheimer.Event_Service.dto;
+package com.alzheimer.event_service.dto;
 
 import java.time.LocalDateTime;
 
@@ -28,7 +28,7 @@ public class EventResponse {
     }
 
     // Constructeur depuis l'entité Event
-    public EventResponse(com.alzheimer.Event_Service.entities.Event e) {
+    public EventResponse(com.alzheimer.event_service.entities.Event e) {
         this.id = e.getId();
         this.title = e.getTitle();
         this.description = e.getDescription();

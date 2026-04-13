@@ -1,8 +1,8 @@
-package com.alzheimer.Event_Service.controllers;
+package com.alzheimer.event_service.controllers;
 
-import com.alzheimer.Event_Service.dto.EventCreateRequest;
-import com.alzheimer.Event_Service.dto.EventResponse;
-import com.alzheimer.Event_Service.services.EventService;
+import com.alzheimer.event_service.dto.EventCreateRequest;
+import com.alzheimer.event_service.dto.EventResponse;
+import com.alzheimer.event_service.services.EventService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
