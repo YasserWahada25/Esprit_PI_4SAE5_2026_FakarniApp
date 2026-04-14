@@ -1,95 +1,129 @@
-<div class="posts-container">
-    <!-- Header Section -->
-    <div class="posts-header">
-        <div class="header-content">
-            <h1><i class="fa-solid fa-square-share-nodes"></i> Posts Community</h1>
-            <p>Share and discover stories from our community</p>
-        </div>
-        <a routerLink="/posts/create" class="btn-add-post">
-            <i class="fa-solid fa-plus"></i> Add Post
-        </a>
-    </div>
+<div class="timeline-container">
+    <!-- Animated Background -->
+    <div class="bg-gradient"></div>
 
-    <!-- Error Message -->
-    <div class="error-message" *ngIf="errorMessage()">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        {{ errorMessage() }}
-    </div>
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Center Feed -->
+        <main class="center-feed">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="header-left">
+                    <h1 class="page-title">
+                        <i class="fa-solid fa-square-share-nodes"></i>
+                        Community Posts
+                    </h1>
+                    <p class="page-subtitle">Share and discover stories from our community</p>
+                </div>
+                <a routerLink="/posts/create" class="btn-create-post">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Create Post</span>
+                </a>
+            </div>
 
-    <!-- Loading Spinner -->
-    <div class="loading-spinner" *ngIf="isLoading()">
-        <div class="spinner"></div>
-        <p>Loading posts...</p>
-    </div>
-
-    <!-- Filter & Search Section -->
-    <div class="filter-section" *ngIf="!isLoading()">
-        <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-                type="text"
-                placeholder="Search posts..."
-                [(ngModel)]="searchQuery"
-                class="search-input"
-            />
-        </div>
-
-        <div class="filter-controls">
-            <select [(ngModel)]="sortBy" class="filter-select">
-                <option value="recent">Most Recent</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Posts Grid -->
-    <div class="posts-grid" *ngIf="!isLoading() && filteredPosts && filteredPosts.length > 0">
-        <article class="post-card" *ngFor="let post of filteredPosts" [attr.data-post-id]="post.id">
-            <div class="post-header">
-                <div class="post-date">{{ formatDate(post.createdAt) }}</div>
-                <div class="post-actions-menu">
-                    <button class="action-menu-btn" (click)="editPost(post.id)" title="Edit post">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-                    <button class="action-menu-btn delete-btn" (click)="deletePost(post.id)" title="Delete post">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
+            <!-- Search Bar -->
+            <div class="search-section">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input
+                        type="text"
+                        placeholder="Search posts..."
+                        [(ngModel)]="searchQuery"
+                        class="search-input"
+                    />
                 </div>
             </div>
 
-            <!-- Post Content -->
-            <div class="post-content">
-                <p class="post-text">{{ post.content }}</p>
+            <!-- Error Message -->
+            <div class="error-banner" *ngIf="errorMessage()">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>{{ errorMessage() }}</span>
             </div>
 
-            <!-- Post Image -->
-            <div class="post-image" *ngIf="post.imageUrl">
-                <img [src]="post.imageUrl" [alt]="'Post image'" />
+            <!-- Loading State -->
+            <div class="loading-state" *ngIf="isLoading()">
+                <div class="loading-spinner">
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                </div>
+                <p>Loading your feed...</p>
             </div>
 
-            <!-- Reactions -->
-            <app-post-reactions [postId]="post.id"></app-post-reactions>
+            <!-- Timeline Feed -->
+            <div class="timeline-feed" *ngIf="!isLoading() && filteredPosts && filteredPosts.length > 0">
+                <article class="feed-post" *ngFor="let post of filteredPosts; let i = index" 
+                         [attr.data-post-id]="post.id"
+                         [style.animation-delay]="(i * 0.1) + 's'">
+                    
+                    <!-- Post Header -->
+                    <div class="feed-post-header">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div class="user-details">
+                                <span class="user-name">Community Member</span>
+                                <span class="post-time">
+                                    <i class="fa-solid fa-clock"></i>
+                                    {{ formatDate(post.createdAt) }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="post-menu">
+                            <button class="menu-btn" (click)="editPost(post.id)">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button class="menu-btn delete" (click)="deletePost(post.id)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
 
-            <!-- Comments Toggle -->
-            <div class="comments-toggle">
-                <button (click)="toggleComments(post.id)" class="toggle-comments-btn">
-                    <i class="fa-solid" [class.fa-chevron-down]="!isCommentsExpanded(post.id)" 
-                       [class.fa-chevron-up]="isCommentsExpanded(post.id)"></i>
-                    {{ isCommentsExpanded(post.id) ? 'Hide' : 'Show' }} Comments
-                </button>
+                    <!-- Post Content -->
+                    <div class="feed-post-content">
+                        <p class="post-text">{{ post.content }}</p>
+                    </div>
+
+                    <!-- Post Image -->
+                    <div class="feed-post-image" *ngIf="post.imageUrl">
+                        <img [src]="post.imageUrl" [alt]="'Post image'" />
+                        <div class="image-overlay"></div>
+                    </div>
+
+                    <!-- Post Actions Bar -->
+                    <div class="post-actions-bar">
+                        <app-post-reactions [postId]="post.id"></app-post-reactions>
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div class="post-comments-section">
+                        <button (click)="toggleComments(post.id)" class="view-comments-btn">
+                            <i class="fa-solid fa-comment"></i>
+                            <span>{{ isCommentsExpanded(post.id) ? 'Hide Comments' : 'View Comments' }}</span>
+                            <i class="fa-solid fa-chevron-down" 
+                               [class.rotated]="isCommentsExpanded(post.id)"></i>
+                        </button>
+
+                        <div class="comments-container" *ngIf="isCommentsExpanded(post.id)">
+                            <app-post-comments [postId]="post.id"></app-post-comments>
+                        </div>
+                    </div>
+                </article>
             </div>
 
-            <!-- Comments Section -->
-            <app-post-comments 
-                *ngIf="isCommentsExpanded(post.id)"
-                [postId]="post.id">
-            </app-post-comments>
-        </article>
-    </div>
-
-    <!-- Empty State -->
-    <div class="empty-state" *ngIf="!isLoading() && (!filteredPosts || filteredPosts.length === 0)">
-        <i class="fa-solid fa-inbox"></i>
-        <h2>No posts found</h2>
-        <p>Try adjusting your search or filter criteria</p>
+            <!-- Empty State -->
+            <div class="empty-feed" *ngIf="!isLoading() && (!filteredPosts || filteredPosts.length === 0)">
+                <div class="empty-icon">
+                    <i class="fa-solid fa-inbox"></i>
+                </div>
+                <h2>No posts yet</h2>
+                <p>Be the first to share something with the community!</p>
+                <a routerLink="/posts/create" class="btn-create-first">
+                    <i class="fa-solid fa-plus"></i>
+                    Create Post
+                </a>
+            </div>
+        </main>
     </div>
 </div>

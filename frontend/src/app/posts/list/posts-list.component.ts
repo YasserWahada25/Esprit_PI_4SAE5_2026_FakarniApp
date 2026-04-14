@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, ChangeDetectorRef, PLATFORM_ID, inject } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectorRef, PLATFORM_ID, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -22,16 +22,19 @@ export class PostsListComponent implements OnInit {
     expandedComments = signal<Set<number>>(new Set());
 
     private platformId = inject(PLATFORM_ID);
+    private isBrowser: boolean;
 
     constructor(
         private postsService: PostsService,
         private cdr: ChangeDetectorRef,
         private router: Router
-    ) { }
+    ) {
+        this.isBrowser = isPlatformBrowser(this.platformId);
+    }
 
     ngOnInit() {
         // Only load posts in browser, not during SSR
-        if (isPlatformBrowser(this.platformId)) {
+        if (this.isBrowser) {
             // Small delay to ensure browser is fully ready
             setTimeout(() => {
                 this.loadPosts();
@@ -132,7 +135,7 @@ export class PostsListComponent implements OnInit {
             postElement.classList.add('deleting');
         }
 
-        // Wait for animation before actually deleting
+        // Wait for animation before actually deleting (500ms to match CSS animation)
         setTimeout(() => {
             this.postsService.deletePost(postId).subscribe({
                 next: () => {
@@ -148,9 +151,10 @@ export class PostsListComponent implements OnInit {
                     if (postElement) {
                         postElement.classList.remove('deleting');
                     }
+                    this.cdr.markForCheck();
                 }
             });
-        }, 100);
+        }, 500);
     }
 
     editPost(postId: number) {
