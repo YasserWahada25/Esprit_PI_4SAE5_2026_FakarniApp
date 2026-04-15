@@ -7,7 +7,9 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Eureka-Service" />
+        <module name="activite-educative-service" />
         <module name="Gateway-Service" />
+        <module name="suivi-engagement-service" />
       </profile>
       <profile name="Annotation profile for Event-Service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -32,8 +34,10 @@
       <module name="Event-Service" options="-parameters" />
       <module name="Gateway-Service" options="-parameters" />
       <module name="User-Service" options="-parameters" />
+      <module name="activite-educative-service" options="-parameters" />
       <module name="meeting-insights-service" options="-parameters" />
       <module name="session-service" options="-parameters" />
+      <module name="suivi-engagement-service" options="-parameters" />
     </option>
   </component>
 </project>
