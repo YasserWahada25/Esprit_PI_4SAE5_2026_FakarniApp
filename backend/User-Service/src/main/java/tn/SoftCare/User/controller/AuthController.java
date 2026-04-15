@@ -24,6 +24,20 @@ public class AuthController {
         return authService.login(req, userAgent, ip);
     }
 
+    @PostMapping("/google")
+    public AuthResponse googleLogin(@Valid @RequestBody GoogleLoginRequest req, HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        String ip = request.getRemoteAddr();
+        return authService.googleLogin(req, userAgent, ip);
+    }
+
+    @PostMapping("/facebook")
+    public AuthResponse facebookLogin(@Valid @RequestBody FacebookLoginRequest req, HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        String ip = request.getRemoteAddr();
+        return authService.facebookLogin(req, userAgent, ip);
+    }
+
     @PostMapping("/refresh")
     public AuthResponse refresh(@Valid @RequestBody RefreshRequest req) {
         return authService.refresh(req);
@@ -35,20 +49,13 @@ public class AuthController {
         authService.logout(req.getRefreshToken());
     }
 
-    // ✅ NEW: forgot password (send email with token)
     @PostMapping("/forgot-password")
-    @ResponseStatus(HttpStatus.OK)
     public MessageResponse forgotPassword(@Valid @RequestBody ForgotPasswordRequest req) {
-        authService.forgotPassword(req.getEmail());
-        // ✅ Security: always return same message
-        return new MessageResponse("If the email exists, a reset link has been sent.");
+        return authService.forgotPassword(req);
     }
 
-    // ✅ NEW: reset password (token + new password)
     @PostMapping("/reset-password")
-    @ResponseStatus(HttpStatus.OK)
     public MessageResponse resetPassword(@Valid @RequestBody ResetPasswordRequest req) {
-        authService.resetPassword(req.getToken(), req.getNewPassword());
-        return new MessageResponse("Password has been reset successfully.");
+        return authService.resetPassword(req);
     }
 }

@@ -1,5 +1,6 @@
 package tn.SoftCare.User.security;
 
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -94,5 +95,36 @@ public class JwtService {
                 .getPayload()
                 .get("sid");
         return sid == null ? null : sid.toString();
+    }
+
+    /** Short-lived JWT for password reset (1 hour). */
+    public String generatePasswordResetToken(String userId) {
+        Instant now = Instant.now();
+        Instant exp = now.plusSeconds(3600);
+
+        return Jwts.builder()
+                .setSubject(userId)
+                .claim("type", "password_reset")
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(exp))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String parsePasswordResetTokenSubject(String token) {
+        try {
+            var claims = Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            Object type = claims.get("type");
+            if (type == null || !"password_reset".equals(type.toString())) {
+                throw new RuntimeException("Jeton invalide");
+            }
+            return claims.getSubject();
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new RuntimeException("Lien de réinitialisation invalide ou expiré", e);
+        }
     }
 }

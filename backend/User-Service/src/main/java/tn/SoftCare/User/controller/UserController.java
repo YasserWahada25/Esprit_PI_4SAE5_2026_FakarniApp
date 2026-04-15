@@ -28,16 +28,19 @@ public class UserController {
     }
 
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     public List<UserResponse> getAll() {
         return userService.findAll();
     }
 
     @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
     public UserResponse getById(@PathVariable String id) {
         return userService.findById(id);
     }
 
     @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
     public UserResponse update(
             @PathVariable String id,
             @Valid @RequestBody UpdateUserRequest req,
@@ -57,10 +60,13 @@ public class UserController {
         if (jwt == null) {
             throw new org.springframework.security.access.AccessDeniedException("Utilisateur non authentifie.");
         }
+
         String requesterId = jwt.getSubject();
         String role = jwt.getClaimAsString("role");
+
         boolean isAdmin = role != null && "ADMIN".equalsIgnoreCase(role);
         boolean isSelf = requesterId != null && requesterId.equals(targetUserId);
+
         if (!isAdmin && !isSelf) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse.");
         }

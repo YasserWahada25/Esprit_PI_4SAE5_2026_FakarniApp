@@ -14,6 +14,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -22,7 +25,6 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-
 public class SecurityConfig {
 
     @Value("${security.jwt.secret}")
@@ -34,18 +36,30 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
-
                 .authorizeHttpRequests(auth -> auth
 
                         // Preflight CORS
@@ -60,33 +74,47 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
 
-                        // AUTH endpoints (forgot/reset/login/register)
+                        // AUTH endpoints
                         .requestMatchers(
-                                "/auth/**"
+                                "/auth/**",
+                                "/auth/login",
+                                "/auth/google",
+                                "/auth/facebook",
+                                "/auth/refresh",
+                                "/auth/logout",
+                                "/auth/forgot-password",
+                                "/auth/reset-password"
                         ).permitAll()
 
-                        // Public signup endpoint used by frontend
+                        // Internal communication
+                        .requestMatchers(
+                                "/internal/**",
+                                "/internal/users/**"
+                        ).permitAll()
+
+                        // Public signup / user APIs from old config
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
-                        // Admin-only user management routes
+                        // Keep old broad public rule if needed by current frontend/backend integration
+                        .requestMatchers("/api/users/**").permitAll()
+
+                        // Admin-only routes from secured version
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
 
-                        // Internal communication between services
-                        .requestMatchers(
-                                "/internal/**"
-                        ).permitAll()
-
-                        // Health check
+                        // Health
                         .requestMatchers(
                                 "/actuator/health",
                                 "/actuator/health/**"
                         ).permitAll()
 
-                        // All other APIs require authentication
                         .anyRequest().authenticated()
+                )
+                .oauth2ResourceServer(oauth ->
+                        oauth.jwt(jwt ->
+                                jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
+                        )
                 );
-        http.oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
         return http.build();
     }

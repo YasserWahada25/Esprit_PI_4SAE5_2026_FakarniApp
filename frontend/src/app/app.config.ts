@@ -16,9 +16,16 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideClientHydration(withEventReplay()),
+
+    provideClientHydration(withEventReplay()), // SSR hydration
     provideAnimations(),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
+
+    // 🔥 fusion des deux versions
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([authInterceptor])
+    ),
+
     { provide: LOCALE_ID, useValue: 'fr-FR' }
   ]
 };
