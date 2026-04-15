@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ROLE_OPTIONS, Role, SignUpRequest } from './models/sign-up.model';
 import { AuthService } from './services/auth.service';
 
@@ -75,10 +76,21 @@ export class SignUpComponent {
 
     this.authService.register(value).subscribe({
       next: () => this.router.navigate(['/auth/signin']),
-      error: (err) => {
+      error: (err: HttpErrorResponse) => {
         this.loading = false;
+        const body = err.error;
+        const msg =
+          typeof body === 'object' && body !== null && 'message' in body
+            ? String((body as { message: unknown }).message)
+            : null;
+        if (err.status === 409) {
+          this.errorMessage =
+            msg ||
+            'An account with this email already exists. Try signing in or use a different email.';
+          return;
+        }
         this.errorMessage =
-          err?.error?.message || 'Registration failed. Please try again.';
+          msg || 'Registration failed. Please try again.';
       },
     });
   }

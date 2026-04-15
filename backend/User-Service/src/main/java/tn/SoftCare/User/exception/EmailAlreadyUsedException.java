@@ -3,7 +3,7 @@ package tn.SoftCare.User.exception;
 public class EmailAlreadyUsedException extends RuntimeException {
 
     public EmailAlreadyUsedException() {
-        super("Email déjà utilisé");
+        super("This email is already registered. Sign in or use another email.");
     }
 
     public EmailAlreadyUsedException(String message) {

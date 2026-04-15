@@ -10,10 +10,12 @@
         <module name="Eureka-Service" />
         <module name="Tracking-Service" />
         <module name="User" />
+        <module name="Detection_Maladie-Service" />
         <module name="activite-educative-service" />
         <module name="Gateway-Service" />
         <module name="Group-Service" />
         <module name="suivi-engagement-service" />
+        <module name="Dossier_Medical-Service" />
         <module name="Geofencing-Service" />
       </profile>
       <profile name="Annotation profile for session-service" enabled="true">
@@ -45,6 +47,8 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Chat_Service" options="-parameters" />
+      <module name="Detection_Maladie-Service" options="-parameters" />
+      <module name="Dossier_Medical-Service" options="-parameters" />
       <module name="Eureka-Service" options="-parameters" />
       <module name="Event-Service" options="-parameters" />
       <module name="Gateway-Service" options="-parameters" />
