@@ -22,6 +22,10 @@
                 API : <strong>type GAME</strong>, <strong>gameType MEMORY_MATCH</strong> — cartes en paires (deux lignes
                 par image, même identifiant de paire). Pack démo au premier lancement si vide.
             </mat-hint>
+            <mat-hint *ngIf="activityForm.get('type')?.value === 'puzzle_game'">
+                API : <strong>type GAME</strong>, <strong>gameType PUZZLE</strong> — mode puzzle (actuellement basé sur des
+                cartes image pour test).
+            </mat-hint>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -43,7 +47,7 @@
         </div>
 
         <mat-form-field
-            *ngIf="activityForm.get('type')?.value === 'quiz' || activityForm.get('type')?.value === 'image_game'"
+            *ngIf="activityForm.get('type')?.value === 'quiz' || activityForm.get('type')?.value === 'image_game' || activityForm.get('type')?.value === 'puzzle_game'"
             appearance="outline"
             class="full-width"
         >

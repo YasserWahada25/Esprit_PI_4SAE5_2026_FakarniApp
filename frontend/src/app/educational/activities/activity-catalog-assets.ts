@@ -7,6 +7,7 @@ const THUMB_BY_TYPE: Partial<Record<ActivityType, string>> = {
     quiz: '/assets/games/quiz-memory.svg',
     cognitive_game: '/assets/games/image-recognition.svg',
     image_game: '/assets/games/memory-pairs.svg',
+    puzzle_game: '/assets/games/memory-pairs.svg',
     content: '/assets/games/content.svg',
     video: '/assets/games/video.svg'
 };

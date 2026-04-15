@@ -48,5 +48,13 @@
             (cancelled)="onCancelGame()"
             (errorMsg)="onGameError($event)"
         />
+
+        <app-puzzle-game
+            *ngIf="showPuzzle && !sessionResultView && !contentSheet"
+            [activity]="activity"
+            (solved)="onPuzzleSolved()"
+            (cancelled)="onCancelGame()"
+            (errorMsg)="onGameError($event)"
+        />
     </ng-container>
 </div>

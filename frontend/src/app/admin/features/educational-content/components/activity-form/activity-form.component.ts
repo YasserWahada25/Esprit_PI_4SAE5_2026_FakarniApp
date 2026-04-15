@@ -20,7 +20,7 @@ export class ActivityFormComponent implements OnInit, OnDestroy {
     isEditMode: boolean = false;
     private typeSub?: Subscription;
 
-    private static readonly selectableTypes: ActivityType[] = ['quiz', 'image_game'];
+    private static readonly selectableTypes: ActivityType[] = ['quiz', 'image_game', 'puzzle_game'];
 
     /** Fichier miniature choisi pour l’upload multipart. */
     thumbnailFile: File | null = null;
@@ -29,7 +29,8 @@ export class ActivityFormComponent implements OnInit, OnDestroy {
 
     activityTypes: { value: ActivityType; label: string }[] = [
         { value: 'quiz', label: 'Quiz (QCM texte)' },
-        { value: 'image_game', label: 'Memory — paires d’images' }
+        { value: 'image_game', label: 'Memory — paires d’images' },
+        { value: 'puzzle_game', label: 'Puzzle — image à reconstituer' }
     ];
 
     constructor(
@@ -88,7 +89,7 @@ export class ActivityFormComponent implements OnInit, OnDestroy {
         videoUrl?.clearValidators();
         score?.clearValidators();
 
-        if (type === 'quiz' || type === 'image_game') {
+        if (type === 'quiz' || type === 'image_game' || type === 'puzzle_game') {
             score?.setValidators([Validators.required, Validators.min(0), Validators.max(100)]);
         }
 
@@ -96,6 +97,9 @@ export class ActivityFormComponent implements OnInit, OnDestroy {
             score?.patchValue(60, { emitEvent: false });
         }
         if (type === 'image_game' && !this.isEditMode && (score?.value == null || score.value === '')) {
+            score?.patchValue(100, { emitEvent: false });
+        }
+        if (type === 'puzzle_game' && !this.isEditMode && (score?.value == null || score.value === '')) {
             score?.patchValue(100, { emitEvent: false });
         }
 
@@ -134,7 +138,7 @@ export class ActivityFormComponent implements OnInit, OnDestroy {
                 createdDate: this.isEditMode ? this.data.createdDate : new Date(),
                 status: formValue.status,
                 scoreThreshold:
-                    formValue.type === 'quiz' || formValue.type === 'image_game'
+                    formValue.type === 'quiz' || formValue.type === 'image_game' || formValue.type === 'puzzle_game'
                         ? Number(formValue.scoreThreshold)
                         : null,
                 content: this.buildContent(formValue),

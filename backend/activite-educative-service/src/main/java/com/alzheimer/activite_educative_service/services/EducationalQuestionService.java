@@ -48,7 +48,7 @@ public class EducationalQuestionService {
     public List<ImageCardPublicDto> listImageCards(Long activityId) {
         ActiviteEducative a = activiteEducativeRepository.findById(activityId)
                 .orElseThrow(() -> new ResourceNotFoundException("Activity not found: " + activityId));
-        if (a.getGameType() != GameType.MEMORY_MATCH) {
+        if (a.getGameType() != GameType.MEMORY_MATCH && a.getGameType() != GameType.PUZZLE) {
             return List.of();
         }
         List<ImageCardPublicDto> out = new ArrayList<>();
@@ -92,7 +92,7 @@ public class EducationalQuestionService {
             request.setImageUrl(mediaStorageService.storeQuestionImage(imageFile));
         }
         validateQuestionAgainstGameType(activity.getGameType(), request);
-        if (activity.getGameType() != GameType.MEMORY_MATCH) {
+        if (activity.getGameType() != GameType.MEMORY_MATCH && activity.getGameType() != GameType.PUZZLE) {
             validateCorrectAnswerInOptions(request);
         }
 
@@ -122,7 +122,7 @@ public class EducationalQuestionService {
             request.setImageUrl(q.getImageUrl());
         }
         validateQuestionAgainstGameType(q.getActivity().getGameType(), request);
-        if (q.getActivity().getGameType() != GameType.MEMORY_MATCH) {
+        if (q.getActivity().getGameType() != GameType.MEMORY_MATCH && q.getActivity().getGameType() != GameType.PUZZLE) {
             validateCorrectAnswerInOptions(request);
         }
         applyRequest(q, request);
@@ -185,12 +185,12 @@ public class EducationalQuestionService {
                 throw new BusinessRuleException("imageUrl is required for IMAGE_RECOGNITION questions");
             }
         }
-        if (gameType == GameType.MEMORY_MATCH) {
+        if (gameType == GameType.MEMORY_MATCH || gameType == GameType.PUZZLE) {
             if (request.getImageUrl() == null || request.getImageUrl().isBlank()) {
-                throw new BusinessRuleException("imageUrl is required for MEMORY_MATCH cards");
+                throw new BusinessRuleException("imageUrl is required for MEMORY_MATCH/PUZZLE cards");
             }
             if (request.getCorrectAnswer() == null || request.getCorrectAnswer().isBlank()) {
-                throw new BusinessRuleException("correctAnswer (pair id) is required for MEMORY_MATCH cards");
+                throw new BusinessRuleException("correctAnswer (pair id) is required for MEMORY_MATCH/PUZZLE cards");
             }
         }
     }

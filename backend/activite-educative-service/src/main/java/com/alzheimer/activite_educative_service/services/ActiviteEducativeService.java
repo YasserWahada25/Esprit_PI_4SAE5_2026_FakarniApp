@@ -8,7 +8,9 @@ import com.alzheimer.activite_educative_service.entities.ActivityType;
 import com.alzheimer.activite_educative_service.entities.SessionStatus;
 import com.alzheimer.activite_educative_service.exceptions.ResourceNotFoundException;
 import com.alzheimer.activite_educative_service.repositories.ActiviteEducativeRepository;
+import com.alzheimer.activite_educative_service.repositories.EducationalQuestionRepository;
 import com.alzheimer.activite_educative_service.repositories.GameSessionRepository;
+import com.alzheimer.activite_educative_service.repositories.SessionAnswerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -25,16 +27,22 @@ public class ActiviteEducativeService {
     private static final Logger log = LoggerFactory.getLogger(ActiviteEducativeService.class);
 
     private final ActiviteEducativeRepository activiteEducativeRepository;
+    private final EducationalQuestionRepository educationalQuestionRepository;
     private final GameSessionRepository gameSessionRepository;
+    private final SessionAnswerRepository sessionAnswerRepository;
     private final MediaStorageService mediaStorageService;
 
     public ActiviteEducativeService(
             ActiviteEducativeRepository activiteEducativeRepository,
+            EducationalQuestionRepository educationalQuestionRepository,
             GameSessionRepository gameSessionRepository,
+            SessionAnswerRepository sessionAnswerRepository,
             MediaStorageService mediaStorageService
     ) {
         this.activiteEducativeRepository = activiteEducativeRepository;
+        this.educationalQuestionRepository = educationalQuestionRepository;
         this.gameSessionRepository = gameSessionRepository;
+        this.sessionAnswerRepository = sessionAnswerRepository;
         this.mediaStorageService = mediaStorageService;
     }
 
@@ -104,6 +112,11 @@ public class ActiviteEducativeService {
         if (!activiteEducativeRepository.existsById(id)) {
             throw new ResourceNotFoundException("Activity not found: " + id);
         }
+        // Nettoie les dépendances explicites avant suppression de l'activité.
+        // Sans cela, les sessions/réponses existantes peuvent bloquer la suppression (FK).
+        sessionAnswerRepository.deleteAllForActivity(id);
+        gameSessionRepository.deleteAllForActivity(id);
+        educationalQuestionRepository.deleteAllForActivity(id);
         activiteEducativeRepository.deleteById(id);
     }
 

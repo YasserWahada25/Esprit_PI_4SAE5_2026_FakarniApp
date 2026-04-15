@@ -81,7 +81,7 @@ public class GameSessionService {
         session.setStartedAt(LocalDateTime.now());
 
         GameType gt = activity.getGameType();
-        if (gt == GameType.MEMORY_MATCH) {
+        if (gt == GameType.MEMORY_MATCH || gt == GameType.PUZZLE) {
             int pairs = validateAndCountMemoryPairs(questions);
             session.setTotalQuestions(pairs);
         } else {
@@ -98,7 +98,7 @@ public class GameSessionService {
         resp.setTotalQuestions(saved.getTotalQuestions());
         resp.setGameType(activity.getGameType());
 
-        if (gt == GameType.MEMORY_MATCH) {
+        if (gt == GameType.MEMORY_MATCH || gt == GameType.PUZZLE) {
             resp.setImageCards(buildShuffledImageCards(questions));
             resp.setQuestions(List.of());
         } else {
@@ -120,8 +120,8 @@ public class GameSessionService {
         }
         ActiviteEducative activity = activiteEducativeRepository.findById(session.getActivity().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Activity not found"));
-        if (activity.getGameType() != GameType.MEMORY_MATCH) {
-            throw new BusinessRuleException("Memory moves are only allowed for MEMORY_MATCH activities");
+        if (activity.getGameType() != GameType.MEMORY_MATCH && activity.getGameType() != GameType.PUZZLE) {
+            throw new BusinessRuleException("Memory moves are only allowed for MEMORY_MATCH/PUZZLE activities");
         }
         if (Objects.equals(request.getFirstCardId(), request.getSecondCardId())) {
             throw new BusinessRuleException("Select two different cards");
@@ -208,8 +208,8 @@ public class GameSessionService {
         }
         ActiviteEducative act = activiteEducativeRepository.findById(session.getActivity().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Activity not found"));
-        if (act.getGameType() == GameType.MEMORY_MATCH) {
-            throw new BusinessRuleException("Use POST /api/game-sessions/{sessionId}/move for MEMORY_MATCH");
+        if (act.getGameType() == GameType.MEMORY_MATCH || act.getGameType() == GameType.PUZZLE) {
+            throw new BusinessRuleException("Use POST /api/game-sessions/{sessionId}/move for MEMORY_MATCH/PUZZLE");
         }
 
         EducationalQuestion question = questionRepository.findById(request.getQuestionId())

@@ -103,6 +103,7 @@ export class ActivityListComponent implements OnInit, AfterViewInit {
             quiz: 'Quiz (texte)',
             cognitive_game: 'Jeu cognitif (images)',
             image_game: 'Memory — paires',
+            puzzle_game: 'Puzzle',
             video: 'Vidéo',
             content: 'Contenu'
         };
@@ -133,7 +134,7 @@ export class ActivityListComponent implements OnInit, AfterViewInit {
 
     isGameActivity(activity: EducationalActivity): boolean {
         const t = activity?.type;
-        return t === 'quiz' || t === 'cognitive_game' || t === 'image_game';
+        return t === 'quiz' || t === 'cognitive_game' || t === 'image_game' || t === 'puzzle_game';
     }
 
     openQuestionsDialog(activity: EducationalActivity): void {

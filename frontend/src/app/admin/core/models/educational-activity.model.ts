@@ -7,7 +7,7 @@ export interface EducationalActivity {
     status: ActivityStatus;
     content: ActivityContent;
     /** Réponse API activite-educative-service */
-    gameType?: 'MEMORY_QUIZ' | 'IMAGE_RECOGNITION' | 'MEMORY_MATCH' | null;
+    gameType?: 'MEMORY_QUIZ' | 'IMAGE_RECOGNITION' | 'MEMORY_MATCH' | 'PUZZLE' | null;
     iconKey?: string | null;
     /** Seuil API (0–100) pour marquer la session SUCCESS vs FAILURE */
     scoreThreshold?: number | null;
@@ -16,7 +16,7 @@ export interface EducationalActivity {
 }
 
 /** quiz = QCM texte ou images (MEMORY_QUIZ / IMAGE_RECOGNITION) ; image_game = memory paires (MEMORY_MATCH) */
-export type ActivityType = 'quiz' | 'cognitive_game' | 'image_game' | 'video' | 'content';
+export type ActivityType = 'quiz' | 'cognitive_game' | 'image_game' | 'puzzle_game' | 'video' | 'content';
 
 export type ActivityStatus = 'active' | 'inactive';
 

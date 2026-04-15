@@ -5,12 +5,20 @@ import { ActivityService, GameSessionResultDto } from '../../admin/core/services
 import { EducationalActivity } from '../../admin/core/models/educational-activity.model';
 import { QuizGameComponent } from './quiz-game.component';
 import { ImageGameComponent } from './image-game.component';
+import { PuzzleGameComponent } from './puzzle-game.component';
 import { GameResultComponent, GameResultView } from './game-result.component';
 
 @Component({
     selector: 'app-activity-play',
     standalone: true,
-    imports: [CommonModule, RouterLink, QuizGameComponent, ImageGameComponent, GameResultComponent],
+    imports: [
+        CommonModule,
+        RouterLink,
+        QuizGameComponent,
+        ImageGameComponent,
+        PuzzleGameComponent,
+        GameResultComponent
+    ],
     templateUrl: './activity-play.component.html',
     styleUrls: ['./activity-play.component.css', './activities-shared.css']
 })
@@ -78,6 +86,11 @@ export class ActivityPlayComponent implements OnInit {
         return !!a && a.type === 'image_game';
     }
 
+    get showPuzzle(): boolean {
+        const a = this.activity;
+        return !!a && a.type === 'puzzle_game';
+    }
+
     onQuizDone(res: GameSessionResultDto): void {
         this.sessionResultView = GameResultComponent.fromApi(res, this.activity?.name) ?? null;
         this.cdr.markForCheck();
@@ -129,6 +142,20 @@ export class ActivityPlayComponent implements OnInit {
 
     onCancelGame(): void {
         this.router.navigate(['/educational/activities']);
+    }
+
+    onPuzzleSolved(): void {
+        this.actionError = null;
+        this.sessionResultView = {
+            outcome: 'success',
+            activityTitle: this.activity?.name || 'Puzzle',
+            headline: 'Puzzle terminé',
+            detail: 'Bravo ! Vous avez reconstitué l’image.',
+            scorePercent: null,
+            answersDetail: [],
+            detailsRevealed: true
+        };
+        this.cdr.markForCheck();
     }
 
     onGameError(msg: string): void {

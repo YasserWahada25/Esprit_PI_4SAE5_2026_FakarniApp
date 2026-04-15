@@ -63,6 +63,7 @@ export class ActivitiesListComponent implements OnInit {
             quiz: 'Quiz',
             cognitive_game: 'Quiz images (reconnaissance)',
             image_game: 'Memory — paires d’images',
+            puzzle_game: 'Puzzle — image',
             video: 'Vidéo',
             content: 'Contenu'
         };
@@ -77,6 +78,8 @@ export class ActivitiesListComponent implements OnInit {
             case 'cognitive_game':
                 return 'badge-cognitive';
             case 'image_game':
+                return 'badge-memory';
+            case 'puzzle_game':
                 return 'badge-memory';
             case 'video':
                 return 'badge-video';
@@ -98,6 +101,9 @@ export class ActivitiesListComponent implements OnInit {
         if (k === 'book') {
             return 'fa-book-open';
         }
+        if (k === 'puzzle') {
+            return 'fa-puzzle-piece';
+        }
         if (k === 'video') {
             return 'fa-circle-play';
         }
@@ -107,6 +113,8 @@ export class ActivitiesListComponent implements OnInit {
                 return 'fa-brain';
             case 'image_game':
                 return 'fa-clone';
+            case 'puzzle_game':
+                return 'fa-puzzle-piece';
             case 'content':
                 return 'fa-book-open';
             case 'video':
@@ -148,7 +156,12 @@ export class ActivitiesListComponent implements OnInit {
             });
             return;
         }
-        if (activity.type === 'quiz' || activity.type === 'cognitive_game' || activity.type === 'image_game') {
+        if (
+            activity.type === 'quiz' ||
+            activity.type === 'cognitive_game' ||
+            activity.type === 'image_game' ||
+            activity.type === 'puzzle_game'
+        ) {
             this.router.navigate(['/educational/activities', activity.id, 'play']);
         }
     }

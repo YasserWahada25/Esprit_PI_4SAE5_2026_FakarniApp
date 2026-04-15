@@ -16,7 +16,7 @@ interface ActiviteEducativeResponseDto {
     title: string;
     description: string | null;
     type: 'CONTENT' | 'GAME' | 'QUIZ' | 'VIDEO' | string;
-    gameType?: 'MEMORY_QUIZ' | 'IMAGE_RECOGNITION' | 'MEMORY_MATCH' | null;
+    gameType?: 'MEMORY_QUIZ' | 'IMAGE_RECOGNITION' | 'MEMORY_MATCH' | 'PUZZLE' | null;
     iconKey?: string | null;
     scoreThreshold?: number | null;
     createdAt: string;
@@ -50,7 +50,7 @@ interface ActiviteEducativeRequestDto {
     title: string;
     description?: string | null;
     type: 'CONTENT' | 'GAME' | 'VIDEO';
-    gameType?: 'MEMORY_QUIZ' | 'IMAGE_RECOGNITION' | 'MEMORY_MATCH' | null;
+    gameType?: 'MEMORY_QUIZ' | 'IMAGE_RECOGNITION' | 'MEMORY_MATCH' | 'PUZZLE' | null;
     scoreThreshold?: number | null;
     status: 'ACTIVE' | 'INACTIVE';
     iconKey?: string | null;
@@ -90,7 +90,7 @@ export interface GameSessionStartResponseDto {
     status: string;
     totalQuestions: number;
     /** MEMORY_QUIZ, IMAGE_RECOGNITION (QCM), MEMORY_MATCH (paires). */
-    gameType?: 'MEMORY_QUIZ' | 'IMAGE_RECOGNITION' | 'MEMORY_MATCH' | null;
+    gameType?: 'MEMORY_QUIZ' | 'IMAGE_RECOGNITION' | 'MEMORY_MATCH' | 'PUZZLE' | null;
     questions: QuestionPlayDto[];
     imageCards?: ImageCardPlayDto[];
 }
@@ -599,6 +599,18 @@ export class ActivityService {
                 thumbnailUrl
             };
         }
+        if (type === 'puzzle_game') {
+            return {
+                title: name,
+                description: rawDescription,
+                status,
+                type: 'GAME',
+                gameType: 'PUZZLE',
+                scoreThreshold: st ?? 100,
+                iconKey: 'puzzle',
+                thumbnailUrl
+            };
+        }
         if (type === 'video') {
             let desc = this.stripAllVideoMeta(rawDescription);
             if (videoUrl) {
@@ -752,7 +764,7 @@ export class ActivityService {
     /** Enum / JSON parfois en casse ou format différent (gateway, anciennes versions). */
     private normalizeApiGameType(
         raw: unknown
-    ): 'MEMORY_QUIZ' | 'IMAGE_RECOGNITION' | 'MEMORY_MATCH' | null {
+    ): 'MEMORY_QUIZ' | 'IMAGE_RECOGNITION' | 'MEMORY_MATCH' | 'PUZZLE' | null {
         if (raw == null || raw === '') {
             return null;
         }
@@ -766,6 +778,9 @@ export class ActivityService {
         if (u === 'MEMORY_MATCH') {
             return 'MEMORY_MATCH';
         }
+        if (u === 'PUZZLE') {
+            return 'PUZZLE';
+        }
         return null;
     }
 
@@ -774,7 +789,7 @@ export class ActivityService {
      */
     private toFrontendType(
         dto: ActiviteEducativeResponseDto,
-        gameType: 'MEMORY_QUIZ' | 'IMAGE_RECOGNITION' | 'MEMORY_MATCH' | null
+        gameType: 'MEMORY_QUIZ' | 'IMAGE_RECOGNITION' | 'MEMORY_MATCH' | 'PUZZLE' | null
     ): ActivityType {
         const t = String(dto.type ?? '').toUpperCase();
         if (t === 'CONTENT') {
@@ -786,6 +801,9 @@ export class ActivityService {
         if (t === 'GAME' || t === 'QUIZ') {
             if (gameType === 'MEMORY_MATCH') {
                 return 'image_game';
+            }
+            if (gameType === 'PUZZLE') {
+                return 'puzzle_game';
             }
             if (gameType === 'IMAGE_RECOGNITION') {
                 return 'cognitive_game';

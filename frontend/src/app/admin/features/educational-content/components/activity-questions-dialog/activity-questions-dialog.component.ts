@@ -48,7 +48,7 @@ export class ActivityQuestionsDialogComponent implements OnInit {
 
     get requiresQuestionImage(): boolean {
         const t = this.data.activity.type;
-        return t === 'cognitive_game' || t === 'image_game';
+        return t === 'cognitive_game' || t === 'image_game' || t === 'puzzle_game';
     }
 
     get activityTitle(): string {

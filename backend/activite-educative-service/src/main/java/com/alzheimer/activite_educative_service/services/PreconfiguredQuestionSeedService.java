@@ -160,12 +160,12 @@ public class PreconfiguredQuestionSeedService {
                     throw new IllegalStateException(
                             "Failed to sync IMAGE_RECOGNITION questions for activity " + activityId, e);
                 }
-            } else if (gt == GameType.MEMORY_MATCH) {
+            } else if (gt == GameType.MEMORY_MATCH || gt == GameType.PUZZLE) {
                 try {
                     repairMemoryMatchImageUrlsIfNeeded(activity);
                 } catch (Exception e) {
                     throw new IllegalStateException(
-                            "Failed to repair MEMORY_MATCH image URLs for activity " + activityId, e);
+                            "Failed to repair image URLs for pair/puzzle activity " + activityId, e);
                 }
             }
             return;
@@ -179,6 +179,7 @@ public class PreconfiguredQuestionSeedService {
                 case MEMORY_QUIZ -> seedMemoryQuiz(activity);
                 case IMAGE_RECOGNITION -> seedImageRecognition(activity);
                 case MEMORY_MATCH -> seedMemoryMatch(activity);
+                case PUZZLE -> seedMemoryMatch(activity);
             }
             log.info("Seeded default {} questions for activity id={} (pack from id)", gt, activityId);
         } catch (Exception e) {
