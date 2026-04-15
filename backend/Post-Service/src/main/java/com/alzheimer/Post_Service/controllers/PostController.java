@@ -11,15 +11,46 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/posts")
+@CrossOrigin(origins = "*", allowCredentials = "false")
 public class PostController {
 
     @Autowired
     private PostService postService;
 
     @PostMapping
-    public ResponseEntity<PostResponse> createPost(@RequestBody PostRequest postRequest) {
-        PostResponse response = postService.createPost(postRequest);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    public ResponseEntity<?> createPost(@RequestBody PostRequest postRequest) {
+        try {
+            // Validate content
+            if (postRequest == null || postRequest.getContent() == null || postRequest.getContent().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Content is required");
+            }
+            
+            // Validate content length
+            if (postRequest.getContent().length() < 10) {
+                return ResponseEntity.badRequest().body("Content must be at least 10 characters");
+            }
+            
+            if (postRequest.getContent().length() > 2000) {
+                return ResponseEntity.badRequest().body("Content must not exceed 2000 characters");
+            }
+            
+            // Validate image size if present (Base64 encoded)
+            if (postRequest.getImageUrl() != null && !postRequest.getImageUrl().isEmpty()) {
+                // Base64 string size check (approximately 4MB limit)
+                if (postRequest.getImageUrl().length() > 5 * 1024 * 1024) {
+                    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                        .body("Image is too large. Maximum size is 4MB.");
+                }
+            }
+            
+            PostResponse response = postService.createPost(postRequest);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error creating post: " + e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")

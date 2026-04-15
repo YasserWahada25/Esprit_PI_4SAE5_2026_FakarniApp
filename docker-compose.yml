@@ -44,7 +44,7 @@ services:
 
   # 4. Frontend
   frontend:
-    build: ./frontend/careTemplate
+    build: ./frontend
     container_name: app_frontend
     ports:
       - "4200:4200"

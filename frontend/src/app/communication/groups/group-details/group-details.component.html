@@ -1,0 +1,164 @@
+<div class="group-details-container" *ngIf="!loading && group">
+  <!-- Header -->
+  <div class="group-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="fa-solid fa-arrow-left"></i> Retour
+    </button>
+    
+    <div class="header-content">
+      <div class="group-cover" [style.background-image]="group.coverImageUrl ? 'url(' + group.coverImageUrl + ')' : 'none'">
+        <div class="cover-overlay"></div>
+      </div>
+      
+      <div class="group-info">
+        <div class="info-main">
+          <h1>{{ group.name }}</h1>
+          <div class="badges">
+            <span class="badge" [class.badge-public]="group.groupType === 'PUBLIC'" 
+                  [class.badge-private]="group.groupType === 'PRIVATE'">
+              <i class="fa-solid" [class.fa-globe]="group.groupType === 'PUBLIC'" 
+                 [class.fa-lock]="group.groupType === 'PRIVATE'"></i>
+              {{ group.groupType }}
+            </span>
+            <span class="badge badge-status">
+              <i class="fa-solid fa-circle"></i> {{ group.status }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="info-stats">
+          <div class="stat">
+            <i class="fa-solid fa-users"></i>
+            <span>{{ group.memberCount }}<span *ngIf="group.maxMembers">/{{ group.maxMembers }}</span> membres</span>
+          </div>
+          <div class="stat">
+            <i class="fa-solid fa-calendar"></i>
+            <span>Créé le {{ group.createdAt | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert -->
+  <div class="alert alert-error" *ngIf="error">
+    <i class="fa-solid fa-exclamation-circle"></i> {{ error }}
+    <button (click)="error = null" class="close-btn">&times;</button>
+  </div>
+
+  <!-- Content -->
+  <div class="group-content">
+    <!-- Description -->
+    <div class="content-section">
+      <h2><i class="fa-solid fa-info-circle"></i> Description</h2>
+      <p>{{ group.description }}</p>
+    </div>
+
+    <!-- Actions (Admin only) -->
+    <div class="content-section actions-section" *ngIf="isAdmin()">
+      <h2><i class="fa-solid fa-cog"></i> Actions Administrateur</h2>
+      <div class="action-buttons">
+        <button class="btn-danger" (click)="deleteGroup()">
+          <i class="fa-solid fa-trash"></i> Supprimer le Groupe
+        </button>
+      </div>
+    </div>
+
+    <!-- Members List -->
+    <div class="content-section">
+      <div class="section-header">
+        <h2><i class="fa-solid fa-users"></i> Membres ({{ members.length }})</h2>
+      </div>
+
+      <div class="members-list">
+        <div class="member-card" *ngFor="let member of members">
+          <div class="member-info">
+            <div class="member-avatar">
+              <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="member-details">
+              <div class="member-name">
+                Utilisateur #{{ member.userId }}
+                <span class="badge" [ngClass]="getRoleBadgeClass(member.role)">
+                  <i class="fa-solid" [ngClass]="getRoleIcon(member.role)"></i>
+                  {{ member.role }}
+                </span>
+              </div>
+              <div class="member-meta">
+                <span><i class="fa-solid fa-calendar-plus"></i> Rejoint le {{ member.joinedAt | date:'dd/MM/yyyy' }}</span>
+                <span *ngIf="member.invitedBy">
+                  <i class="fa-solid fa-user-plus"></i> Invité par #{{ member.invitedBy }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Member Actions (for admins/moderators) -->
+          <div class="member-actions" *ngIf="isModerator() && member.userId !== currentUserId">
+            <button class="action-btn" *ngIf="isAdmin() && member.role === MemberRole.MEMBER" 
+                    (click)="promoteToModerator(member.userId)" title="Promouvoir en modérateur">
+              <i class="fa-solid fa-arrow-up"></i>
+            </button>
+            <button class="action-btn" *ngIf="isAdmin() && member.role === MemberRole.MODERATOR" 
+                    (click)="promoteToAdmin(member.userId)" title="Promouvoir en admin">
+              <i class="fa-solid fa-crown"></i>
+            </button>
+            <button class="action-btn" *ngIf="isAdmin() && member.role !== MemberRole.MEMBER" 
+                    (click)="demoteToMember(member.userId)" title="Rétrograder en membre">
+              <i class="fa-solid fa-arrow-down"></i>
+            </button>
+            <button class="action-btn danger" (click)="removeMember(member.userId)" title="Retirer du groupe">
+              <i class="fa-solid fa-user-minus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leave Group Button -->
+    <div class="content-section" *ngIf="isMember() && !isAdmin()">
+      <button class="btn-secondary full-width" (click)="leaveGroup()">
+        <i class="fa-solid fa-sign-out-alt"></i> Quitter le Groupe
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div class="loading-container" *ngIf="loading">
+  <div class="loading-content">
+    <i class="fa-solid fa-spinner fa-spin"></i>
+    <p>Chargement du groupe...</p>
+    <small>Si le chargement prend trop de temps, vérifiez que les services sont démarrés</small>
+  </div>
+</div>
+
+<!-- Error State -->
+<div class="error-container" *ngIf="!loading && !group">
+  <i class="fa-solid fa-exclamation-triangle"></i>
+  <p>{{ error || 'Groupe introuvable' }}</p>
+  <div class="error-actions">
+    <button class="btn-primary" (click)="goBack()">Retour aux groupes</button>
+    <button class="btn-secondary" (click)="loadGroupDetails(groupId)">
+      <i class="fa-solid fa-refresh"></i> Réessayer
+    </button>
+  </div>
+  
+  <div class="debug-info" *ngIf="error">
+    <details>
+      <summary>Informations de débogage</summary>
+      <ul>
+        <li>URL: /api/groups/{{ groupId }}</li>
+        <li>Gateway: http://localhost:8090</li>
+        <li>Group Service: http://localhost:8097</li>
+      </ul>
+      <p><strong>Vérifications:</strong></p>
+      <ol>
+        <li>Eureka est démarré (port 8761)</li>
+        <li>Group Service est démarré et enregistré dans Eureka</li>
+        <li>Gateway est démarrée (port 8090)</li>
+        <li>Le groupe existe dans la base de données</li>
+      </ol>
+    </details>
+  </div>
+</div>

@@ -3,9 +3,12 @@ package com.alzheimer.post_service.services;
 import com.alzheimer.post_service.dto.PostRequest;
 import com.alzheimer.post_service.dto.PostResponse;
 import com.alzheimer.post_service.entities.Post;
+import com.alzheimer.post_service.repositories.CommentRepository;
 import com.alzheimer.post_service.repositories.PostRepository;
+import com.alzheimer.post_service.repositories.ReactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +17,12 @@ public class PostService {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
+
+    @Autowired
+    private ReactionRepository reactionRepository;
 
     public PostResponse createPost(PostRequest postRequest) {
         Post post = new Post();
@@ -31,7 +40,7 @@ public class PostService {
     }
 
     public List<PostResponse> getAllPosts() {
-        List<Post> posts = (List<Post>) postRepository.findAll();
+        List<Post> posts = postRepository.findAll();
         return posts.stream()
             .map(this::toResponse)
             .collect(Collectors.toList());
@@ -48,9 +57,16 @@ public class PostService {
         return toResponse(updatedPost);
     }
 
+    @Transactional
     public void deletePost(Long id) {
         Post post = postRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
+        
+        // Delete related entities first
+        commentRepository.deleteByPostId(id);
+        reactionRepository.deleteByPostId(id);
+        
+        // Then delete the post
         postRepository.delete(post);
     }
 

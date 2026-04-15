@@ -1,25 +1,28 @@
 package com.alzheimer.group_service.dto;
 
+import com.alzheimer.group_service.entities.GroupStatus;
+import com.alzheimer.group_service.entities.GroupType;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class GroupResponse {
 
     private Long id;
     private String name;
     private String description;
+    private Long creatorId;
+    private GroupType groupType;
+    private GroupStatus status;
+    private String coverImageUrl;
+    private Integer maxMembers;
+    private Boolean isJoinable;
+    private Integer memberCount;
+    private List<GroupMemberResponse> members;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     // Constructors
     public GroupResponse() {
-    }
-
-    public GroupResponse(Long id, String name, String description, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     // Getters and Setters
@@ -45,6 +48,70 @@ public class GroupResponse {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Long getCreatorId() {
+        return creatorId;
+    }
+
+    public void setCreatorId(Long creatorId) {
+        this.creatorId = creatorId;
+    }
+
+    public GroupType getGroupType() {
+        return groupType;
+    }
+
+    public void setGroupType(GroupType groupType) {
+        this.groupType = groupType;
+    }
+
+    public GroupStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(GroupStatus status) {
+        this.status = status;
+    }
+
+    public String getCoverImageUrl() {
+        return coverImageUrl;
+    }
+
+    public void setCoverImageUrl(String coverImageUrl) {
+        this.coverImageUrl = coverImageUrl;
+    }
+
+    public Integer getMaxMembers() {
+        return maxMembers;
+    }
+
+    public void setMaxMembers(Integer maxMembers) {
+        this.maxMembers = maxMembers;
+    }
+
+    public Boolean getIsJoinable() {
+        return isJoinable;
+    }
+
+    public void setIsJoinable(Boolean isJoinable) {
+        this.isJoinable = isJoinable;
+    }
+
+    public Integer getMemberCount() {
+        return memberCount;
+    }
+
+    public void setMemberCount(Integer memberCount) {
+        this.memberCount = memberCount;
+    }
+
+    public List<GroupMemberResponse> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<GroupMemberResponse> members) {
+        this.members = members;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -1,0 +1,31 @@
+<div class="reactions">
+    <button 
+        class="reaction-btn" 
+        [class.active]="isActive('LIKE')"
+        [disabled]="isLoading()"
+        (click)="toggleReaction('LIKE')"
+        title="Like">
+        <i class="fa-solid fa-thumbs-up"></i>
+        <span>{{ getCount('LIKE') }}</span>
+    </button>
+    
+    <button 
+        class="reaction-btn" 
+        [class.active]="isActive('HEART')"
+        [disabled]="isLoading()"
+        (click)="toggleReaction('HEART')"
+        title="Love">
+        <i class="fa-solid fa-heart"></i>
+        <span>{{ getCount('HEART') }}</span>
+    </button>
+    
+    <button 
+        class="reaction-btn" 
+        [class.active]="isActive('SUPPORT')"
+        [disabled]="isLoading()"
+        (click)="toggleReaction('SUPPORT')"
+        title="Support">
+        <i class="fa-solid fa-hands-holding-circle"></i>
+        <span>{{ getCount('SUPPORT') }}</span>
+    </button>
+</div>

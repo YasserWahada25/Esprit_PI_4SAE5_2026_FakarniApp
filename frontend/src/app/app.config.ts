@@ -8,7 +8,7 @@ import localeFr from '@angular/common/locales/fr';
 registerLocaleData(localeFr);
 
 import { routes } from './app.routes';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { provideClientHydration, withEventReplay, withHttpTransferCacheOptions } from '@angular/platform-browser';
 import { authInterceptor } from './auth/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
@@ -17,15 +17,23 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
 
-    provideClientHydration(withEventReplay()), // SSR hydration
+    // 🔥 Hydration complète (fusion)
+    provideClientHydration(
+      withEventReplay(),
+      withHttpTransferCacheOptions({
+        includePostRequests: true
+      })
+    ),
+
     provideAnimations(),
 
-    // 🔥 fusion des deux versions
+    // 🔥 HTTP fusion (fetch + interceptor)
     provideHttpClient(
       withFetch(),
       withInterceptors([authInterceptor])
     ),
 
+    // 🌍 locale FR
     { provide: LOCALE_ID, useValue: 'fr-FR' }
   ]
 };

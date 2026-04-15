@@ -1,0 +1,98 @@
+<div class="create-post-container">
+    <!-- Header -->
+    <div class="create-post-header">
+        <h1><i class="fa-solid fa-pen-to-square"></i> Create New Post</h1>
+        <p>Share your story with the community</p>
+    </div>
+
+    <!-- Submit Message Alert -->
+    <div class="alert" [ngClass]="{'alert-success': submitSuccess(), 'alert-error': !submitSuccess()}"
+        *ngIf="submitMessage()">
+        <i class="fa-solid" [ngClass]="{'fa-check-circle': submitSuccess(), 'fa-exclamation-circle': !submitSuccess()}"></i>
+        <span>{{ submitMessage() }}</span>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-card">
+        <form (ngSubmit)="submitPost()">
+            <!-- Content Section -->
+            <div class="form-group">
+                <label for="content" class="form-label">
+                    <span>Content</span>
+                    <span class="required">*</span>
+                </label>
+                <textarea
+                    id="content"
+                    class="form-textarea"
+                    placeholder="Write your post here... Share your thoughts, experiences, or insights. (Minimum 10 characters required)"
+                    [(ngModel)]="postContent"
+                    name="content"
+                    rows="10"
+                    maxlength="2000"
+                ></textarea>
+                <div class="char-count">{{ getCharacterCount() }}/2000</div>
+                <p *ngIf="!isFormValid()" class="validation-error">
+                    <i class="fa-solid fa-info-circle"></i>
+                    Post must be at least 10 characters long
+                </p>
+            </div>
+
+            <!-- Image Upload Section -->
+            <div class="form-group">
+                <label class="form-label">
+                    <span>Add Image</span>
+                    <span class="optional">(Optional)</span>
+                </label>
+
+                <div class="image-upload-area" *ngIf="!imagePreview">
+                    <input
+                        type="file"
+                        accept="image/*"
+                        (change)="onImageSelected($event)"
+                        class="file-input"
+                        id="image-input"
+                    />
+                    <label for="image-input" class="upload-label">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Click to upload or drag and drop</span>
+                        <small>PNG, JPG, GIF up to 5MB</small>
+                    </label>
+                </div>
+
+                <div class="image-preview" *ngIf="imagePreview">
+                    <img [src]="imagePreview" [alt]="'Post preview'" />
+                    <button type="button" class="remove-image-btn" (click)="removeImage()">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-section" *ngIf="postContent">
+                <h3>Preview</h3>
+                <div class="preview-card">
+                    <p class="preview-content">{{ postContent }}</p>
+                    <div class="preview-image" *ngIf="imagePreview">
+                        <img [src]="imagePreview" [alt]="'Post preview'" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" (click)="resetForm()">
+                    <i class="fa-solid fa-rotate-left"></i> Clear
+                </button>
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                    [attr.disabled]="!isFormValid() || isSubmitting() ? true : null"
+                >
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span *ngIf="!isSubmitting()">Publish Post</span>
+                    <span *ngIf="isSubmitting()">Publishing...</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

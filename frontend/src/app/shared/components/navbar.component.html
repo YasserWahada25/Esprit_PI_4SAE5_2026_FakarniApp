@@ -1,89 +1,128 @@
 <header class="header">
-    <div class="container header-container">
-        <div class="logo">
-            <a routerLink="/home" (click)="isMobileMenuOpen = false">
-                <!-- Logo Image -->
-                <img src="logo.png" alt="Grankare Logo" class="brand-logo">
-                <div class="logo-text">
-                    <span class="brand-name">FAKARNI</span>
-                    <span class="tagline">فــــــــــــكرنـــــــــــــي</span>
-                </div>
-            </a>
+  <div class="container header-container">
+    <div class="logo">
+      <a routerLink="/home" (click)="isMobileMenuOpen = false">
+        <img src="logo.png" alt="Grankare Logo" class="brand-logo">
+        <div class="logo-text">
+          <span class="brand-name">FAKARNI</span>
+          <span class="tagline">فــــــــــــكرنـــــــــــــي</span>
         </div>
-
-        <nav class="nav-menu" [class.open]="isMobileMenuOpen">
-            <ul>
-                <li>
-                    <a routerLink="/home" class="nav-link" routerLinkActive="active" (click)="isMobileMenuOpen = false">Home</a>
-                </li>
-                <li class="dropdown" [class.active]="activeDropdown === 'alzheimer'" (click)="toggleDropdown('alzheimer')">
-                    <a class="nav-link" [class.active]="activeDropdown === 'alzheimer'">Alzheimer <i class="fa-solid fa-chevron-down caret"></i></a>
-                    <ul class="dropdown-menu">
-                        <li><a routerLink="/alzheimer_meeting/consultation" (click)="isMobileMenuOpen = false">Calendar</a></li>
-                        <li><a routerLink="/alzheimer_meeting/favorites" (click)="isMobileMenuOpen = false">Favorites</a></li>
-                        <li><a routerLink="/alzheimer_meeting/reports" (click)="isMobileMenuOpen = false">Reports</a></li>
-                        <li><a routerLink="/alzheimer_meeting/notifications" (click)="isMobileMenuOpen = false">Notifications</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown" [class.active]="activeDropdown === 'geofencing'" (click)="toggleDropdown('geofencing')">
-                    <a class="nav-link" [class.active]="activeDropdown === 'geofencing'">Geofencing <i class="fa-solid fa-chevron-down caret"></i></a>
-                    <ul class="dropdown-menu">
-                        <li><a routerLink="/geofencing/tracking" (click)="isMobileMenuOpen = false">Live Tracking</a></li>
-                        <li><a routerLink="/geofencing/alerts" (click)="isMobileMenuOpen = false">Alert & History</a></li>
-                        <li><a routerLink="/geofencing/supervision" (click)="isMobileMenuOpen = false">Supervision & Stats</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown" [class.active]="activeDropdown === 'educational'" (click)="toggleDropdown('educational')">
-                    <a class="nav-link" [class.active]="activeDropdown === 'educational'">Educational <i class="fa-solid fa-chevron-down caret"></i></a>
-                    <ul class="dropdown-menu">
-                        <li><a routerLink="/educational/activities" (click)="isMobileMenuOpen = false">Activities & Content</a></li>
-                        <li><a routerLink="/educational/events" (click)="isMobileMenuOpen = false">Events & Calendar</a></li>
-                        <li><a routerLink="/educational/tracking" (click)="isMobileMenuOpen = false">Progress Tracking</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown" [class.active]="activeDropdown === 'communication'" (click)="toggleDropdown('communication')">
-                    <a class="nav-link" [class.active]="activeDropdown === 'communication'">Communication <i class="fa-solid fa-chevron-down caret"></i></a>
-                    <ul class="dropdown-menu">
-                        <li><a routerLink="/communication/messaging" (click)="isMobileMenuOpen = false">Messaging & Feed</a></li>
-                        <li><a routerLink="/communication/groups" (click)="isMobileMenuOpen = false">Groups & Support</a></li>
-                        <li><a routerLink="/communication/admin" (click)="isMobileMenuOpen = false">Moderation</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown" [class.active]="activeDropdown === 'medical'" (click)="toggleDropdown('medical')">
-                    <a class="nav-link" [class.active]="activeDropdown === 'medical'">Medical <i class="fa-solid fa-chevron-down caret"></i></a>
-                    <ul class="dropdown-menu">
-                        <li><a routerLink="/medical/detection" (click)="isMobileMenuOpen = false">Disease Detection</a></li>
-                        <li><a routerLink="/medical/records" (click)="isMobileMenuOpen = false">Medical Records</a></li>
-                        <li><a routerLink="/medical/follow-up" (click)="isMobileMenuOpen = false">Follow-up</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="#" class="nav-link" (click)="isMobileMenuOpen = false">Contact</a>
-                </li>
-                @if (isAdmin) {
-                    <li>
-                        <a routerLink="/admin" class="nav-link" routerLinkActive="active" (click)="isMobileMenuOpen = false">Admin</a>
-                    </li>
-                }
-            </ul>
-        </nav>
-
-        <div class="header-actions">
-            <button class="search-btn" type="button" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
-            <div class="action-group">
-                <a href="#" class="btn btn-primary appointment-btn">Appointment</a>
-                @if (isLoggedIn) {
-                    <a routerLink="/profile/edit" class="icon-btn profile-btn" title="Profil" (click)="isMobileMenuOpen = false">
-                        <i class="fa-solid fa-user-pen"></i>
-                    </a>
-                    <button type="button" class="icon-btn logout-btn" title="Déconnexion" (click)="onLogout()">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </button>
-                }
-            </div>
-            <button type="button" class="mobile-toggle" (click)="toggleMobileMenu()" aria-label="Menu">
-                <i class="fa-solid" [class.fa-bars]="!isMobileMenuOpen" [class.fa-xmark]="isMobileMenuOpen"></i>
-            </button>
-        </div>
+      </a>
     </div>
+
+    <nav class="nav-menu" [class.open]="isMobileMenuOpen">
+      <ul>
+
+        <!-- HOME -->
+        <li>
+          <a routerLink="/home" class="nav-link" routerLinkActive="active"
+             (click)="isMobileMenuOpen = false">HOME</a>
+        </li>
+
+        <!-- Alzheimer -->
+        <li class="dropdown" [class.active]="activeDropdown === 'alzheimer'"
+            (click)="toggleDropdown('alzheimer')">
+          <a class="nav-link">ALZHEIMER <i class="fa-solid fa-chevron-down caret"></i></a>
+          <ul class="dropdown-menu">
+            <li><a routerLink="/alzheimer_meeting/consultation" (click)="closeMenu()">Calendar</a></li>
+            <li><a routerLink="/alzheimer_meeting/favorites" (click)="closeMenu()">Favorites</a></li>
+            <li><a routerLink="/alzheimer_meeting/reports" (click)="closeMenu()">Reports</a></li>
+            <li><a routerLink="/alzheimer_meeting/notifications" (click)="closeMenu()">Notifications</a></li>
+          </ul>
+        </li>
+
+        <!-- Geofencing -->
+        <li class="dropdown" [class.active]="activeDropdown === 'geofencing'"
+            (click)="toggleDropdown('geofencing')">
+          <a class="nav-link">GEOFENCING <i class="fa-solid fa-chevron-down caret"></i></a>
+          <ul class="dropdown-menu">
+            <li><a routerLink="/geofencing/tracking" (click)="closeMenu()">Live Tracking</a></li>
+            <li><a routerLink="/geofencing/alerts" (click)="closeMenu()">Alert & History</a></li>
+            <li><a routerLink="/geofencing/supervision" (click)="closeMenu()">Supervision & Stats</a></li>
+          </ul>
+        </li>
+
+        <!-- Educational -->
+        <li class="dropdown" [class.active]="activeDropdown === 'educational'"
+            (click)="toggleDropdown('educational')">
+          <a class="nav-link">EDUCATIONAL <i class="fa-solid fa-chevron-down caret"></i></a>
+          <ul class="dropdown-menu">
+            <li><a routerLink="/educational/activities" (click)="closeMenu()">Activities & Content</a></li>
+            <li><a routerLink="/educational/events" (click)="closeMenu()">Events & Calendar</a></li>
+            <li><a routerLink="/educational/tracking" (click)="closeMenu()">Progress Tracking</a></li>
+          </ul>
+        </li>
+
+        <!-- Communication -->
+        <li class="dropdown" [class.active]="activeDropdown === 'communication'"
+            (mouseenter)="onMouseEnter('communication')" (mouseleave)="onMouseLeave()">
+          <a class="nav-link" (click)="toggleDropdown('communication')">
+            COMMUNICATION <i class="fa-solid fa-chevron-down caret"></i>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a routerLink="/communication/messaging" (click)="closeMenu()">Messaging & Feed</a></li>
+            <li><a routerLink="/communication/groups" (click)="closeMenu()">Groups & Support</a></li>
+            <li><a routerLink="/communication/admin" (click)="closeMenu()">Moderation</a></li>
+          </ul>
+        </li>
+
+        <!-- Medical -->
+        <li class="dropdown" [class.active]="activeDropdown === 'medical'"
+            (click)="toggleDropdown('medical')">
+          <a class="nav-link">MEDICAL FOLLOW-UP <i class="fa-solid fa-chevron-down caret"></i></a>
+          <ul class="dropdown-menu">
+            <li><a routerLink="/medical/detection" (click)="closeMenu()">Disease Detection</a></li>
+            <li><a routerLink="/medical/records" (click)="closeMenu()">Medical Records</a></li>
+            <li><a routerLink="/medical/follow-up" (click)="closeMenu()">Follow-up</a></li>
+          </ul>
+        </li>
+
+        <!-- POSTS -->
+        <li>
+          <a routerLink="/posts" class="nav-link" routerLinkActive="active"
+             (click)="closeMenu()">POSTS</a>
+        </li>
+
+        <!-- CONTACT -->
+        <li>
+          <a href="#" class="nav-link" (click)="closeMenu()">CONTACT</a>
+        </li>
+
+        <!-- ADMIN -->
+        @if (isAdmin) {
+          <li>
+            <a routerLink="/admin" class="nav-link" (click)="closeMenu()">ADMIN</a>
+          </li>
+        }
+
+      </ul>
+    </nav>
+
+    <!-- ACTIONS -->
+    <div class="header-actions">
+      <button class="search-btn" type="button">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+
+      <div class="action-group">
+        <a href="#" class="btn btn-primary appointment-btn">APPOINTMENT</a>
+
+        @if (isLoggedIn) {
+          <a routerLink="/profile/edit" class="icon-btn profile-btn" (click)="closeMenu()">
+            <i class="fa-solid fa-user-pen"></i>
+          </a>
+
+          <button class="icon-btn logout-btn" (click)="onLogout()">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        }
+      </div>
+
+      <button type="button" class="mobile-toggle" (click)="toggleMobileMenu()">
+        <i class="fa-solid"
+           [class.fa-bars]="!isMobileMenuOpen"
+           [class.fa-xmark]="isMobileMenuOpen"></i>
+      </button>
+    </div>
+  </div>
 </header>
