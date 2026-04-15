@@ -1,105 +1,172 @@
 <div class="alerts-container">
-    <div class="alerts-section">
-        <div class="section-header">
-            <h2><i class="fa-solid fa-clock-rotate-left"></i> Alerts History</h2>
-            <div class="filters">
-                <select [(ngModel)]="filterType" (change)="applyFilters()">
-                    <option value="All">All Types</option>
-                    <option value="Zone Exit">Zone Exit</option>
-                    <option value="Abnormal Movement">Abnormal Movement</option>
-                    <option value="Low Battery">Low Battery</option>
-                </select>
-                <select [(ngModel)]="filterStatus" (change)="applyFilters()">
-                    <option value="All">All Status</option>
-                    <option value="Active">Active</option>
-                    <option value="Resolved">Resolved</option>
-                </select>
-            </div>
-        </div>
 
-        <div class="table-responsive">
-            <table class="alerts-table">
-                <thead>
-                    <tr>
-                        <th>Status</th>
-                        <th>Patient</th>
-                        <th>Type</th>
-                        <th>Time</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let alert of filteredAlerts" [class.active-row]="alert.status === 'Active'">
-                        <td>
-                            <span class="status-indicator" [ngClass]="alert.status.toLowerCase()">{{ alert.status
-                                }}</span>
-                        </td>
-                        <td>{{ alert.patientName }}</td>
-                        <td>
-                            <span class="type-badge" [class.danger]="alert.severity === 'High'"
-                                [class.warning]="alert.severity === 'Medium'">
-                                {{ alert.type }}
-                            </span>
-                        </td>
-                        <td>{{ alert.timestamp | date:'medium' }}</td>
-                        <td>
-                            <button *ngIf="alert.status === 'Active'" class="resolve-btn" (click)="resolveAlert(alert)">
-                                <i class="fa-solid fa-check"></i> Resolve
-                            </button>
-                            <span *ngIf="alert.status === 'Resolved'" class="resolved-text"><i
-                                    class="fa-solid fa-check-double"></i> Done</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+  <!-- ════ LEFT — Alerts History ════ -->
+  <div class="alerts-section">
+
+    <div class="section-header">
+      <h2><i class="fa-solid fa-clock-rotate-left"></i> Alerts History</h2>
+      <div class="header-right">
+        <div class="mini-stats" *ngIf="!isLoading && !errorMsg">
+          <span class="mini-stat active-stat">🔴 {{ activeCount }} Active</span>
+          <span class="mini-stat resolved-stat">🟢 {{ resolvedCount }} Resolved</span>
         </div>
+        <div class="filters">
+          <select [(ngModel)]="filterType" (change)="applyFilters()">
+            <option value="All">All Types</option>
+            <option *ngFor="let t of alertTypes" [value]="t">{{ t }}</option>
+          </select>
+          <select [(ngModel)]="filterStatus" (change)="applyFilters()">
+            <option value="All">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Resolved">Resolved</option>
+          </select>
+        </div>
+      </div>
     </div>
 
-    <div class="settings-section">
-        <h2><i class="fa-solid fa-bell"></i> Notification Settings</h2>
+   <div class="loading-state" *ngIf="isLoading">
+  <i class="fa-solid fa-spinner fa-spin"></i> Loading alerts...
+</div>
 
-        <div class="setting-group">
-            <label class="switch-label">
-                <span><i class="fa-solid fa-comment-sms"></i> SMS Alerts</span>
-                <input type="checkbox" [(ngModel)]="settings.smsEnabled">
-                <span class="slider"></span>
-            </label>
-        </div>
+<div *ngIf="!isLoading && filteredAlerts.length === 0 && !errorMsg" class="no-data">
+  No alerts available.
+</div>
 
-        <div class="setting-group">
-            <label class="switch-label">
-                <span><i class="fa-solid fa-envelope"></i> Email Alerts</span>
-                <input type="checkbox" [(ngModel)]="settings.emailEnabled">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <div class="setting-group">
-            <label class="switch-label">
-                <span><i class="fa-solid fa-mobile-screen"></i> Push Notifications</span>
-                <input type="checkbox" [(ngModel)]="settings.pushEnabled">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <div class="input-group">
-            <label>Emergency Contact Number</label>
-            <input type="text" [(ngModel)]="settings.emergencyContact">
-        </div>
-
-        <button class="save-btn" (click)="saveSettings()">Save Preferences</button>
-
-        <div class="timeline-preview">
-            <h3>Recent Activity</h3>
-            <div class="timeline">
-                <div class="timeline-item" *ngFor="let alert of alerts | slice:0:3">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <span class="time">{{ alert.timestamp | date:'shortTime' }}</span>
-                        <p>{{ alert.type }} - {{ alert.patientName }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="table-responsive" *ngIf="!isLoading && !errorMsg">
+      <table class="alerts-table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Patient</th>
+            <th>Type</th>
+            <th>Time</th>
+            <th *ngIf="isSoignant">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="filteredAlerts.length === 0">
+            <td [attr.colspan]="isSoignant ? 5 : 4" class="no-data">
+              <i class="fa-solid fa-inbox"></i> No alerts found.
+            </td>
+          </tr>
+          <tr *ngFor="let alert of filteredAlerts" [class.active-row]="alert.status === 'Active'">
+            <td>
+              <span class="status-indicator" [ngClass]="alert.status.toLowerCase()">{{ alert.status }}</span>
+            </td>
+            <td>{{ alert.patientName }}</td>
+            <td>
+              <span class="type-badge"
+                    [class.danger]="alert.severity === 'High'"
+                    [class.warning]="alert.severity === 'Medium'">
+                {{ alert.type }}
+              </span>
+            </td>
+            <td>{{ formatDate(alert.timestamp) | date:'medium' }}</td>
+            <!-- Résolution uniquement pour soignant -->
+            <td *ngIf="isSoignant">
+              <button *ngIf="alert.status === 'Active'" class="resolve-btn" (click)="resolveAlert(alert)">
+                <i class="fa-solid fa-check"></i> Resolve
+              </button>
+              <span *ngIf="alert.status === 'Resolved'" class="resolved-text">
+                <i class="fa-solid fa-check-double"></i> Done
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+
+    <div class="timeline-preview" *ngIf="recentAlerts.length > 0 && !isLoading">
+      <h3>Recent Activity</h3>
+      <div class="timeline">
+        <div class="timeline-item" *ngFor="let alert of recentAlerts">
+          <div class="timeline-dot" [class.dot-active]="alert.status === 'Active'"></div>
+          <div class="timeline-content">
+            <span class="time">{{ formatDate(alert.timestamp) | date:'shortTime' }}</span>
+            <p>{{ alert.type }} — {{ alert.patientName }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════ RIGHT — Notification Preferences (SOIGNANT uniquement) ════ -->
+  <div class="settings-section" *ngIf="isSoignant">
+
+    <h2><i class="fa-solid fa-bell"></i> Notification Settings</h2>
+
+    <div class="toast-success" *ngIf="settingsSaved">
+      <i class="fa-solid fa-circle-check"></i> Préférences sauvegardées !
+    </div>
+    <div class="toast-error" *ngIf="settingsError">
+      <i class="fa-solid fa-triangle-exclamation"></i> {{ settingsError }}
+    </div>
+
+    <!-- Email -->
+    <div class="setting-group">
+      <label class="switch-label">
+        <div class="label-content">
+          <i class="fa-solid fa-envelope"></i>
+          <span>Email Alerts</span>
+        </div>
+        <div class="toggle-wrap">
+          <input type="checkbox" id="email" [(ngModel)]="pref.emailEnabled">
+          <label class="toggle" for="email"></label>
+        </div>
+      </label>
+      <p class="setting-desc" *ngIf="pref.emailEnabled">
+        Un email sera envoyé à votre adresse lors de chaque alerte.
+      </p>
+    </div>
+
+    <!-- Voice -->
+    <div class="setting-group">
+      <label class="switch-label">
+        <div class="label-content">
+          <i class="fa-solid fa-phone"></i>
+          <span>Voice Call (SOS)</span>
+        </div>
+        <div class="toggle-wrap">
+          <input type="checkbox" id="voice" [(ngModel)]="pref.voiceEnabled">
+          <label class="toggle" for="voice"></label>
+        </div>
+      </label>
+      <p class="setting-desc" *ngIf="pref.voiceEnabled">
+        Un appel vocal automatique sera lancé vers votre numéro lors d'un SOS patient.
+      </p>
+    </div>
+
+    <!-- Channels summary -->
+    <div class="channels-summary">
+      <span class="channel-chip" [class.on]="pref.emailEnabled">
+        <i class="fa-solid fa-envelope"></i> Email {{ pref.emailEnabled ? 'ON' : 'OFF' }}
+      </span>
+      <span class="channel-chip" [class.on]="pref.voiceEnabled">
+        <i class="fa-solid fa-phone"></i> Voice {{ pref.voiceEnabled ? 'ON' : 'OFF' }}
+      </span>
+    </div>
+
+    <div class="info-box">
+      <i class="fa-solid fa-circle-info"></i>
+      Vos coordonnées (email &amp; téléphone) sont récupérées depuis votre profil.
+    </div>
+
+    <button class="save-btn" (click)="saveSettings()" [disabled]="isSavingSettings">
+      <i class="fa-solid fa-floppy-disk" *ngIf="!isSavingSettings"></i>
+      <i class="fa-solid fa-spinner fa-spin" *ngIf="isSavingSettings"></i>
+      {{ isSavingSettings ? 'Sauvegarde…' : 'Sauvegarder' }}
+    </button>
+
+  </div>
+
+  <!-- ════ RIGHT — Info patient (pas de settings) ════ -->
+  <div class="settings-section patient-info" *ngIf="isPatient">
+    <h2><i class="fa-solid fa-circle-info"></i> Informations</h2>
+    <p>Vos alertes sont listées ici. Votre soignant reçoit automatiquement une notification à chaque alerte.</p>
+    <p *ngIf="activeCount > 0" class="active-warning">
+      ⚠️ Vous avez <b>{{ activeCount }}</b> alerte(s) active(s).
+    </p>
+  </div>
+
 </div>

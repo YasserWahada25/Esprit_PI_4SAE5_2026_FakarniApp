@@ -86,6 +86,10 @@ public class GatewayServiceApplication {
 				.route("Chat-Service-WebSocket", r ->
 						r.path("/chat-ws/**")
 								.uri(chatWsUri))
+				.route("tracking_route", r -> r.path("/api/tracking/**")
+						.uri("lb://TRACKING-SERVICE"))
+				.route("geofencing_route", r -> r.path("/api/geofencing/**")
+						.uri("lb://GEOFENCING-SERVICE"))
 				.build();
 	}
 
@@ -93,9 +97,10 @@ public class GatewayServiceApplication {
 	public CorsWebFilter corsWebFilter() {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:3000"));
-		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
 		config.setAllowedHeaders(List.of("*"));
 		config.setAllowCredentials(true);
+		config.setMaxAge(3600L);
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", config);

@@ -1,54 +1,296 @@
-<div class="tracking-container">
-    <div class="map-section">
-        <div class="map-view">
-            <!-- Background Map Image Placeholder -->
-            <div class="map-background"></div>
+<!-- ══════════════════════════════════════════════
+     PATIENT VIEW
+══════════════════════════════════════════════════ -->
+<ng-container *ngIf="isPatient">
+  <div class="tracking-root">
 
-            <!-- Patient Markers -->
-            <div class="marker" *ngFor="let patient of patients"
-                [style.left.px]="getMapPosition(patient.coordinates.lat, patient.coordinates.lng).x"
-                [style.top.px]="getMapPosition(patient.coordinates.lat, patient.coordinates.lng).y"
-                [class.warning]="patient.status === 'Warning'" [class.critical]="patient.status === 'Critical'"
-                (click)="selectPatient(patient)">
-
-                <div class="marker-dot"></div>
-                <div class="marker-pulse" *ngIf="patient.status !== 'Safe'"></div>
-                <div class="marker-label">{{ patient.name }}</div>
-            </div>
-
-            <!-- Zones (Visual Mockup) -->
-            <div class="zone zone-home" style="left: 380px; top: 220px; width: 150px; height: 150px;">
-                <span>Home Zone</span>
-            </div>
-        </div>
+    <!-- GPS Banner -->
+    <div class="gps-banner requesting" *ngIf="gpsStatus === 'requesting'">
+      <span class="blink-dot"></span> Activating location…
+    </div>
+    <div class="gps-banner denied" *ngIf="gpsStatus === 'denied'">
+      ❌ Location denied — please enable it in your browser settings.
+    </div>
+    <div class="gps-banner active" *ngIf="gpsStatus === 'active'">
+      <span class="live-dot"></span>
+      Location active — your caregiver is tracking you in real time
+      <span class="gps-coords">
+        {{ currentLat | number:'1.5-5' }}, {{ currentLon | number:'1.5-5' }}
+        <small>(± {{ accuracy }}m)</small>
+      </span>
     </div>
 
-    <div class="info-panel">
-        <h3><i class="fa-solid fa-users-viewfinder"></i> Live Status</h3>
-
-        <div class="patient-list">
-            <div class="patient-card" *ngFor="let patient of patients" [class.active]="selectedPatient === patient"
-                (click)="selectPatient(patient)">
-                <div class="patient-header">
-                    <span class="name">{{ patient.name }}</span>
-                    <span class="status-badge" [ngClass]="patient.status.toLowerCase()">{{ patient.status }}</span>
-                </div>
-                <div class="patient-details">
-                    <p><i class="fa-solid fa-location-dot"></i> Last Update: {{ patient.lastUpdate | date:'shortTime' }}
-                    </p>
-                    <p><i class="fa-solid fa-map-pin"></i> Zone: {{ zones[patient.currentZoneId]?.name || 'Unknown' }}
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <div class="zone-legend">
-            <h4>Zone Status</h4>
-            <ul>
-                <li><span class="legend-dot safe"></span> Safe Zone</li>
-                <li><span class="legend-dot risk"></span> Risk Zone</li>
-                <li><span class="legend-dot restricted"></span> Restricted</li>
-            </ul>
-        </div>
+    <!-- SOS Success -->
+    <div class="sos-success" *ngIf="sosSuccess">
+      ✅ SOS sent! Your caregiver has been alerted.
     </div>
-</div>
+
+    <!-- Patient layout -->
+    <div class="patient-layout">
+
+      <!-- Map -->
+      <div class="map-card">
+        <div class="map-card-header">
+          <h3>📍 My Location</h3>
+          <div class="zone-badge-wrap" *ngIf="myZone">
+            <span class="zone-badge" [class.safe]="myZone.type==='SAFE'" [class.danger]="myZone.type==='DANGER'">
+              {{ myZone.type === 'SAFE' ? '✅' : '⚠️' }} {{ myZone.nomZone }} — {{ myZone.rayon }}m
+            </span>
+          </div>
+          <span class="no-zone" *ngIf="!myZone && !isLoading">ℹ️ No zone configured</span>
+        </div>
+        <div id="map-patient"></div>
+      </div>
+
+      <!-- Right panel -->
+      <div class="patient-panel">
+
+        <!-- GPS status -->
+        <div class="gps-status-card" [class.active]="gpsStatus==='active'" [class.denied]="gpsStatus==='denied'">
+          <div class="gps-status-icon">
+            <span *ngIf="gpsStatus==='active'">📡</span>
+            <span *ngIf="gpsStatus==='requesting'">⏳</span>
+            <span *ngIf="gpsStatus==='denied'">❌</span>
+          </div>
+          <div class="gps-status-text">
+            <b *ngIf="gpsStatus==='active'">GPS Active</b>
+            <b *ngIf="gpsStatus==='requesting'">Activating…</b>
+            <b *ngIf="gpsStatus==='denied'">GPS Denied</b>
+            <small *ngIf="gpsStatus==='active'">Accuracy ± {{ accuracy }}m</small>
+            <small *ngIf="gpsStatus==='denied'">Enable in browser settings</small>
+          </div>
+        </div>
+
+        <!-- Position info -->
+        <div class="info-card" *ngIf="gpsStatus === 'active'">
+          <h4>My Position</h4>
+          <div class="info-row">
+            <span>Latitude</span>
+            <span class="mono">{{ currentLat | number:'1.5-5' }}</span>
+          </div>
+          <div class="info-row">
+            <span>Longitude</span>
+            <span class="mono">{{ currentLon | number:'1.5-5' }}</span>
+          </div>
+          <div class="info-row" *ngIf="myZone">
+            <span>Zone</span>
+            <span>{{ myZone.nomZone }}</span>
+          </div>
+          <div class="info-row" *ngIf="myZone">
+            <span>Type</span>
+            <span class="zone-type-pill" [class.safe]="myZone.type==='SAFE'" [class.danger]="myZone.type==='DANGER'">
+              {{ myZone.type }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Active alerts -->
+        <div class="alert-card" *ngIf="activeAlerts.length > 0">
+          <h4>🚨 Active Alerts</h4>
+          <div class="alert-item" *ngFor="let a of activeAlerts">
+            <span class="alert-type">{{ a.type }}</span>
+            <span class="alert-dist">{{ a.distanceHorsZone | number:'1.0-0' }}m</span>
+          </div>
+        </div>
+
+        <!-- Zone OK -->
+        <div class="zone-ok-card" *ngIf="gpsStatus==='active' && activeAlerts.length===0 && myZone">
+          ✅ You are within your safe zone
+        </div>
+
+        <!-- SOS button -->
+        <button class="sos-btn"
+                (click)="triggerSos()"
+                [disabled]="sosTrigering || gpsStatus !== 'active' || !myZone?.soignantId"
+                [class.triggering]="sosTrigering">
+          <span *ngIf="!sosTrigering">🆘 SOS</span>
+          <span *ngIf="sosTrigering">⏳ Sending…</span>
+        </button>
+
+        <p class="sos-hint" *ngIf="gpsStatus !== 'active'">
+          Enable location to use the SOS button
+        </p>
+
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<!-- ══════════════════════════════════════════════
+     CAREGIVER VIEW
+══════════════════════════════════════════════════ -->
+<ng-container *ngIf="isSoignant">
+  <div class="tracking-root">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h2 class="page-title">🗺️ Live Tracking</h2>
+        <p class="page-subtitle">Real-time monitoring &amp; zone management</p>
+      </div>
+      <button class="btn-primary" (click)="openAddModal()">＋ Add Zone</button>
+    </div>
+
+    <!-- Active alerts strip -->
+    <div class="alert-strip" *ngFor="let a of activeAlerts">
+      <span>🚨</span>
+      <span><b>{{ a.patientName }}</b> — {{ a.type }}</span>
+      <span class="alert-dist-strip">{{ a.distanceHorsZone | number:'1.0-0' }}m outside zone</span>
+      <button class="resolve-btn" (click)="resolveAlert(a)">✓ Resolve</button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-bar" *ngIf="isLoading">⏳ Loading zones…</div>
+
+    <!-- Pick banner -->
+    <div class="pick-banner" *ngIf="pickingLocation">
+      <span>📍 Click on the map to set the zone center.</span>
+      <button class="btn-pick-cancel" (click)="pickingLocation = false; showModal = true">✕ Cancel</button>
+    </div>
+
+    <!-- Map + legend -->
+    <div class="map-container">
+      <div id="map" class="leaflet-map"></div>
+      <div class="map-legend">
+        <div class="legend-row"><span class="ldot blue"></span> Safe Zone</div>
+        <div class="legend-row"><span class="ldot red-dash"></span> Danger Zone</div>
+        <div class="legend-row"><span class="ldot green"></span> Patient — OK</div>
+        <div class="legend-row"><span class="ldot red"></span> Patient — Alert</div>
+      </div>
+    </div>
+
+    <!-- Zone list -->
+    <div class="zones-section">
+      <div class="zones-header">
+        <h3 class="zones-title">📍 Configured Zones <span class="count-badge">{{ zones.length }}</span></h3>
+      </div>
+      <div class="zones-grid">
+        <div class="zone-card" *ngFor="let zone of zones" (click)="centerMapOnZone(zone)">
+          <div class="zone-strip-bar" [style.background]="zone.type === 'DANGER' ? '#e53935' : '#1565C0'"></div>
+          <div class="zone-body">
+            <div class="zone-info">
+              <span class="zone-name">{{ zone.nomZone }}</span>
+              <div class="zone-meta">
+                <span class="type-tag" [class.danger-tag]="zone.type === 'DANGER'">{{ zone.type }}</span>
+                <span>Patient: <b>{{ zone.patientId }}</b></span>
+                <span>⭕ {{ zone.rayon }}m</span>
+              </div>
+            </div>
+            <div class="zone-btns" (click)="$event.stopPropagation()">
+              <button class="btn-icon-action edit"   (click)="openEditModal(zone)">✏️</button>
+              <button class="btn-icon-action delete" (click)="deleteZone(zone)">🗑️</button>
+            </div>
+          </div>
+        </div>
+        <div class="empty-zones" *ngIf="zones.length === 0 && !isLoading">
+          <span class="empty-icon">🗺️</span>
+          <p>No zones configured. Click "Add Zone" to get started.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════ MODAL ══════ -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span>{{ isEditMode ? '✏️' : '📍' }}</span>
+          <h3 class="modal-title">{{ isEditMode ? 'Edit Zone' : 'New Zone' }}</h3>
+        </div>
+        <button class="modal-close-btn" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-error" *ngIf="formError">⚠️ {{ formError }}</div>
+
+        <!-- Name -->
+        <div class="form-group">
+          <label class="form-label">Zone name *</label>
+          <input class="form-input" [class.input-error]="errors['nomZone']"
+                 type="text" placeholder="e.g. Ahmed's Home"
+                 [(ngModel)]="zoneForm.nomZone" maxlength="50" />
+          <span class="field-error" *ngIf="errors['nomZone']">{{ errors['nomZone'] }}</span>
+        </div>
+
+        <!-- Patient select -->
+        <div class="form-group">
+          <label class="form-label">Patient *</label>
+          <select class="form-input form-select" [class.input-error]="errors['patientId']"
+                  [(ngModel)]="zoneForm.patientId">
+            <option value="">— Select a patient —</option>
+            <option *ngFor="let p of patients" [value]="p.id">
+              {{ p.prenom }} {{ p.nom }}
+            </option>
+          </select>
+          <span class="field-error" *ngIf="errors['patientId']">{{ errors['patientId'] }}</span>
+          <span class="field-hint" *ngIf="patients.length === 0">
+            ⚠️ No patients found. Check the User Service.
+          </span>
+        </div>
+
+        <!-- Coordinates -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Latitude *</label>
+            <input class="form-input" [class.input-error]="errors['centreLat']"
+                   type="number" step="0.000001" placeholder="36.8065"
+                   [(ngModel)]="zoneForm.centreLat" />
+            <span class="field-error" *ngIf="errors['centreLat']">{{ errors['centreLat'] }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Longitude *</label>
+            <input class="form-input" [class.input-error]="errors['centreLon']"
+                   type="number" step="0.000001" placeholder="10.1815"
+                   [(ngModel)]="zoneForm.centreLon" />
+            <span class="field-error" *ngIf="errors['centreLon']">{{ errors['centreLon'] }}</span>
+          </div>
+        </div>
+
+        <button class="btn-pick-map" type="button" (click)="startPickLocation()">
+          🖱️ Pick from map
+        </button>
+
+        <!-- Radius -->
+        <div class="form-group">
+          <label class="form-label">Radius: <b>{{ zoneForm.rayon }}m</b></label>
+          <input class="form-slider" type="range" min="50" max="5000" step="50"
+                 [(ngModel)]="zoneForm.rayon" />
+          <div class="slider-labels"><span>50m</span><span>5,000m</span></div>
+          <input class="form-input mt-8" [class.input-error]="errors['rayon']"
+                 type="number" min="10" max="10000" placeholder="Radius in metres"
+                 [(ngModel)]="zoneForm.rayon" />
+          <span class="field-error" *ngIf="errors['rayon']">{{ errors['rayon'] }}</span>
+        </div>
+
+        <!-- Type -->
+        <div class="form-group">
+          <label class="form-label">Zone type *</label>
+          <select class="form-input form-select" [(ngModel)]="zoneForm.type">
+            <option value="SAFE">SAFE — patient must stay inside</option>
+            <option value="DANGER">DANGER — patient must stay outside</option>
+          </select>
+        </div>
+
+        <div class="type-chip" [class.danger-chip]="zoneForm.type === 'DANGER'">
+          <span class="chip-dot"></span>
+          <b>{{ zoneForm.type }}</b> —
+          {{ zoneForm.type === 'SAFE'
+            ? 'Alert triggered if the patient leaves this zone.'
+            : 'Alert triggered if the patient enters this zone.' }}
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-ghost" (click)="closeModal()">Cancel</button>
+        <button class="btn-primary" (click)="saveZone()" [disabled]="isSaving">
+          <span *ngIf="!isSaving">{{ isEditMode ? '💾 Update' : '✅ Create' }}</span>
+          <span *ngIf="isSaving">⏳ Saving…</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</ng-container>

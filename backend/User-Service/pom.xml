@@ -16,16 +16,18 @@
     <artifactId>User-Service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>User-Service</name>
-    <description>Microservice User avec MongoDB</description>
 
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2025.1.0</spring-cloud.version>
-        <springdoc.version>2.3.0</springdoc.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <springdoc.version>3.0.2</springdoc.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
     <dependencies>
+
         <!-- REST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -67,7 +69,7 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
-        <!-- JWT (JJWT) ✅ -->
+        <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -86,7 +88,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Eureka client (optionnel) -->
+        <!-- Eureka -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -98,7 +100,7 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Mail (JavaMailSender bean for EmailService, password reset, etc.) -->
+        <!-- Mail (password reset, notifications) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
@@ -139,20 +141,34 @@
     </dependencyManagement>
 
     <build>
+
+        <!-- ✅ disable filtering for application.properties -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+
         <plugins>
+
+            <!-- ✅ Force UTF-8 in resources plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
             </plugin>
+
         </plugins>
+
     </build>
 
 </project>

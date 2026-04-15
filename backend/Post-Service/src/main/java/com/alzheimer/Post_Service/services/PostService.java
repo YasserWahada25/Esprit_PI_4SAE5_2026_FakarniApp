@@ -9,6 +9,7 @@ import com.alzheimer.post_service.repositories.ReactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,7 +29,7 @@ public class PostService {
         Post post = new Post();
         post.setContent(postRequest.getContent());
         post.setImageUrl(postRequest.getImageUrl());
-        
+
         Post savedPost = postRepository.save(post);
         return toResponse(savedPost);
     }
@@ -49,10 +50,10 @@ public class PostService {
     public PostResponse updatePost(Long id, PostRequest postRequest) {
         Post post = postRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
-        
+
         post.setContent(postRequest.getContent());
         post.setImageUrl(postRequest.getImageUrl());
-        
+
         Post updatedPost = postRepository.save(post);
         return toResponse(updatedPost);
     }
@@ -61,12 +62,10 @@ public class PostService {
     public void deletePost(Long id) {
         Post post = postRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
-        
-        // Delete related entities first
+
         commentRepository.deleteByPostId(id);
         reactionRepository.deleteByPostId(id);
-        
-        // Then delete the post
+
         postRepository.delete(post);
     }
 

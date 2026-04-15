@@ -21,18 +21,51 @@ export class AlertDetailComponent {
     }
 
     markAsResolved(): void {
-        this.alertService.updateAlertStatus(this.alert.id, 'resolved', this.notes).subscribe(() => {
-            this.dialogRef.close(true);
+        this.alertService.updateAlertStatus(this.alert.id, 'resolved', this.notes).subscribe({
+            next: () => this.dialogRef.close(true),
+            error: (err) => console.error('Erreur résolution:', err)
         });
     }
 
     markAsIgnored(): void {
-        this.alertService.updateAlertStatus(this.alert.id, 'ignored', this.notes).subscribe(() => {
-            this.dialogRef.close(true);
+        this.alertService.updateAlertStatus(this.alert.id, 'ignored', this.notes).subscribe({
+            next: () => this.dialogRef.close(true),
+            error: (err) => console.error('Erreur ignore:', err)
         });
     }
 
     close(): void {
         this.dialogRef.close();
+    }
+
+    // Gère le format [y,m,d,h,min,s] du backend
+    formatDate(ts: any): Date {
+        if (!ts) return new Date();
+        if (Array.isArray(ts)) {
+            const [y, m, d, h, min, s] = ts;
+            return new Date(y, m - 1, d, h, min, s ?? 0);
+        }
+        return new Date(ts);
+    }
+
+    getStatusLabel(status: string): string {
+        const map: Record<string, string> = {
+            'Active':   'En cours',
+            'Resolved': 'Résolue',
+            'ignored':  'Ignorée'
+        };
+        return map[status] || status;
+    }
+
+    getTypeLabel(type: string): string {
+        const map: Record<string, string> = {
+            'SORTIE_ZONE_SAFE':   'Sortie de zone sécurisée',
+            'ENTREE_ZONE_DANGER': 'Entrée zone dangereuse',
+            'zone_exit':          'Sortie de zone',
+            'forbidden_entry':    'Entrée interdite',
+            'gps_loss':           'Perte GPS',
+            'low_battery':        'Batterie faible'
+        };
+        return map[type] || type;
     }
 }

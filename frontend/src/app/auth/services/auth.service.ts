@@ -114,6 +114,10 @@ export class AuthService {
     return this.http.get<User>(`${API}/users/${id}`);
   }
 
+  getPatients(): Observable<User[]> {
+    return this.http.get<User[]>(`${API}/users/by-role/PATIENT_PROFILE`);
+  }
+
   updateUser(id: string, body: UserUpdateRequest): Observable<User> {
     return this.http.put<User>(`${API}/users/${id}`, body).pipe(
       tap((updated) => {

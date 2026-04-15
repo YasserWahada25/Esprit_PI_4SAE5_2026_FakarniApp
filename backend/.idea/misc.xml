@@ -20,6 +20,8 @@
         <option value="$PROJECT_DIR$/Dossier_Medical-service/Dossier_Medical-service/pom.xml" />
         <option value="$PROJECT_DIR$/activite-educative-service/pom.xml" />
         <option value="$PROJECT_DIR$/suivi-engagement-service/pom.xml" />
+        <option value="$PROJECT_DIR$/Geofencing-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Tracking-Service/pom.xml" />
       </list>
     </option>
   </component>
