@@ -1,6 +1,6 @@
 <div class="alert-management-container">
     <!-- Navigation Tabs -->
-    <nav mat-tab-nav-bar class="nav-tabs">
+    <nav mat-tab-nav-bar class="nav-tabs" [tabPanel]="tabPanel">
         <a mat-tab-link routerLink="../zones" routerLinkActive #rla1="routerLinkActive" [active]="rla1.isActive">
             Zones Géographiques
         </a>
@@ -11,7 +11,7 @@
             Statistiques
         </a>
     </nav>
-
+    <mat-tab-nav-panel #tabPanel>
     <mat-tab-group>
         <!-- Alerts Tab -->
         <mat-tab label="Historique des Alertes">
@@ -120,4 +120,5 @@
             </div>
         </mat-tab>
     </mat-tab-group>
+    </mat-tab-nav-panel>
 </div>

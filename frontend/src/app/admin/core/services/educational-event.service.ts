@@ -1,118 +1,74 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { EducationalEvent, EventStatus } from '../models/educational-event.model';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { environment } from '../../../../environments/environment';
+import { EducationalEvent } from '../models/educational-event.model';
 
 @Injectable({
     providedIn: 'root'
 })
 export class EducationalEventService {
-    private events: EducationalEvent[] = [
-        {
-            id: 1,
-            title: 'Webinaire sur la Mémoire',
-            description: 'Session interactive sur les techniques de mémorisation',
-            date: new Date('2024-03-15'),
-            startTime: '14:00',
-            endTime: '15:30',
-            status: 'scheduled',
-            participantsCount: 12,
-            maxParticipants: 20,
-            reminders: [
-                { type: 'email', timeBefore: 24, enabled: true },
-                { type: 'sms', timeBefore: 2, enabled: true }
-            ],
-            location: 'Salle de conférence'
-        },
-        {
-            id: 2,
-            title: 'Atelier de Stimulation Cognitive',
-            description: 'Exercices pratiques pour maintenir les capacités cognitives',
-            date: new Date('2024-03-20'),
-            startTime: '10:00',
-            endTime: '11:30',
-            status: 'scheduled',
-            participantsCount: 8,
-            maxParticipants: 15,
-            reminders: [
-                { type: 'email', timeBefore: 48, enabled: true }
-            ],
-            location: 'Salle d\'activités'
-        },
-        {
-            id: 3,
-            title: 'Session de Jeux Cognitifs',
-            description: 'Jeux de mémoire et de logique en groupe',
-            date: new Date('2024-02-28'),
-            startTime: '15:00',
-            endTime: '16:00',
-            status: 'completed',
-            participantsCount: 15,
-            maxParticipants: 15,
-            reminders: [],
-            location: 'Salle polyvalente'
-        },
-        {
-            id: 4,
-            title: 'Conférence sur l\'Alzheimer',
-            description: 'Présentation sur les dernières recherches',
-            date: new Date('2024-04-10'),
-            startTime: '09:00',
-            endTime: '12:00',
-            status: 'scheduled',
-            participantsCount: 25,
-            maxParticipants: 50,
-            reminders: [
-                { type: 'email', timeBefore: 72, enabled: true },
-                { type: 'sms', timeBefore: 24, enabled: true },
-                { type: 'push', timeBefore: 2, enabled: true }
-            ],
-            location: 'Auditorium'
-        }
-    ];
+    private apiUrl = `${environment.apiBaseUrl}/api/events`;
 
-    constructor() { }
+    // Flux partagé des événements pour que plusieurs composants puissent se synchroniser
+    private readonly eventsSubject = new BehaviorSubject<EducationalEvent[]>([]);
+    readonly events$ = this.eventsSubject.asObservable();
 
+    constructor(private http: HttpClient) { }
+
+    /**
+     * Recharge la liste complète des événements depuis l'API
+     * et met à jour le flux partagé.
+     */
+    reloadEvents(): Observable<EducationalEvent[]> {
+        console.log('[EventService] Appel API :', this.apiUrl);
+        return this.http.get<EducationalEvent[]>(this.apiUrl).pipe(
+            tap(events => {
+                console.log('[EventService] Réponse reçue :', events);
+                this.eventsSubject.next(events);
+            })
+        );
+    }
+
+    /** Récupération simple (sans mettre à jour le cache partagé) si besoin ponctuel */
     getEvents(): Observable<EducationalEvent[]> {
-        return of(this.events.sort((a, b) => b.date.getTime() - a.date.getTime()));
+        return this.http.get<EducationalEvent[]>(this.apiUrl);
     }
 
-    getEventById(id: number): Observable<EducationalEvent | undefined> {
-        return of(this.events.find(e => e.id === id));
-    }
-
-    getEventsByStatus(status: EventStatus): Observable<EducationalEvent[]> {
-        return of(this.events.filter(e => e.status === status));
-    }
-
-    getUpcomingEvents(): Observable<EducationalEvent[]> {
-        const now = new Date();
-        return of(this.events.filter(e => e.date >= now && e.status === 'scheduled'));
+    getEventById(id: number): Observable<EducationalEvent> {
+        return this.http.get<EducationalEvent>(`${this.apiUrl}/${id}`);
     }
 
     createEvent(event: Omit<EducationalEvent, 'id'>): Observable<EducationalEvent> {
-        const newEvent: EducationalEvent = {
-            ...event,
-            id: Math.max(...this.events.map(e => e.id)) + 1
-        };
-        this.events.push(newEvent);
-        return of(newEvent);
+        return this.http.post<EducationalEvent>(this.apiUrl, event).pipe(
+            tap(created => {
+                const current = this.eventsSubject.value;
+                this.eventsSubject.next([...current, created]);
+            })
+        );
     }
 
-    updateEvent(id: number, event: Partial<EducationalEvent>): Observable<EducationalEvent | undefined> {
-        const index = this.events.findIndex(e => e.id === id);
-        if (index !== -1) {
-            this.events[index] = { ...this.events[index], ...event };
-            return of(this.events[index]);
-        }
-        return of(undefined);
+    updateEvent(id: number, event: Partial<EducationalEvent>): Observable<EducationalEvent> {
+        return this.http.put<EducationalEvent>(`${this.apiUrl}/${id}`, event).pipe(
+            tap(updated => {
+                const current = this.eventsSubject.value;
+                const next = current.map(e => e.id === updated.id ? updated : e);
+                this.eventsSubject.next(next);
+            })
+        );
     }
 
-    deleteEvent(id: number): Observable<boolean> {
-        const index = this.events.findIndex(e => e.id === id);
-        if (index !== -1) {
-            this.events.splice(index, 1);
-            return of(true);
-        }
-        return of(false);
+    deleteEvent(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+            tap(() => {
+                const current = this.eventsSubject.value;
+                this.eventsSubject.next(current.filter(e => e.id !== id));
+            })
+        );
+    }
+
+    /** Déclenche l'envoi d'un email de test au backend */
+    sendTestEmail(): Observable<any> {
+        return this.http.post(`${environment.apiBaseUrl}/api/emails/test`, {});
     }
 }

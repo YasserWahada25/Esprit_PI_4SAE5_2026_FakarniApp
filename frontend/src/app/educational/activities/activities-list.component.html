@@ -1,0 +1,43 @@
+<div class="activities-page">
+    <header class="page-head">
+        <h2><i class="fa-solid fa-gamepad"></i> Jeux &amp; activités</h2>
+        <p class="sub">Choisissez une activité — images et quiz visuels.</p>
+    </header>
+
+    <p class="hint" *ngIf="loadError">{{ loadError }}</p>
+    <p class="hint loading" *ngIf="loading && !loadError">Chargement…</p>
+    <p class="hint" *ngIf="!loading && !loadError && activities.length === 0">Aucune activité à afficher.</p>
+
+    <div class="friv-grid" *ngIf="!loading">
+        <article class="friv-card" *ngFor="let activity of activities">
+            <div class="friv-thumb-wrap" (click)="start(activity, $event)">
+                <img
+                    class="friv-thumb-img"
+                    [src]="thumbSrc(activity)"
+                    (error)="onThumbError($event)"
+                    alt=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                />
+                <div class="friv-shine"></div>
+                <div class="friv-hover-layer">
+                    <span class="friv-play-icon"><i class="fa-solid fa-play"></i></span>
+                    <span class="friv-play-text">Jouer</span>
+                </div>
+            </div>
+            <div class="friv-body" (click)="start(activity, $event)">
+                <span class="type-pill" [ngClass]="getTypeBadgeClass(activity)">{{ getTypeLabel(activity) }}</span>
+                <h3 class="friv-title">{{ activity.name || '—' }}</h3>
+                <p class="friv-desc" *ngIf="activity.description">
+                    {{ activity.description | slice : 0 : 96 }}<span *ngIf="(activity.description?.length ?? 0) > 96">…</span>
+                </p>
+                <div class="friv-footer">
+                    <span class="friv-score" *ngIf="getScore(activity) !== null">Score {{ getScore(activity) }}%</span>
+                    <button type="button" class="friv-btn" (click)="start(activity, $event); $event.stopPropagation()">
+                        Jouer
+                    </button>
+                </div>
+            </div>
+        </article>
+    </div>
+</div>

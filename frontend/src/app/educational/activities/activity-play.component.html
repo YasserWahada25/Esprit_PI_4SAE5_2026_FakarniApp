@@ -1,0 +1,60 @@
+<div class="play-wrap">
+    <a routerLink="/educational/activities" class="back-link">← Retour aux activités</a>
+
+    <p class="hint" *ngIf="loadError">{{ loadError }}</p>
+
+    <ng-container *ngIf="activity && !loadError">
+        <div class="action-error-banner" *ngIf="actionError">
+            <span>{{ actionError }}</span>
+            <button type="button" class="dismiss-x" (click)="dismissActionError()" aria-label="Fermer">×</button>
+        </div>
+
+        <app-game-result
+            *ngIf="sessionResultView"
+            [view]="sessionResultView"
+            (dismiss)="onDismissResult()"
+            (revealDetails)="onReveal()"
+            (exportSummary)="exportSummary()"
+        />
+
+        <div class="content-sheet" *ngIf="contentSheet && !sessionResultView">
+            <h3>{{ contentSheet.title }}</h3>
+            <p class="content-body">{{ contentSheet.text }}</p>
+            <p class="video-meta" *ngIf="contentSheet.durationMin != null">
+                Durée indiquée : {{ contentSheet.durationMin }} min
+            </p>
+            <p *ngIf="contentSheet.videoUrl">
+                <a class="video-link" [href]="contentSheet.videoUrl" target="_blank" rel="noopener noreferrer">
+                    Ouvrir la vidéo
+                </a>
+            </p>
+            <button type="button" class="primary-dismiss" (click)="dismissSheet()">Fermer</button>
+        </div>
+
+        <app-quiz-game
+            *ngIf="showQuiz && !sessionResultView && !contentSheet"
+            [activity]="activity"
+            [userId]="demoUserId"
+            (completed)="onQuizDone($event)"
+            (cancelled)="onCancelGame()"
+            (errorMsg)="onGameError($event)"
+        />
+
+        <app-image-game
+            *ngIf="showMemory && !sessionResultView && !contentSheet"
+            [activity]="activity"
+            [userId]="demoUserId"
+            (completed)="onQuizDone($event)"
+            (cancelled)="onCancelGame()"
+            (errorMsg)="onGameError($event)"
+        />
+
+        <app-puzzle-game
+            *ngIf="showPuzzle && !sessionResultView && !contentSheet"
+            [activity]="activity"
+            (solved)="onPuzzleSolved()"
+            (cancelled)="onCancelGame()"
+            (errorMsg)="onGameError($event)"
+        />
+    </ng-container>
+</div>

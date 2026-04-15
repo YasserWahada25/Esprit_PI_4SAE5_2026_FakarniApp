@@ -5,11 +5,11 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 
-registerLocaleData(localeFr);
-
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay, withHttpTransferCacheOptions } from '@angular/platform-browser';
 import { authInterceptor } from './auth/interceptors/auth.interceptor';
+
+registerLocaleData(localeFr);
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,7 +17,6 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
 
-    // 🔥 Hydration complète (fusion)
     provideClientHydration(
       withEventReplay(),
       withHttpTransferCacheOptions({
@@ -27,13 +26,11 @@ export const appConfig: ApplicationConfig = {
 
     provideAnimations(),
 
-    // 🔥 HTTP fusion (fetch + interceptor)
     provideHttpClient(
       withFetch(),
       withInterceptors([authInterceptor])
     ),
 
-    // 🌍 locale FR
     { provide: LOCALE_ID, useValue: 'fr-FR' }
   ]
 };

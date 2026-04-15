@@ -1,0 +1,25 @@
+<h2 mat-dialog-title>
+    <mat-icon style="vertical-align: middle; margin-right: 8px;">map</mat-icon>
+    Localisation: {{ data.title || 'Événement' }}
+</h2>
+
+<mat-dialog-content>
+    <div *ngIf="loading" class="state-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Recherche du lieu "{{ data.location }}"...</p>
+    </div>
+
+    <div *ngIf="error" class="state-container error">
+        <mat-icon color="warn" style="font-size: 48px; width: 48px; height: 48px;">location_off</mat-icon>
+        <p>{{ error }}</p>
+    </div>
+
+    <div [hidden]="loading || error" class="map-wrapper">
+        <p class="address-text">{{ formattedAddress }}</p>
+        <div id="event-map" class="leaflet-map-container"></div>
+    </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Fermer</button>
+</mat-dialog-actions>

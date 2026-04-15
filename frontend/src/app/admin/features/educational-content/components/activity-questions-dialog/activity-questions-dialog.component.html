@@ -1,0 +1,89 @@
+<h2 mat-dialog-title>Questions — {{ activityTitle }}</h2>
+
+<mat-dialog-content class="aq-dialog">
+    <p class="hint" *ngIf="requiresQuestionImage">
+        <strong>Jeu avec images :</strong> chaque question doit inclure une image (fichier) à l’ajout.
+    </p>
+
+    <p class="error" *ngIf="loadError">{{ loadError }}</p>
+    <p class="muted" *ngIf="loading">Chargement…</p>
+
+    <div class="table-wrap" *ngIf="!loading">
+        <table mat-table [dataSource]="dataSource" class="aq-table">
+            <ng-container matColumnDef="orderIndex">
+                <th mat-header-cell *matHeaderCellDef>#</th>
+                <td mat-cell *matCellDef="let row">{{ row.orderIndex }}</td>
+            </ng-container>
+            <ng-container matColumnDef="prompt">
+                <th mat-header-cell *matHeaderCellDef>Question</th>
+                <td mat-cell *matCellDef="let row">{{ row.prompt }}</td>
+            </ng-container>
+            <ng-container matColumnDef="preview">
+                <th mat-header-cell *matHeaderCellDef>Image</th>
+                <td mat-cell *matCellDef="let row">
+                    <img
+                        *ngIf="row.questionImageUrl || row.imageUrl"
+                        class="thumb"
+                        [src]="row.questionImageUrl || row.imageUrl"
+                        alt=""
+                    />
+                    <span *ngIf="!row.questionImageUrl && !row.imageUrl" class="muted">—</span>
+                </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let row">
+                    <button mat-icon-button color="warn" type="button" (click)="deleteQuestion(row)" matTooltip="Supprimer">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+        <p class="muted" *ngIf="dataSource.data.length === 0">Aucune question pour le moment.</p>
+    </div>
+
+    <h3 class="section-title">Ajouter une question</h3>
+    <form [formGroup]="form" class="aq-form">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Texte de la question</mat-label>
+            <textarea matInput formControlName="prompt" rows="2"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Réponses possibles (une par ligne)</mat-label>
+            <textarea matInput formControlName="optionsText" rows="4" placeholder="Orange&#10;Banane&#10;Pomme"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Bonne réponse</mat-label>
+            <input matInput formControlName="correctAnswer" placeholder="Doit correspondre à une ligne" />
+        </mat-form-field>
+
+        <div class="img-row">
+            <label class="file-label">
+                <span>Image de la question</span>
+                <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onNewImageSelected($event)" />
+            </label>
+            <button mat-stroked-button type="button" *ngIf="newImageFile" (click)="clearNewImage()">Retirer l’image</button>
+        </div>
+        <div class="preview-box" *ngIf="newImagePreview">
+            <img [src]="newImagePreview" alt="Aperçu" />
+        </div>
+
+        <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="addQuestion()"
+            [disabled]="form.invalid || saving"
+        >
+            Ajouter la question
+        </button>
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="close()">Fermer</button>
+</mat-dialog-actions>

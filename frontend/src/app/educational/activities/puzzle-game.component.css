@@ -1,0 +1,143 @@
+.puzzle-game {
+    max-width: 980px;
+}
+
+.puzzle-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.puzzle-header h2 {
+    margin: 0;
+    color: #253243;
+}
+
+.stats {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: #006064;
+}
+
+.hint {
+    margin: 0 0 14px;
+    color: #546e7a;
+}
+
+.play-zone {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(4, 120px);
+    grid-template-rows: repeat(3, 120px);
+    gap: 8px;
+    width: max-content;
+    padding: 10px;
+    border: 2px solid #b2ebf2;
+    border-radius: 12px;
+    background: #f7fcfd;
+}
+
+.slot {
+    width: 120px;
+    height: 120px;
+    border: 2px dashed #cfd8dc;
+    border-radius: 8px;
+    background: #fff;
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.slot.filled {
+    border-style: solid;
+    border-color: #80deea;
+}
+
+.slot.wrong {
+    border-color: #ef4444;
+    box-shadow: inset 0 0 0 2px rgba(239, 68, 68, 0.25);
+}
+
+.slot.selected,
+.tray-piece.selected {
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.35);
+}
+
+.slot-index {
+    color: #90a4ae;
+    font-size: 0.85rem;
+}
+
+.tray-title {
+    margin: 16px 0 8px;
+    color: #2f3d4a;
+}
+
+.tray {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+    gap: 10px;
+    max-width: 980px;
+}
+
+.tray-piece {
+    width: 78px;
+    height: 78px;
+    border: 2px solid #c5e8ee;
+    border-radius: 8px;
+    padding: 0;
+    overflow: hidden;
+    background: #fff;
+    cursor: pointer;
+}
+
+.piece {
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+}
+
+.reference {
+    border: 2px solid #d7eef2;
+    border-radius: 12px;
+    padding: 10px;
+    background: #fbfeff;
+}
+
+.reference-title {
+    margin: 0 0 8px;
+    color: #2f3d4a;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.reference img {
+    display: block;
+    width: 240px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #d2eaf1;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #6b7280;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+}
+
+.quit {
+    margin-top: 12px;
+}

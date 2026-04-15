@@ -1,6 +1,6 @@
 <div class="zone-management-container">
     <!-- Navigation Tabs -->
-    <nav mat-tab-nav-bar class="nav-tabs">
+    <nav mat-tab-nav-bar class="nav-tabs" [tabPanel]="tabPanel">
         <a mat-tab-link routerLink="../zones" routerLinkActive #rla1="routerLinkActive" [active]="rla1.isActive">
             Zones Géographiques
         </a>
@@ -11,7 +11,7 @@
             Statistiques
         </a>
     </nav>
-
+    <mat-tab-nav-panel #tabPanel>
     <div class="layout">
         <!-- Map Section -->
         <div class="map-section">
@@ -83,4 +83,5 @@
             </div>
         </div>
     </div>
+    </mat-tab-nav-panel>
 </div>

@@ -1,0 +1,54 @@
+<div
+    class="session-result-card"
+    [class.outcome-success]="view.outcome === 'success'"
+    [class.outcome-failure]="view.outcome === 'failure'"
+    [class.outcome-neutral]="view.outcome === 'neutral'"
+>
+    <h3>{{ view.headline }}</h3>
+    <p class="session-result-detail">{{ view.detail }}</p>
+    <p class="session-result-score" *ngIf="view.scorePercent != null">
+        Score final : <strong>{{ view.scorePercent }}&nbsp;%</strong>
+    </p>
+
+    <div class="quiz-actions" *ngIf="view.answersDetail.length > 0">
+        <button type="button" class="btn-validate" *ngIf="!view.detailsRevealed" (click)="onReveal()">
+            Valider et voir le corrigé
+        </button>
+        <button type="button" class="btn-export" (click)="onExport()">Exporter le récapitulatif</button>
+    </div>
+    <p class="hint-muted" *ngIf="view.answersDetail.length === 0">Détail des réponses non disponible pour cette session.</p>
+
+    <div class="answer-recap" *ngIf="view.detailsRevealed && view.answersDetail.length">
+        <h4>Questions et réponses</h4>
+        <ul class="answer-recap-list">
+            <li
+                *ngFor="let row of view.answersDetail; let i = index"
+                [class.answer-wrong]="!row.correct"
+                [class.answer-ok]="row.correct"
+            >
+                <div class="answer-recap-q">
+                    <span class="num">{{ i + 1 }}.</span>
+                    <span>{{ row.prompt }}</span>
+                </div>
+                <img
+                    *ngIf="recapImageUrl(row)"
+                    class="answer-recap-img"
+                    [src]="recapImageUrl(row)"
+                    alt=""
+                    referrerpolicy="no-referrer"
+                    loading="lazy"
+                />
+                <p class="answer-recap-line">
+                    <span class="label">Votre réponse :</span> {{ row.userAnswer }}
+                    <span class="badge-correct" *ngIf="row.correct">Correct</span>
+                    <span class="badge-wrong" *ngIf="!row.correct">Incorrect</span>
+                </p>
+                <p class="answer-recap-expected" *ngIf="!row.correct && row.expectedAnswer">
+                    <span class="label">Bonne réponse :</span> {{ row.expectedAnswer }}
+                </p>
+            </li>
+        </ul>
+    </div>
+
+    <button type="button" class="primary-dismiss" (click)="onDismiss()">Retour aux activités</button>
+</div>

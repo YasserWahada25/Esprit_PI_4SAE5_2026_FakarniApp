@@ -1,9 +1,6 @@
-package com.alzheimer.Event_Service.dto;
-
-
+package com.alzheimer.event_service.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public class EventCreateRequest {
@@ -11,19 +8,27 @@ public class EventCreateRequest {
     @NotBlank
     private String title;
 
-    @NotNull
+    @NotBlank
+    private String description;  // Assure-toi que ce champ existe dans ta classe
+
     private LocalDateTime startDateTime;
 
     private String location;
 
     private boolean remindEnabled;
 
-    @NotNull
     private Long userId;
 
-    // getters/setters
+    private Double lat;
+
+    private Double lng;
+
+    // Getters et Setters
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+
+    public String getDescription() { return description; }  // Ajoute ce getter pour description
+    public void setDescription(String description) { this.description = description; }
 
     public LocalDateTime getStartDateTime() { return startDateTime; }
     public void setStartDateTime(LocalDateTime startDateTime) { this.startDateTime = startDateTime; }
@@ -36,4 +41,10 @@ public class EventCreateRequest {
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+
+    public Double getLat() { return lat; }
+    public void setLat(Double lat) { this.lat = lat; }
+
+    public Double getLng() { return lng; }
+    public void setLng(Double lng) { this.lng = lng; }
 }

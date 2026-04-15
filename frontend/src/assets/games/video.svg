@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240">
+  <rect width="400" height="240" fill="#ad1457" rx="16"/>
+  <circle cx="200" cy="115" r="52" fill="#fff" opacity="0.95"/>
+  <path d="M188 95 L188 135 L225 115 Z" fill="#ad1457"/>
+  <text x="200" y="200" text-anchor="middle" fill="#fce4ec" font-family="Segoe UI,sans-serif" font-size="16" font-weight="600">Vid�o</text>
+</svg>

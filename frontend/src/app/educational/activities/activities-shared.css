@@ -1,0 +1,31 @@
+/* Réutilisé par la liste et l’écran jeu (ton Fakarni existant). */
+.hint {
+    color: #c0392b;
+    margin-bottom: 12px;
+}
+.hint.loading {
+    color: #777;
+}
+.hint-muted {
+    color: #888;
+    font-size: 0.9rem;
+}
+.action-error-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    color: #b71c1c;
+}
+.dismiss-x {
+    border: none;
+    background: transparent;
+    font-size: 1.25rem;
+    cursor: pointer;
+    line-height: 1;
+}

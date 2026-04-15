@@ -21,6 +21,30 @@ export const serverRoutes: ServerRoute[] = [
 
   // Fallback général
   {
+    path: 'educational',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'educational/activities',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'educational/activities/:id/play',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'educational/events',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'educational/tracking',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'admin/medical-monitoring/patients/:id',
+    renderMode: RenderMode.Client
+  },
+  {
     path: '**',
     renderMode: RenderMode.Prerender
   }
