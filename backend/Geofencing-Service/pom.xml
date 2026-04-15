@@ -5,7 +5,8 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.2</version> <relativePath/>
+		<version>3.3.2</version>
+		<relativePath/>
 	</parent>
 	<groupId>tn.SoftCare</groupId>
 	<artifactId>Geofencing-Service</artifactId>
@@ -14,7 +15,10 @@
 
 	<properties>
 		<java.version>21</java.version>
-		<spring-cloud.version>2023.0.3</spring-cloud.version> </properties>
+		<spring-cloud.version>2023.0.3</spring-cloud.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.release>21</maven.compiler.release>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -85,6 +89,15 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<release>21</release>
+					<encoding>UTF-8</encoding>
+					<parameters>true</parameters>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

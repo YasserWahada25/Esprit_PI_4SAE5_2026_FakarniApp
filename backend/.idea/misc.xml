@@ -5,6 +5,11 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/Tracking-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Geofencing-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Post-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/group/pom.xml" />
+        <option value="$PROJECT_DIR$/Chat_Service/pom.xml" />
       </list>
     </option>
   </component>

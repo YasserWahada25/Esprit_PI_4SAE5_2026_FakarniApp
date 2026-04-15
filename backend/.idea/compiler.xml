@@ -8,19 +8,13 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Eureka-Service" />
+        <module name="Tracking-Service" />
+        <module name="User" />
         <module name="activite-educative-service" />
         <module name="Gateway-Service" />
+        <module name="Group-Service" />
         <module name="suivi-engagement-service" />
-      </profile>
-      <profile name="Annotation profile for Fakarni Backend (multi-module)" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
-        </processorPath>
-        <module name="Event-Service" />
-        <module name="meeting-insights-service" />
+        <module name="Geofencing-Service" />
       </profile>
       <profile name="Annotation profile for session-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -31,6 +25,18 @@
         </processorPath>
         <module name="session-service" />
       </profile>
+      <profile name="Annotation profile for Chat_Service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+        </processorPath>
+        <module name="meeting-insights-service" />
+        <module name="Event-Service" />
+        <module name="Post-Service" />
+        <module name="Chat_Service" />
+      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="User-Service" target="21" />
@@ -38,9 +44,15 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Chat_Service" options="-parameters" />
       <module name="Eureka-Service" options="-parameters" />
       <module name="Event-Service" options="-parameters" />
       <module name="Gateway-Service" options="-parameters" />
+      <module name="Geofencing-Service" options="-parameters" />
+      <module name="Group-Service" options="-parameters" />
+      <module name="Post-Service" options="-parameters" />
+      <module name="Tracking-Service" options="-parameters" />
+      <module name="User" options="-parameters" />
       <module name="activite-educative-service" options="-parameters" />
       <module name="meeting-insights-service" options="-parameters" />
       <module name="session-service" options="-parameters" />
