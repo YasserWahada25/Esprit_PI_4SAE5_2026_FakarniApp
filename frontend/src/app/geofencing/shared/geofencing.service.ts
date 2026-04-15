@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, interval, timer,switchMap, shareReplay, of } from 'rxjs';
+import { Observable, timer, switchMap, shareReplay, of, Subject } from 'rxjs';
+import { timeout, catchError } from 'rxjs/operators';
 
 export interface Zone {
     id: number;
     nomZone: string;
     patientId: string;
+    soignantId: string;
     centreLat: number;
     centreLon: number;
     rayon: number;
@@ -24,19 +26,19 @@ export interface Alert {
     id: number;
     patientId: string;
     patientName: string;
+    soignantId: string;
     type: string;
-    timestamp: string;
+    timestamp: any;
     status: 'Active' | 'Resolved';
     severity: 'High' | 'Medium' | 'Low';
     distanceHorsZone: number;
 }
 
-export interface PatientLocation {
-    patientId: number;
-    patientName: string;
-    currentPosition: { lat: number; lng: number };
-    lastUpdate: Date;
-    isTracking: boolean;
+export interface NotificationPreference {
+    id?: number;
+    soignantId: string;
+    emailEnabled: boolean;
+    voiceEnabled: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -45,14 +47,12 @@ export class GeofencingService {
     private gateway       = 'http://localhost:8090';
     private geofencingApi = `${this.gateway}/api/geofencing`;
     private trackingApi   = `${this.gateway}/api/tracking`;
+    private headers       = new HttpHeaders({ 'Content-Type': 'application/json' });
 
-    // Headers explicites pour éviter les problèmes CORS
-    private headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-
-    private patientLocations: PatientLocation[] = [
-        { patientId: 1, patientName: 'Ahmed Ben Ali', currentPosition: { lat: 36.8070, lng: 10.1820 }, lastUpdate: new Date(), isTracking: true },
-        { patientId: 2, patientName: 'Fatma Zahra',   currentPosition: { lat: 36.8105, lng: 10.1905 }, lastUpdate: new Date(), isTracking: true }
-    ];
+    // Stream GPS pour la carte live
+    private positionSubject = new Subject<{ latitude: number; longitude: number }>();
+    positionStream$         = this.positionSubject.asObservable();
+    private watchId: number | null = null;
 
     constructor(private http: HttpClient) {}
 
@@ -60,6 +60,14 @@ export class GeofencingService {
 
     getZones(): Observable<Zone[]> {
         return this.http.get<Zone[]>(`${this.geofencingApi}/zones`);
+    }
+
+    getZonesByPatient(patientId: string): Observable<Zone[]> {
+        return this.http.get<Zone[]>(`${this.geofencingApi}/zones/patient/${patientId}`);
+    }
+
+    getZonesBySoignant(soignantId: string): Observable<Zone[]> {
+        return this.http.get<Zone[]>(`${this.geofencingApi}/zones/soignant/${soignantId}`);
     }
 
     createZone(zone: Partial<Zone>): Observable<Zone> {
@@ -76,39 +84,120 @@ export class GeofencingService {
 
     // ─── ALERTES ─────────────────────────────────────────────────
 
-     getAlerts(): Observable<Alert[]> {
+    getAlerts(): Observable<Alert[]> {
         return this.http.get<Alert[]>(`${this.geofencingApi}/alerts`);
     }
 
-    getAlertsRealtime(): Observable<Alert[]> {
-        // timer(0, 5000) : premier appel immédiat, puis toutes les 5s
+    getAlertsByPatient(patientId: string): Observable<Alert[]> {
+        return this.http.get<Alert[]>(`${this.geofencingApi}/alerts/patient/${patientId}`);
+    }
+
+    getAlertsBySoignant(soignantId: string): Observable<Alert[]> {
+        return this.http.get<Alert[]>(`${this.geofencingApi}/alerts/soignant/${soignantId}`);
+    }
+
+    getAlertsRealtime(patientId?: string, soignantId?: string): Observable<Alert[]> {
         return timer(0, 5000).pipe(
-            switchMap(() => this.getAlerts()),
+            switchMap(() => {
+                if (patientId)  return this.getAlertsByPatient(patientId);
+                if (soignantId) return this.getAlertsBySoignant(soignantId);
+                return this.getAlerts();
+            }),
             shareReplay(1)
         );
     }
 
     resolveAlert(alertId: number): Observable<Alert> {
-        return this.http.put<Alert>(`${this.geofencingApi}/alerts/${alertId}/resolve`, {}, { headers: this.headers });
+        return this.http.put<Alert>(
+            `${this.geofencingApi}/alerts/${alertId}/resolve`, {},
+            { headers: this.headers }
+        );
     }
 
-    // ─── TRACKING réel ────────────────────────────────────────────
-
-    getLastPosition(patientId: string): Observable<PatientPosition> {
-        return this.http.get<PatientPosition>(`${this.trackingApi}/last/${patientId}`);
-    }
+    // ─── TRACKING ────────────────────────────────────────────────
 
     getAllLastPositions(): Observable<PatientPosition[]> {
         return this.http.get<PatientPosition[]>(`${this.trackingApi}/last`);
     }
 
-    sendPosition(position: { patientId: string; latitude: number; longitude: number }): Observable<PatientPosition> {
-        return this.http.post<PatientPosition>(`${this.trackingApi}/add`, position, { headers: this.headers });
+    getLastPosition(patientId: string): Observable<PatientPosition> {
+        return this.http.get<PatientPosition>(`${this.trackingApi}/last/${patientId}`);
     }
 
-    // ─── TRACKING simulé ──────────────────────────────────────────
+    sendPosition(patientId: string, latitude: number, longitude: number): Observable<PatientPosition> {
+        return this.http.post<PatientPosition>(
+            `${this.trackingApi}/add`,
+            { patientId, latitude, longitude },
+            { headers: this.headers }
+        );
+    }
 
-    getPatientLocations(): Observable<PatientLocation[]> {
-        return of(this.patientLocations);
+    // ─── GPS TEMPS RÉEL ──────────────────────────────────────────
+
+    startTracking(patientId: string): Observable<GeolocationPosition> {
+        return new Observable(observer => {
+            if (!navigator.geolocation) {
+                observer.error('Géolocalisation non supportée.');
+                return;
+            }
+
+            this.watchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    // Diffuser pour la carte
+                    this.positionSubject.next({
+                        latitude:  pos.coords.latitude,
+                        longitude: pos.coords.longitude
+                    });
+                    // Envoyer au backend
+                    this.sendPosition(patientId, pos.coords.latitude, pos.coords.longitude)
+                        .subscribe({ error: (e) => console.error('sendPosition error:', e) });
+
+                    observer.next(pos);
+                },
+                (err) => observer.error(err),
+                { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+            );
+
+            return () => this.stopTracking();
+        });
+    }
+
+    stopTracking(): void {
+        if (this.watchId !== null) {
+            navigator.geolocation.clearWatch(this.watchId);
+            this.watchId = null;
+        }
+    }
+
+    // ─── SOS ─────────────────────────────────────────────────────
+
+    triggerSos(patientId: string, soignantId: string,
+               latitude: number, longitude: number): Observable<any> {
+        return this.http.post(
+            `${this.geofencingApi}/sos/trigger`,
+            { patientId, soignantId, latitude, longitude },
+            { headers: this.headers }
+        );
+    }
+
+    // ─── NOTIFICATION PREFERENCES (soignant) ─────────────────────
+
+    getNotificationPreferences(soignantId: string): Observable<NotificationPreference> {
+        return this.http.get<NotificationPreference>(
+            `${this.geofencingApi}/preferences/${soignantId}`
+        ).pipe(
+            timeout(5000),
+            catchError(() => of({ soignantId, emailEnabled: true, voiceEnabled: false }))
+        );
+    }
+
+    saveNotificationPreferences(pref: NotificationPreference): Observable<NotificationPreference> {
+        return this.http.post<NotificationPreference>(
+            `${this.geofencingApi}/preferences`, pref,
+            { headers: this.headers }
+        ).pipe(
+            timeout(5000),
+            catchError(() => of(pref))
+        );
     }
 }

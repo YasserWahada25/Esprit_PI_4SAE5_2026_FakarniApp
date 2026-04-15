@@ -1,148 +1,88 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { Alert, AlertStatistics, AlertStatus } from '../models/alert.model';
+import { map } from 'rxjs/operators';
+import { Alert, AlertStatistics } from '../models/alert.model';
 import { AlertSettings, DEFAULT_ALERT_SETTINGS } from '../models/alert-settings.model';
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AlertService {
-    private alerts: Alert[] = [
-        {
-            id: 1,
-            timestamp: new Date('2023-11-15T14:30:00'),
-            patientId: 1,
-            patientName: 'Ahmed Ben Ali',
-            patientPhoto: 'assets/patients/ahmed.jpg',
-            type: 'zone_exit',
-            zoneId: 1,
-            zoneName: 'Domicile - Ahmed Ben Ali',
-            status: 'resolved',
-            actionsTaken: ['sms', 'email'],
-            position: { lat: 36.8100, lng: 10.1850 },
-            notes: 'Patient retrouvé au parc. Famille contactée.',
-            resolvedAt: new Date('2023-11-15T15:45:00'),
-            resolvedBy: 'Admin'
-        },
-        {
-            id: 2,
-            timestamp: new Date('2023-11-20T09:15:00'),
-            patientId: 2,
-            patientName: 'Fatma Zahra',
-            type: 'gps_loss',
-            status: 'resolved',
-            actionsTaken: ['sms', 'push'],
-            notes: 'Signal GPS rétabli après 10 minutes.',
-            resolvedAt: new Date('2023-11-20T09:25:00'),
-            resolvedBy: 'System'
-        },
-        {
-            id: 3,
-            timestamp: new Date('2023-12-01T16:20:00'),
-            patientId: 1,
-            patientName: 'Ahmed Ben Ali',
-            type: 'forbidden_entry',
-            zoneId: 3,
-            zoneName: 'Zone Interdite - Autoroute',
-            status: 'new',
-            actionsTaken: ['sms', 'email', 'push'],
-            position: { lat: 36.8280, lng: 10.1620 }
-        },
-        {
-            id: 4,
-            timestamp: new Date('2023-12-05T11:00:00'),
-            patientId: 3,
-            patientName: 'Mohamed Salah',
-            type: 'zone_exit',
-            zoneId: 2,
-            zoneName: 'Centre de Jour',
-            status: 'in_progress',
-            actionsTaken: ['email'],
-            position: { lat: 36.8210, lng: 10.1680 },
-            notes: 'Famille en route pour récupérer le patient.'
-        },
-        {
-            id: 5,
-            timestamp: new Date('2023-12-08T13:45:00'),
-            patientId: 2,
-            patientName: 'Fatma Zahra',
-            type: 'low_battery',
-            status: 'ignored',
-            actionsTaken: ['push'],
-            notes: 'Batterie rechargée.'
-        }
-    ];
 
-    private settings: AlertSettings = { ...DEFAULT_ALERT_SETTINGS };
+    private gateway       = 'http://localhost:8090';
+    private geofencingApi = `${this.gateway}/api/geofencing`;
+    private headers       = new HttpHeaders({ 'Content-Type': 'application/json' });
+    private readonly SETTINGS_KEY = 'backoffice_alert_settings';
 
-    constructor() { }
+    constructor(private http: HttpClient) {}
 
     getAlerts(): Observable<Alert[]> {
-        return of(this.alerts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()));
+        return this.http.get<Alert[]>(`${this.geofencingApi}/alerts`);
     }
 
-    getAlertById(id: number): Observable<Alert | undefined> {
-        return of(this.alerts.find(a => a.id === id));
+    updateAlertStatus(id: number, status: string, notes?: string): Observable<Alert> {
+        return this.http.put<Alert>(
+            `${this.geofencingApi}/alerts/${id}/resolve`,
+            { status, notes },
+            { headers: this.headers }
+        );
     }
 
-    getAlertsByPatient(patientId: number): Observable<Alert[]> {
-        return of(this.alerts.filter(a => a.patientId === patientId));
-    }
-
-    getAlertsByStatus(status: AlertStatus): Observable<Alert[]> {
-        return of(this.alerts.filter(a => a.status === status));
-    }
-
-    updateAlertStatus(id: number, status: AlertStatus, notes?: string): Observable<Alert | undefined> {
-        const alert = this.alerts.find(a => a.id === id);
-        if (alert) {
-            alert.status = status;
-            if (notes) alert.notes = notes;
-            if (status === 'resolved') {
-                alert.resolvedAt = new Date();
-                alert.resolvedBy = 'Admin';
-            }
-            return of(alert);
-        }
-        return of(undefined);
-    }
-
+    // ← Calculé depuis les alertes réelles
     getStatistics(): Observable<AlertStatistics> {
-        const stats: AlertStatistics = {
-            totalAlerts: this.alerts.length,
-            resolvedAlerts: this.alerts.filter(a => a.status === 'resolved').length,
-            activeAlerts: this.alerts.filter(a => a.status === 'new' || a.status === 'in_progress').length,
-            alertsByType: {
-                zone_exit: this.alerts.filter(a => a.type === 'zone_exit').length,
-                forbidden_entry: this.alerts.filter(a => a.type === 'forbidden_entry').length,
-                gps_loss: this.alerts.filter(a => a.type === 'gps_loss').length,
-                low_battery: this.alerts.filter(a => a.type === 'low_battery').length
-            },
-            alertsByDay: this.getAlertsByDay()
-        };
-        return of(stats);
-    }
+        return this.getAlerts().pipe(
+            map(alerts => {
+                const byType: { [key: string]: number } = {};
+                alerts.forEach(a => {
+                    byType[a.type] = (byType[a.type] || 0) + 1;
+                });
 
-    private getAlertsByDay(): { date: string; count: number }[] {
-        const last7Days = [];
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toISOString().split('T')[0];
-            const count = this.alerts.filter(a =>
-                a.timestamp.toISOString().split('T')[0] === dateStr
-            ).length;
-            last7Days.push({ date: dateStr, count });
-        }
-        return last7Days;
+                // Grouper par jour
+                const byDayMap: { [date: string]: number } = {};
+                alerts.forEach(a => {
+                    const d = this.formatDate(a.timestamp);
+                    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                    byDayMap[key] = (byDayMap[key] || 0) + 1;
+                });
+
+                const alertsByDay = Object.entries(byDayMap)
+                    .map(([date, count]) => ({ date, count }))
+                    .sort((a, b) => a.date.localeCompare(b.date));
+
+                return {
+                    totalAlerts:    alerts.length,
+                    activeAlerts:   alerts.filter(a => a.status === 'Active').length,
+                    resolvedAlerts: alerts.filter(a => a.status === 'Resolved').length,
+                    alertsByType:   byType,
+                    alertsByDay
+                };
+            })
+        );
     }
 
     getSettings(): Observable<AlertSettings> {
-        return of(this.settings);
+        try {
+            const raw = localStorage.getItem(this.SETTINGS_KEY);
+            return of(raw
+                ? { ...DEFAULT_ALERT_SETTINGS, ...JSON.parse(raw) }
+                : { ...DEFAULT_ALERT_SETTINGS }
+            );
+        } catch {
+            return of({ ...DEFAULT_ALERT_SETTINGS });
+        }
     }
 
-    updateSettings(settings: Partial<AlertSettings>): Observable<AlertSettings> {
-        this.settings = { ...this.settings, ...settings };
-        return of(this.settings);
+    updateSettings(settings: AlertSettings): Observable<AlertSettings> {
+        localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(settings));
+        return of(settings);
+    }
+
+    // Helper partagé
+    private formatDate(ts: any): Date {
+        if (!ts) return new Date();
+        if (Array.isArray(ts)) {
+            const [y, m, d, h, min, s] = ts;
+            return new Date(y, m - 1, d, h, min, s ?? 0);
+        }
+        return new Date(ts);
     }
 }

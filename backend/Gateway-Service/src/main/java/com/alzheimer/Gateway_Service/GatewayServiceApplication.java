@@ -9,7 +9,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+
 import java.util.Arrays;
+import java.util.List;
 
 @SpringBootApplication
 @EnableDiscoveryClient
@@ -22,11 +24,24 @@ public class GatewayServiceApplication {
 	@Bean
 	public RouteLocator gatewayRoutes(RouteLocatorBuilder builder) {
 		return builder.routes()
+
+				// USER-SERVICE
+				.route("user-service-api",
+						r -> r.path("/api/users", "/api/users/**")
+								.uri("lb://USER-SERVICE"))
+
+				.route("user-service-auth",
+						r -> r.path("/auth/**", "/internal/users/**")
+								.uri("lb://USER-SERVICE"))
+
+
+				//localisation-services
 				.route("tracking_route", r -> r.path("/api/tracking/**")
 						.uri("lb://TRACKING-SERVICE"))
 				.route("geofencing_route", r -> r.path("/api/geofencing/**")
 						.uri("lb://GEOFENCING-SERVICE"))
-				.build(); // On ne met le build qu'à la toute fin !
+
+				.build();
 	}
 
 	@Bean

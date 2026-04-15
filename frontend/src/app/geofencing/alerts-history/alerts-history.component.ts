@@ -2,32 +2,23 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { GeofencingService, Alert } from '../shared/geofencing.service';
-
-export interface NotificationSettings {
-    smsEnabled:    boolean;
-    emailEnabled:  boolean;
-    phoneNumber:   string;
-    emailAddress:  string;
-}
-
-const SETTINGS_KEY = 'geofencing_notification_settings';
-
-const DEFAULT_SETTINGS: NotificationSettings = {
-    smsEnabled:   false,
-    emailEnabled: false,
-    phoneNumber:  '',
-    emailAddress: ''
-};
+import { GeofencingService, Alert, NotificationPreference } from '../shared/geofencing.service';
+import { AuthService } from '../../auth/services/auth.service';
 
 @Component({
     selector: 'app-alerts-history',
     standalone: true,
     imports: [CommonModule, FormsModule],
     templateUrl: './alerts-history.component.html',
-    styleUrl:    './alerts-history.component.css'
+    styleUrl: './alerts-history.component.css'
 })
 export class AlertsHistoryComponent implements OnInit, OnDestroy {
+
+    // ── User ──────────────────────────────────────────────────────
+    userId   = '';
+    userRole = '';
+    get isPatient():  boolean { return this.userRole === 'PATIENT_PROFILE'; }
+    get isSoignant(): boolean { return this.userRole === 'CARE_OWNER' || this.userRole === 'DOCTOR_PROFILE'; }
 
     // ── Alerts ────────────────────────────────────────────────────
     alerts:         Alert[] = [];
@@ -37,33 +28,50 @@ export class AlertsHistoryComponent implements OnInit, OnDestroy {
     isLoading = true;
     errorMsg  = '';
 
-    // ── Notification Settings ─────────────────────────────────────
-    settings: NotificationSettings = { ...DEFAULT_SETTINGS };
-    settingsSaved    = false;   // feedback toast
+    // ── Notification Preferences (soignant) ───────────────────────
+    pref: NotificationPreference = { soignantId: '', emailEnabled: true, voiceEnabled: false };
+    settingsSaved    = false;
     isSavingSettings = false;
+    settingsError    = '';
 
     private sub!: Subscription;
 
-    constructor(private geofencingService: GeofencingService) {}
+    constructor(
+        private geofencingService: GeofencingService,
+        private authService:       AuthService
+    ) {
+        const user    = this.authService.getCurrentUser();
+        this.userId   = user?.id   ?? '';
+        this.userRole = user?.role ?? '';
+    }
 
-    // ──────────────────────────────────────────────────────────────
     ngOnInit(): void {
-        this.loadSettings();
+        // Charger alertes selon le rôle
+        const alerts$ = this.isPatient
+            ? this.geofencingService.getAlertsRealtime(this.userId)
+            : this.geofencingService.getAlertsRealtime(undefined, this.userId);
 
-        // timer(0,5000) dans le service → premier emit immédiat
-        this.sub = this.geofencingService.getAlertsRealtime().subscribe({
+        this.sub = alerts$.subscribe({
             next: (data) => {
                 this.alerts    = data;
                 this.isLoading = false;
                 this.errorMsg  = '';
                 this.applyFilters();
             },
-            error: (err) => {
-                this.errorMsg  = 'Failed to load alerts. Check backend connection.';
+            error: () => {
+                this.errorMsg  = 'Failed to load alerts.';
                 this.isLoading = false;
-                console.error(err);
             }
         });
+
+        // Charger préférences si soignant
+        if (this.isSoignant) {
+            this.geofencingService.getNotificationPreferences(this.userId)
+                .subscribe(p => {
+                    this.pref = p;
+                    this.pref.soignantId = this.userId;
+                });
+        }
     }
 
     ngOnDestroy(): void { this.sub?.unsubscribe(); }
@@ -83,75 +91,34 @@ export class AlertsHistoryComponent implements OnInit, OnDestroy {
                 const idx = this.alerts.findIndex(a => a.id === updated.id);
                 if (idx !== -1) this.alerts[idx] = updated;
                 this.applyFilters();
-            },
-            error: (err) => console.error('Error resolving alert:', err)
+            }
         });
     }
 
-    // ── Notification Settings — persistées dans localStorage ──────
-    private loadSettings(): void {
-        try {
-            const raw = localStorage.getItem(SETTINGS_KEY);
-            this.settings = raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
-        } catch {
-            this.settings = { ...DEFAULT_SETTINGS };
-        }
-    }
-
-    onSmsToggle(): void {
-        // Vider le numéro si on désactive SMS
-        if (!this.settings.smsEnabled) this.settings.phoneNumber = '';
-    }
-
-    onEmailToggle(): void {
-        // Vider l'email si on désactive Email
-        if (!this.settings.emailEnabled) this.settings.emailAddress = '';
-    }
-
-    isPhoneValid(): boolean {
-        return /^[+]?[\d\s\-().]{7,20}$/.test(this.settings.phoneNumber || '');
-    }
-
-    isEmailValid(): boolean {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.settings.emailAddress || '');
-    }
-
-    isFormValid(): boolean {
-        if (this.settings.smsEnabled && !this.isPhoneValid()) return false;
-        if (this.settings.emailEnabled && !this.isEmailValid()) return false;
-        return true;
-    }
-
+    // ── Notification Preferences (soignant uniquement) ────────────
     saveSettings(): void {
-        if (!this.isFormValid()) return;
         this.isSavingSettings = true;
+        this.settingsError    = '';
+        this.pref.soignantId  = this.userId;
 
-        // Appel backend — endpoint à adapter selon votre API
-        // Exemple: POST /api/geofencing/notifications/settings
-        // Si pas encore d'endpoint, on sauvegarde en localStorage
-        try {
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings));
-        } catch (e) {
-            console.error('Failed to save settings', e);
-        }
-
-        // TODO: remplacer par this.http.post('/api/geofencing/notifications/settings', this.settings)
-        // .subscribe({ next: () => { ... }, error: () => { ... } });
-
-        setTimeout(() => {
-            this.isSavingSettings = false;
-            this.settingsSaved    = true;
-            setTimeout(() => this.settingsSaved = false, 3000);
-        }, 600);
+        this.geofencingService.saveNotificationPreferences(this.pref).subscribe({
+            next: (saved) => {
+                this.pref             = saved;
+                this.isSavingSettings = false;
+                this.settingsSaved    = true;
+                setTimeout(() => this.settingsSaved = false, 3000);
+            },
+            error: () => {
+                this.settingsError    = 'Erreur lors de la sauvegarde.';
+                this.isSavingSettings = false;
+            }
+        });
     }
 
     // ── Helpers ───────────────────────────────────────────────────
     formatDate(ts: any): Date {
         if (!ts) return new Date();
-        if (Array.isArray(ts)) {
-            const [y, m, d, h, min, s] = ts;
-            return new Date(y, m - 1, d, h, min, s ?? 0);
-        }
+        if (Array.isArray(ts)) { const [y,m,d,h,min,s] = ts; return new Date(y, m-1, d, h, min, s??0); }
         return new Date(ts);
     }
 
@@ -161,11 +128,10 @@ export class AlertsHistoryComponent implements OnInit, OnDestroy {
             .slice(0, 3);
     }
 
-    // Types distincts extraits des alertes réelles du backend
     get alertTypes(): string[] {
         return [...new Set(this.alerts.map(a => a.type).filter(Boolean))].sort();
     }
 
-    get activeCount(): number  { return this.alerts.filter(a => a.status === 'Active').length;   }
-    get resolvedCount(): number{ return this.alerts.filter(a => a.status === 'Resolved').length; }
+    get activeCount():   number { return this.alerts.filter(a => a.status === 'Active').length; }
+    get resolvedCount(): number { return this.alerts.filter(a => a.status === 'Resolved').length; }
 }

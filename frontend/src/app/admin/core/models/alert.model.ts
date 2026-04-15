@@ -1,30 +1,22 @@
+// core/models/alert.model.ts
 export interface Alert {
     id: number;
-    timestamp: Date;
-    patientId: number;
+    patientId: string;
     patientName: string;
-    patientPhoto?: string;
-    type: AlertType;
-    zoneId?: number;
+    type: string;
+    timestamp: any;
+    status: 'Active' | 'Resolved' | 'ignored'; // ← ajouter 'ignored'
+    severity: 'High' | 'Medium' | 'Low';
+    distanceHorsZone: number;
     zoneName?: string;
-    status: AlertStatus;
-    actionsTaken: AlertAction[];
     notes?: string;
-    position?: { lat: number; lng: number };
-    resolvedAt?: Date;
-    resolvedBy?: string;
 }
 
-export type AlertType = 'zone_exit' | 'forbidden_entry' | 'gps_loss' | 'low_battery';
-
-export type AlertStatus = 'new' | 'in_progress' | 'resolved' | 'ignored';
-
-export type AlertAction = 'sms' | 'email' | 'push';
-
+// ← Rajouter ceci
 export interface AlertStatistics {
-    totalAlerts: number;
+    totalAlerts:   number;
+    activeAlerts:  number;
     resolvedAlerts: number;
-    activeAlerts: number;
-    alertsByType: { [key in AlertType]: number };
-    alertsByDay: { date: string; count: number }[];
+    alertsByType:  { [key: string]: number };
+    alertsByDay:   { date: string; count: number }[];
 }

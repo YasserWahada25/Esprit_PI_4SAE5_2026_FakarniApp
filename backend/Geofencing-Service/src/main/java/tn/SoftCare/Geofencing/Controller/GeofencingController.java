@@ -13,14 +13,30 @@ public class GeofencingController {
 
     @Autowired private GeofencingService geofencingService;
 
+    // ── CRUD Zones ────────────────────────────────────────────────
+
+    /** Créer zone — body contient patientId ET soignantId */
     @PostMapping("/zone")
     public Zone create(@RequestBody Zone z) {
         return geofencingService.addZone(z);
     }
 
+    /** Toutes les zones */
     @GetMapping("/zones")
-    public List<Zone> list() {
+    public List<Zone> listAll() {
         return geofencingService.getAll();
+    }
+
+    /** Zones du patient connecté — vue patient */
+    @GetMapping("/zones/patient/{patientId}")
+    public List<Zone> listByPatient(@PathVariable String patientId) {
+        return geofencingService.getZonesByPatient(patientId);
+    }
+
+    /** Zones du soignant connecté — vue soignant */
+    @GetMapping("/zones/soignant/{soignantId}")
+    public List<Zone> listBySoignant(@PathVariable String soignantId) {
+        return geofencingService.getZonesBySoignant(soignantId);
     }
 
     @PutMapping("/zone/{id}")
@@ -33,7 +49,8 @@ public class GeofencingController {
         geofencingService.deleteZone(id);
     }
 
-    // Endpoint d'analyse appelé par le Tracking-Service via Feign
+    // ── Analyse GPS (appelé par Tracking-Service via Feign) ───────
+
     @PostMapping("/analyser")
     public void analyser(@RequestBody Map<String, Object> payload) {
         geofencingService.verifierPosition(

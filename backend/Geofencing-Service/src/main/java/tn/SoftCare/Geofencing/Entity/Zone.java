@@ -8,12 +8,15 @@ import lombok.*;
 public class Zone {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String patientId;
+
+    private String patientId;   // userId MongoDB du patient
+    private String soignantId;  // userId MongoDB du soignant lié ← NOUVEAU
+
     private String nomZone;
     private double centreLat;
     private double centreLon;
     private double rayon;
 
     @Enumerated(EnumType.STRING)
-    private ZoneType type;
+    private ZoneType type;      // SAFE ou DANGER
 }

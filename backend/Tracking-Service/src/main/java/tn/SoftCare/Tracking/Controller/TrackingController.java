@@ -4,24 +4,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import tn.SoftCare.Tracking.Entity.Position;
 import tn.SoftCare.Tracking.Service.TrackingService;
-
+import tn.SoftCare.Tracking.dto.PositionRequest;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/tracking")
-
 public class TrackingController {
 
-    @Autowired
-    private TrackingService service;
+    @Autowired private TrackingService service;
 
-    /** Ajouter une position (Postman / simulateur) */
+    /**
+     * Reçoit la position GPS réelle depuis Angular.
+     * Body: { patientId, latitude, longitude, accuracy }
+     */
     @PostMapping("/add")
-    public Position ajouterPosition(@RequestBody Position position) {
-        return service.saveAndProcess(position);
+    public Position ajouterPosition(@RequestBody PositionRequest request) {
+        return service.saveAndProcess(request);
     }
 
-    /** Dernière position de TOUS les patients (un par patientId) */
+    /** Dernière position de TOUS les patients */
     @GetMapping("/last")
     public List<Position> getAllLastPositions() {
         return service.getAllLastPositions();

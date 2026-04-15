@@ -9,14 +9,9 @@ import java.util.Optional;
 
 public interface TrackingRepository extends JpaRepository<Position, Long> {
 
-    /** Dernière position d'un patient donné */
+    Optional<Position> findByPatientId(String patientId);
     Optional<Position> findTopByPatientIdOrderByTimestampDesc(String patientId);
 
-    /**
-     * Dernière position de chaque patient distinct.
-     * On récupère l'id MAX (= le plus récent) par patientId,
-     * puis on joint pour avoir l'objet complet.
-     */
     @Query("""
         SELECT p FROM Position p
         WHERE p.id IN (

@@ -7,21 +7,32 @@ import tn.SoftCare.Geofencing.Service.AlertService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/geofencing/alerts") // Reste sous le "parapluie" geofencing pour la Gateway
+@RequestMapping("/api/geofencing/alerts")
 public class AlertController {
 
-    @Autowired
-    private AlertService alertService;
+    @Autowired private AlertService alertService;
 
-    // Endpoint : Lister les alertes pour Angular
+    /** Toutes les alertes */
     @GetMapping
-    public List<Alert> getAlerts() {
+    public List<Alert> getAll() {
         return alertService.getAllAlerts();
     }
 
-    // Endpoint : Marquer une alerte comme résolue
+    /** Alertes du patient connecté */
+    @GetMapping("/patient/{patientId}")
+    public List<Alert> getByPatient(@PathVariable String patientId) {
+        return alertService.getAlertsByPatient(patientId);
+    }
+
+    /** Alertes supervisées par le soignant connecté */
+    @GetMapping("/soignant/{soignantId}")
+    public List<Alert> getBySoignant(@PathVariable String soignantId) {
+        return alertService.getAlertsBySoignant(soignantId);
+    }
+
+    /** Résoudre une alerte */
     @PutMapping("/{id}/resolve")
-    public Alert resolveAlert(@PathVariable Long id) {
+    public Alert resolve(@PathVariable Long id) {
         return alertService.resolveAlert(id);
     }
 }

@@ -4,11 +4,7 @@ export interface Session {
     date: Date;
     startTime: string;
     endTime: string;
-    status: 'DRAFT' | 'SCHEDULED' | 'CANCELLED' | 'DONE';
+    status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
     participantsCount: number;
     description?: string;
-    visibility?: 'PRIVATE' | 'PUBLIC';
-    meetingUrl?: string;
-    createdBy?: string;
-    createdAt?: string;
 }

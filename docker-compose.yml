@@ -1,7 +1,7 @@
+version: '3.8'
+
 services:
-  # ==========================================
-  # 1. BASES DE DONNÉES & OUTILS D'ADMINISTRATION
-  # ==========================================
+  # 1. Base de données MongoDB
   mongodb:
     image: mongo:latest
     container_name: app_mongo
@@ -14,6 +14,7 @@ services:
     volumes:
       - mongo_data:/data/db
 
+  # 2. Interface graphique (Remplace pgAdmin) - Accessible via http://localhost:8081
   mongo-express:
     image: mongo-express
     container_name: app_mongo_express
@@ -24,121 +25,31 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: admin
       ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin@mongodb:27017/
     depends_on:
       - mongodb
 
-  db-tracking:
-    image: mysql:8.0
-    container_name: db-tracking
-    environment:
-      MYSQL_DATABASE: db_tracking
-      MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3307:3306"
-
-  db-geofencing:
-    image: mysql:8.0
-    container_name: db-geofencing
-    environment:
-      MYSQL_DATABASE: db_geofencing
-      MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3308:3306"
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: app_phpmyadmin
-    restart: always
-    ports:
-      - "8082:80"
-    environment:
-      PMA_HOSTS: db-tracking,db-geofencing
-    depends_on:
-      - db-tracking
-      - db-geofencing
-
-  # ==========================================
-  # 2. DISCOVERY (EUREKA) & API GATEWAY
-  # ==========================================
-  eureka-server:
-    build:
-      context: ./backend/Eureka-Service
-    container_name: eureka-server
-    ports:
-      - "8761:8761"
-    restart: always
-
-  api-gateway:
-    build:
-      # ⚠️ CORRECTION ICI : J'ai mis Gateway-Service au lieu de API-Gateway
-      # Si le dossier n'est pas dans backend, mettez juste context: ./Gateway-Service
-      context: ./backend/Gateway-Service
-    container_name: api-gateway
-    ports:
-      - "8090:8090"
-    environment:
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-    depends_on:
-      - eureka-server
-    restart: always
-
-  # ==========================================
-  # 3. VOS MICROSERVICES (PORTS CACHÉS)
-  # ==========================================
+  # 3. Backend (User-Service)
   backend:
     build:
       context: ./backend/User-Service
     container_name: app_backend
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://admin:admin@mongodb:27017/KidneyDatabase?authSource=admin
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
     depends_on:
       - mongodb
-      - eureka-server
-
-  tracking-service:
-    build:
-      context: ./backend/Tracking-Service
-    container_name: tracking-service
+    ports:
+      - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db-tracking:3306/db_tracking?createDatabaseIfNotExist=true
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=root
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-    depends_on:
-      - db-tracking
-      - eureka-server
-    restart: always
+      # URL de connexion interne (Docker à Docker)
+      SPRING_DATA_MONGODB_URI: mongodb://admin:admin@mongodb:27017/KidneyDatabase?authSource=admin
 
-  geofencing-service:
-    build:
-      context: ./backend/Geofencing-Service
-    container_name: app_geofencing_service
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db-geofencing:3306/db_geofencing?createDatabaseIfNotExist=true
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=root
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-    depends_on:
-      - db-geofencing
-      - eureka-server
-    restart: always
-
-  # ==========================================
-  # 4. FRONTEND
-  # ==========================================
+  # 4. Frontend
   frontend:
-    build:
-      context: ./frontend
+    build: ./frontend/careTemplate
     container_name: app_frontend
     ports:
       - "4200:4200"
     depends_on:
-      - api-gateway
+      - backend
 
 volumes:
   mongo_data:

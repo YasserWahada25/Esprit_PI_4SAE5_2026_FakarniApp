@@ -1,98 +1,299 @@
+<!-- ══════════════════════════════════════════════
+     VUE PATIENT
+══════════════════════════════════════════════════ -->
+<ng-container *ngIf="isPatient">
 <div class="dashboard-container">
-    <div class="dashboard-header">
-        <h1><i class="fa-solid fa-chart-line"></i> Supervision & Statistics</h1>
-        <button class="export-btn" (click)="exportReport()">
-            <i class="fa-solid fa-file-pdf"></i> Export Report
-        </button>
+
+  <div class="dashboard-header">
+    <div>
+      <h1>👤 Mon Espace Santé</h1>
+      <p class="header-sub">Bonjour <b>{{ patientName }}</b> — voici votre tableau de bord</p>
+    </div>
+    <button class="refresh-btn" (click)="loadData()" [disabled]="isLoading">🔄 Actualiser</button>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div> Chargement…
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <!-- KPI -->
+    <div class="kpi-grid">
+      <div class="kpi-card score-card">
+        <div class="score-circle" [style.border-color]="scoreColor">
+          <span class="score-value" [style.color]="scoreColor">{{ safetyScore }}</span>
+          <span class="score-unit">%</span>
+        </div>
+        <div class="kpi-info">
+          <h3>Score Sécurité</h3>
+          <p [style.color]="scoreColor">
+            {{ safetyScore >= 80 ? '✅ Excellent' : safetyScore >= 50 ? '⚠️ Attention' : '🚨 Critique' }}
+          </p>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon purple">🔔</div>
+        <div class="kpi-info"><h3>{{ totalAlerts }}</h3><p>Alertes totales</p></div>
+      </div>
+      <div class="kpi-card" [class.danger-card]="activeAlerts > 0">
+        <div class="kpi-icon red">🚨</div>
+        <div class="kpi-info">
+          <h3 [style.color]="activeAlerts>0?'#e53935':''">{{ activeAlerts }}</h3>
+          <p>Alertes actives</p>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon green">✅</div>
+        <div class="kpi-info"><h3>{{ resolvedAlerts }}</h3><p>Résolues</p></div>
+      </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="icon-bg blue"><i class="fa-solid fa-users-viewfinder"></i></div>
-            <div class="stat-info">
-                <h3>{{ stats.activeMonitoring }}</h3>
-                <p>Active Patients</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="icon-bg green"><i class="fa-solid fa-shield-heart"></i></div>
-            <div class="stat-info">
-                <h3>{{ stats.safePatients }}</h3>
-                <p>In Safe Zones</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="icon-bg orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <div class="stat-info">
-                <h3>{{ stats.riskWarnings }}</h3>
-                <p>Active Warnings</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="icon-bg purple"><i class="fa-solid fa-bell"></i></div>
-            <div class="stat-info">
-                <h3>{{ stats.totalAlerts24h }}</h3>
-                <p>Alerts (24h)</p>
-            </div>
-        </div>
-    </div>
+    <!-- Layout principal -->
+    <div class="main-grid">
 
-    <div class="charts-grid">
-        <!-- Zone Safety Table -->
-        <div class="chart-card zone-analysis">
-            <h3>Zone Safety Analysis</h3>
-            <table class="zone-table">
-                <thead>
-                    <tr>
-                        <th>Zone Name</th>
-                        <th>Safety Score</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let zone of zones">
-                        <td>{{ zone.name }}</td>
-                        <td>
-                            <div class="progress-bar-container">
-                                <div class="progress-bar" [style.width.%]="zone.safetyScore"
-                                    [class.high]="zone.safetyScore > 80"
-                                    [class.med]="zone.safetyScore > 50 && zone.safetyScore <= 80"
-                                    [class.low]="zone.safetyScore <= 50">
-                                </div>
-                                <span>{{ zone.safetyScore }}%</span>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="status-dot" [ngClass]="zone.status.toLowerCase()"></span> {{ zone.status }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+      <!-- Carte -->
+      <div class="section-card">
+        <div class="section-header">
+          <h3>🗺️ Ma Zone de Sécurité</h3>
+          <span class="zone-chip" *ngIf="myZone"
+                [class.safe-chip]="myZone.type==='SAFE'"
+                [class.danger-chip]="myZone.type==='DANGER'">
+            {{ myZone.type==='SAFE' ? '✅' : '⚠️' }} {{ myZone.nomZone }}
+          </span>
+          <span class="no-zone-chip" *ngIf="!myZone">Aucune zone</span>
         </div>
 
-        <!-- Activity Chart (CSS Bar Chart) -->
-        <div class="chart-card activity-chart">
-            <h3>Patient Activity Levels</h3>
-            <div class="bar-chart">
-                <div class="bar-item" *ngFor="let data of activityData">
-                    <div class="bar" [style.height.%]="data.level">
-                        <span class="tooltip">{{ data.level }}%</span>
-                    </div>
-                    <span class="label">{{ data.hour }}</span>
+        <div id="patient-zone-map" class="traj-map"></div>
+
+        <div class="zone-details" *ngIf="myZone">
+          <div class="zone-detail-item"><span>📍 Nom</span><b>{{ myZone.nomZone }}</b></div>
+          <div class="zone-detail-item">
+            <span>🔵 Type</span>
+            <b [style.color]="myZone.type==='SAFE'?'#388e3c':'#e53935'">{{ myZone.type }}</b>
+          </div>
+          <div class="zone-detail-item"><span>⭕ Rayon</span><b>{{ myZone.rayon }}m</b></div>
+          <div class="zone-detail-item">
+            <span>📌 Centre</span>
+            <b class="mono">{{ myZone.centreLat | number:'1.4-4' }}, {{ myZone.centreLon | number:'1.4-4' }}</b>
+          </div>
+        </div>
+        <div class="no-zone-info" *ngIf="!myZone">
+          <p>Votre soignant n'a pas encore configuré de zone.</p>
+        </div>
+      </div>
+
+      <!-- Panel droit -->
+      <div class="right-panel">
+
+        <!-- Statut -->
+        <div class="section-card status-card"
+             [class.status-safe]="activeAlerts===0"
+             [class.status-alert]="activeAlerts>0">
+          <div class="status-icon">{{ activeAlerts===0 ? '🛡️' : '🚨' }}</div>
+          <div class="status-text">
+            <h3>{{ activeAlerts===0 ? 'Vous êtes en sécurité' : 'Alerte en cours !' }}</h3>
+            <p *ngIf="activeAlerts===0">Votre position est dans votre zone.</p>
+            <p *ngIf="activeAlerts>0">{{ activeAlerts }} alerte(s) — votre soignant est notifié.</p>
+          </div>
+        </div>
+
+        <!-- Historique -->
+        <div class="section-card">
+          <div class="section-header">
+            <h3>📋 Historique des Alertes</h3>
+            <span class="count-pill">{{ totalAlerts }}</span>
+          </div>
+          <div class="empty-alerts" *ngIf="myAlerts.length===0">
+            <span>🎉</span><p>Aucune alerte — continuez comme ça !</p>
+          </div>
+          <div class="alert-list" *ngIf="myAlerts.length>0">
+            <div class="alert-row" *ngFor="let a of recentAlerts" [class.active-row]="a.status==='Active'">
+              <div class="alert-row-left">
+                <span class="alert-dot" [style.background]="a.status==='Active'?'#e53935':'#388e3c'"></span>
+                <div>
+                  <div class="alert-type-text">{{ getTypeLabel(a.type) }}</div>
+                  <div class="alert-time">{{ formatDate(a.timestamp) | date:'dd/MM/yyyy HH:mm' }}</div>
                 </div>
+              </div>
+              <div class="alert-row-right">
+                <span class="sev-pill" [ngClass]="getSeverityClass(a.severity)">{{ a.severity }}</span>
+                <span class="dist-text">{{ a.distanceHorsZone | number:'1.0-0' }}m</span>
+              </div>
             </div>
+            <div class="show-more" *ngIf="myAlerts.length>5">+ {{ myAlerts.length-5 }} autres</div>
+          </div>
         </div>
+
+        <!-- Conseils -->
+        <div class="section-card tips-card">
+          <h3>💡 Conseils</h3>
+          <div class="tip-item" *ngIf="activeAlerts===0">
+            <span>✅</span> Restez dans votre zone de sécurité.
+          </div>
+          <div class="tip-item" *ngIf="activeAlerts>0">
+            <span>⚠️</span> Retournez dans votre zone ou appuyez sur SOS.
+          </div>
+          <div class="tip-item"><span>📱</span> Gardez votre téléphone chargé.</div>
+          <div class="tip-item"><span>🆘</span> En urgence, utilisez le bouton SOS dans Live Tracking.</div>
+        </div>
+
+      </div>
     </div>
 
-    <!-- Security Map Visual Mockup -->
-    <div class="security-map-section">
-        <h3><i class="fa-solid fa-map"></i> Zone Risk Overview</h3>
-        <div class="risk-map-mockup">
-            <div class="map-overlay">
-                <div class="zone-indicator safe" style="top: 30%; left: 40%">Safe</div>
-                <div class="zone-indicator risk" style="top: 60%; left: 70%">Risk</div>
-            </div>
-        </div>
-    </div>
+  </ng-container>
 </div>
+</ng-container>
+
+<!-- ══════════════════════════════════════════════
+     VUE SOIGNANT
+══════════════════════════════════════════════════ -->
+<ng-container *ngIf="isSoignant">
+<div class="dashboard-container">
+
+  <div class="dashboard-header">
+    <div>
+      <h1>📊 Supervision & Statistics</h1>
+      <p class="header-sub">Mise à jour automatique toutes les 30s</p>
+    </div>
+    <button class="export-btn" (click)="exportReport()" [disabled]="exportInProgress || isLoading">
+      <i class="fa-solid fa-spinner fa-spin" *ngIf="exportInProgress"></i>
+      <i class="fa-solid fa-file-pdf"        *ngIf="!exportInProgress"></i>
+      {{ exportInProgress ? 'Génération…' : 'Export PDF' }}
+    </button>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <i class="fa-solid fa-spinner fa-spin"></i> Chargement…
+  </div>
+  <div class="error-state" *ngIf="errorMsg && !isLoading">
+    <i class="fa-solid fa-triangle-exclamation"></i> {{ errorMsg }}
+    <button class="retry-btn" (click)="loadData()">Réessayer</button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !errorMsg">
+
+    <!-- KPI -->
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon">🗺️</div>
+        <div class="stat-info"><h3>{{ stats.activeMonitoring }}</h3><p>Zones actives</p></div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">🟢</div>
+        <div class="stat-info"><h3>{{ onlineCount }}</h3><p>Patients en ligne</p></div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-icon">🚨</div>
+        <div class="stat-info"><h3>{{ stats.riskWarnings }}</h3><p>Alertes actives</p></div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon">📅</div>
+        <div class="stat-info"><h3>{{ stats.totalAlerts24h }}</h3><p>Alertes (24h)</p></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-nav">
+      <button class="tab-btn" [class.active]="activeTab==='overview'" (click)="setTab('overview')">
+        📊 Vue globale
+      </button>
+      <button class="tab-btn" [class.active]="activeTab==='patients'" (click)="setTab('patients')">
+        👥 Patients <span class="tab-count">{{ patientStats.length }}</span>
+      </button>
+    </div>
+
+    <!-- Tab Overview -->
+    <div *ngIf="activeTab==='overview'">
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Alertes par Type</h3>
+          <div *ngIf="alertsByType.length>0; else noData">
+            <div class="type-list">
+              <div class="type-row" *ngFor="let item of alertsByType">
+                <span class="type-label">{{ item.label }}</span>
+                <div class="type-bar-wrap"><div class="type-bar-fill" [style.width.%]="item.pct"></div></div>
+                <span class="type-count">{{ item.count }}</span>
+                <span class="type-pct">{{ item.pct }}%</span>
+              </div>
+            </div>
+          </div>
+          <ng-template #noData>
+            <div class="empty-chart"><i class="fa-solid fa-inbox"></i><p>Aucune alerte</p></div>
+          </ng-template>
+        </div>
+        <div class="chart-card">
+          <h3>Alertes — 7 derniers jours</h3>
+          <div class="bar-chart">
+            <div class="bar-item" *ngFor="let item of alertsByDay">
+              <span class="bar-count">{{ item.count || '' }}</span>
+              <div class="bar day-bar" [style.height.px]="item.heightPx" [class.bar-zero]="item.count===0"></div>
+              <span class="label">{{ item.date }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card mt-16">
+        <h3>Zone Safety Analysis</h3>
+        <table class="zone-table">
+          <thead><tr><th>Zone</th><th>Patient</th><th>Type</th><th>Score</th><th>Statut</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let ps of patientStats">
+              <td><b>{{ ps.zone?.nomZone ?? '—' }}</b></td>
+              <td>{{ ps.patient.prenom }} {{ ps.patient.nom }}</td>
+              <td><span class="type-tag" [class.safe-tag]="ps.zone?.type==='SAFE'" [class.danger-tag]="ps.zone?.type==='DANGER'">{{ ps.zone?.type ?? '—' }}</span></td>
+              <td>
+                <div class="progress-wrap">
+                  <div class="progress-bar" [style.width.%]="ps.safetyScore"
+                       [class.high]="ps.safetyScore>80" [class.med]="ps.safetyScore>50&&ps.safetyScore<=80" [class.low]="ps.safetyScore<=50"></div>
+                  <span>{{ ps.safetyScore }}%</span>
+                </div>
+              </td>
+              <td><span class="status-badge" [ngClass]="getStatusClass(ps.status)">{{ ps.status }}</span></td>
+            </tr>
+            <tr *ngIf="patientStats.length===0"><td colspan="5" class="no-data-row">Aucun patient lié.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab Patients -->
+    <div *ngIf="activeTab==='patients'">
+      <div class="patients-grid">
+        <div class="patient-card" *ngFor="let ps of patientStats">
+          <div class="patient-card-header">
+            <div class="patient-avatar">{{ ps.patient.prenom[0] }}{{ ps.patient.nom[0] }}</div>
+            <div class="patient-meta">
+              <strong>{{ ps.patient.prenom }} {{ ps.patient.nom }}</strong>
+              <small>{{ ps.patient.email }}</small>
+            </div>
+            <span class="status-badge" [ngClass]="getStatusClass(ps.status)">{{ ps.status }}</span>
+          </div>
+          <div class="patient-card-body">
+            <div class="pstat"><span>Zone</span><b>{{ ps.zone?.nomZone ?? '—' }}</b></div>
+            <div class="pstat"><span>Alertes totales</span><b>{{ ps.totalAlerts }}</b></div>
+            <div class="pstat"><span>Alertes actives</span>
+              <b [style.color]="ps.activeAlerts>0?'#e53935':'#388e3c'">{{ ps.activeAlerts }}</b>
+            </div>
+            <div class="pstat"><span>Dernière position</span><b>{{ timeSince(ps.lastSeen) }}</b></div>
+          </div>
+          <div class="score-bar-wrap">
+            <span style="font-size:11px;color:#90a4ae">Score sécurité</span>
+            <div class="progress-wrap">
+              <div class="progress-bar" [style.width.%]="ps.safetyScore"
+                   [class.high]="ps.safetyScore>80" [class.med]="ps.safetyScore>50&&ps.safetyScore<=80" [class.low]="ps.safetyScore<=50"></div>
+              <span>{{ ps.safetyScore }}%</span>
+            </div>
+          </div>
+        </div>
+        <div class="empty-patients" *ngIf="patientStats.length===0">
+          <span>👥</span><p>Aucun patient lié.</p>
+          <small>Créez une zone dans Live Tracking.</small>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</div>
+</ng-container>
