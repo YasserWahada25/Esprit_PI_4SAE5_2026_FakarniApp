@@ -5,7 +5,7 @@ import { EventService } from '../../../../core/services/event.service';
 import { EducationalEvent } from '../../../../core/models/educational-event.model';
 
 @Component({
-    selector: 'app-event-form',
+    selector: 'app-session-event-form',
     standalone: false,
     templateUrl: './event-form.component.html',
     styleUrls: ['./event-form.component.scss']

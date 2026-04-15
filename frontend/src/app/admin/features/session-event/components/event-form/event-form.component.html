@@ -1,0 +1,55 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Modifier' : 'Planifier' }} un événement</h2>
+<mat-dialog-content>
+  <form [formGroup]="eventForm" class="event-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Titre *</mat-label>
+      <input matInput formControlName="title" placeholder="Ex. Atelier mémoire">
+      <mat-error *ngIf="eventForm.get('title')?.invalid">Le titre est obligatoire</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Date *</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="date">
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Heure de début *</mat-label>
+      <input matInput type="time" formControlName="startTime">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Statut</mat-label>
+      <mat-select formControlName="status">
+        <mat-option value="scheduled">Planifié</mat-option>
+        <mat-option value="ongoing">En cours</mat-option>
+        <mat-option value="completed">Terminé</mat-option>
+        <mat-option value="cancelled">Annulé</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre de participants</mat-label>
+      <input matInput type="number" min="0" formControlName="participantsCount">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description</mat-label>
+      <textarea matInput rows="3" formControlName="description"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Rappels</mat-label>
+      <mat-select formControlName="reminders" multiple>
+        <mat-option *ngFor="let opt of reminderOptions" [value]="opt">{{ opt }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="onCancel()">Annuler</button>
+  <button mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="!eventForm.valid">
+    {{ isEditMode ? 'Enregistrer' : 'Créer' }}
+  </button>
+</mat-dialog-actions>

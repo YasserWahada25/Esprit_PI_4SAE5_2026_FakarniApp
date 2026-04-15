@@ -6,6 +6,8 @@ import { SessionEventLayoutComponent } from './components/session-event-layout/s
 import { SessionListComponent } from './components/session-list/session-list.component';
 import { SessionFormComponent } from './components/session-form/session-form.component';
 import { ReservationRequestsComponent } from './components/reservation-requests/reservation-requests.component';
+import { EventListComponent } from './components/event-list/event-list.component';
+import { EventFormComponent } from './components/event-form/event-form.component';
 
 // Material Imports
 import { MatTabsModule } from '@angular/material/tabs';
@@ -31,7 +33,9 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
         SessionEventLayoutComponent,
         SessionListComponent,
         SessionFormComponent,
-        ReservationRequestsComponent
+        ReservationRequestsComponent,
+        EventListComponent,
+        EventFormComponent
     ],
     imports: [
         CommonModule,

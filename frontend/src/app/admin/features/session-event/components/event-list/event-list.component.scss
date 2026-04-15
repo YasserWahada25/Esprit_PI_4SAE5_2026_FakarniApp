@@ -1,0 +1,26 @@
+.event-list-container {
+  padding: 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.search-field {
+  width: 100%;
+  max-width: 28rem;
+  margin-bottom: 1rem;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.events-table {
+  width: 100%;
+}

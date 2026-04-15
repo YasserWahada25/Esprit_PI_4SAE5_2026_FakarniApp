@@ -9,7 +9,7 @@ import { EventFormComponent } from '../event-form/event-form.component';
 import { isPlatformBrowser } from '@angular/common';
 
 @Component({
-    selector: 'app-event-list',
+    selector: 'app-session-event-list',
     standalone: false,
     templateUrl: './event-list.component.html',
     styleUrls: ['./event-list.component.scss']
