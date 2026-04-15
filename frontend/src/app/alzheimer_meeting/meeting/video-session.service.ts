@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Client, Message, StompSubscription } from '@stomp/stompjs';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { AuthService } from '../../auth/services/auth.service';
 import { environment } from '../../../environments/environment';
 
 export type ParticipantRole = 'HOST' | 'ORGANIZER' | 'PARTICIPANT';
@@ -74,34 +75,39 @@ export class VideoSessionService {
 
     constructor(
         private readonly http: HttpClient,
+        private readonly authService: AuthService,
         @Inject(PLATFORM_ID) platformId: object
     ) {
         this.isBrowser = isPlatformBrowser(platformId);
     }
 
-    startVideoSession(virtualSessionId: number, hostUserId: string, maxParticipants?: number): Observable<VideoSessionDTO> {
+    startVideoSession(virtualSessionId: number, hostUserId?: string, maxParticipants?: number): Observable<VideoSessionDTO> {
+        const resolvedHostUserId = this.resolveCurrentUserId(hostUserId);
         return this.http.post<VideoSessionDTO>(`${this.apiUrl}/start`, {
             virtualSessionId,
-            hostUserId,
+            hostUserId: resolvedHostUserId,
             maxParticipants
         });
     }
 
-    joinVideoSession(roomId: string, userId: string): Observable<VideoSessionDTO> {
-        return this.http.post<VideoSessionDTO>(`${this.apiUrl}/join`, { roomId, userId });
+    joinVideoSession(roomId: string, userId?: string): Observable<VideoSessionDTO> {
+        return this.http.post<VideoSessionDTO>(`${this.apiUrl}/join`, {
+            roomId,
+            userId: this.resolveCurrentUserId(userId)
+        });
     }
 
-    endVideoSession(id: number, userId: string): Observable<VideoSessionDTO> {
-        return this.http.post<VideoSessionDTO>(`${this.apiUrl}/${id}/end?userId=${encodeURIComponent(userId)}`, {});
+    endVideoSession(id: number): Observable<VideoSessionDTO> {
+        return this.http.post<VideoSessionDTO>(`${this.apiUrl}/${id}/end`, {});
     }
 
     getVideoSessionByVirtualSession(virtualSessionId: number): Observable<VideoSessionDTO> {
         return this.http.get<VideoSessionDTO>(`${this.apiUrl}/by-virtual-session/${virtualSessionId}`);
     }
 
-    getRoomMessages(roomId: string, userId: string): Observable<VideoChatMessageDTO[]> {
+    getRoomMessages(roomId: string): Observable<VideoChatMessageDTO[]> {
         return this.http.get<VideoChatMessageDTO[]>(
-            `${this.apiUrl}/rooms/${encodeURIComponent(roomId)}/messages?userId=${encodeURIComponent(userId)}`
+            `${this.apiUrl}/rooms/${encodeURIComponent(roomId)}/messages`
         );
     }
 
@@ -113,14 +119,15 @@ export class VideoSessionService {
 
     addParticipantToRoom(
         roomId: string,
-        requesterUserId: string,
+        requesterUserId: string | undefined,
         userId: string,
         role: ParticipantRole = 'PARTICIPANT',
         joinStatus: JoinStatus = 'CONFIRMED'
     ): Observable<SessionParticipantDTO[]> {
+        const resolvedRequester = this.resolveCurrentUserId(requesterUserId);
         return this.http.post<SessionParticipantDTO[]>(
             `${this.apiUrl}/rooms/${encodeURIComponent(roomId)}/participants`,
-            { requesterUserId, userId, role, joinStatus }
+            { requesterUserId: resolvedRequester, userId, role, joinStatus }
         );
     }
 
@@ -139,6 +146,7 @@ export class VideoSessionService {
 
         this.stompClient = new Client({
             webSocketFactory: () => new SockJS(environment.wsUrl ?? '/ws'),
+            connectHeaders: this.buildConnectHeaders(),
             reconnectDelay: 2000,
             heartbeatIncoming: 10000,
             heartbeatOutgoing: 10000
@@ -239,5 +247,18 @@ export class VideoSessionService {
 
     removeParticipant(userId: string): void {
         this.participantsSubject.next(this.participantsSubject.value.filter(p => p !== userId));
+    }
+
+    private resolveCurrentUserId(userId?: string): string {
+        const resolved = userId?.trim() || this.authService.getCurrentUser()?.id?.trim();
+        if (!resolved) {
+            throw new Error('Utilisateur non authentifie.');
+        }
+        return resolved;
+    }
+
+    private buildConnectHeaders(): Record<string, string> {
+        const token = this.authService.getAccessToken();
+        return token ? { Authorization: `Bearer ${token}` } : {};
     }
 }

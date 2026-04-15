@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+PyJWT
+openai
+transformers
+torch
+vaderSentiment
+spacy
+openai-whisper

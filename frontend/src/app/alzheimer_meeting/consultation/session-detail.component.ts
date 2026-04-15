@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { Session } from '../shared/alzheimer.service';
 import { VideoSessionService } from '../meeting/video-session.service';
+import { AuthService } from '../../auth/services/auth.service';
 
 @Component({
   selector: 'app-session-detail',
@@ -307,7 +308,8 @@ export class SessionDetailComponent {
 
   constructor(
     private router: Router,
-    private videoService: VideoSessionService
+    private videoService: VideoSessionService,
+    private authService: AuthService
   ) { }
 
   onFavorite(): void {
@@ -391,12 +393,7 @@ export class SessionDetailComponent {
   }
 
   private resolveCurrentUserId(): string {
-    if (typeof window === 'undefined') return this.session?.createdBy ?? 'patient';
-    const storage = window.localStorage;
-    return storage.getItem('userId')
-      || storage.getItem('user_id')
-      || storage.getItem('uid')
-      || storage.getItem('username')
+    return this.authService.getCurrentUser()?.id?.trim()
       || this.session?.createdBy
       || 'patient';
   }

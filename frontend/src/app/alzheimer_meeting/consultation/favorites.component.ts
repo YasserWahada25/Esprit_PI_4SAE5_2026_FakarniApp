@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AlzheimerService, Session } from '../shared/alzheimer.service';
 import { VideoSessionService } from '../meeting/video-session.service';
+import { AuthService } from '../../auth/services/auth.service';
 
 @Component({
     selector: 'app-favorites',
@@ -21,7 +22,8 @@ export class FavoritesComponent implements OnInit {
         private alzheimerService: AlzheimerService,
         private router: Router,
         private cdr: ChangeDetectorRef,
-        private videoService: VideoSessionService
+        private videoService: VideoSessionService,
+        private authService: AuthService
     ) { }
 
     ngOnInit(): void {
@@ -105,12 +107,7 @@ export class FavoritesComponent implements OnInit {
     }
 
     private resolveCurrentUserId(session: Session): string {
-        if (typeof window === 'undefined') return session.createdBy ?? 'patient';
-        const storage = window.localStorage;
-        return storage.getItem('userId')
-            || storage.getItem('user_id')
-            || storage.getItem('uid')
-            || storage.getItem('username')
+        return this.authService.getCurrentUser()?.id?.trim()
             || session.createdBy
             || 'patient';
     }

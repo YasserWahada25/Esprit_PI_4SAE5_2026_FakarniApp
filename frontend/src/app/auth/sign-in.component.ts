@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { Role } from './models/sign-up.model';
 
 @Component({
     selector: 'app-sign-in',
@@ -31,7 +32,11 @@ export class SignInComponent {
         this.errorMessage = null;
         this.loading = true;
         this.authService.login(this.loginForm.value).subscribe({
-            next: () => this.router.navigate(['/home']),
+            next: (res) => {
+                this.loading = false;
+                const target = res?.user?.role === Role.ADMIN ? '/admin' : '/home';
+                this.router.navigate([target]);
+            },
             error: (err) => {
                 this.loading = false;
                 this.errorMessage = err?.error?.message || 'Invalid email or password.';

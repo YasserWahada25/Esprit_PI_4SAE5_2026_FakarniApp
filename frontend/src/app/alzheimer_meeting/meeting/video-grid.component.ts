@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { MediaStreamDirective } from './media-stream.directive';
 import { SignalMessageDTO, VideoSessionService } from './video-session.service';
 import { WebrtcPeerService } from './webrtc-peer.service';
+import { AuthService } from '../../auth/services/auth.service';
 
 interface Participant {
   id: string;
@@ -166,16 +167,24 @@ export class VideoGridComponent implements OnInit, OnDestroy {
   participants: Participant[] = [];
   private signalSub?: Subscription;
   private localMediaAttempted = false;
+  private readonly nameCache = new Map<string, string>();
+  private readonly loadingNames = new Set<string>();
 
   constructor(
     private readonly videoSessionService: VideoSessionService,
-    private readonly webrtcService: WebrtcPeerService
+    private readonly webrtcService: WebrtcPeerService,
+    private readonly authService: AuthService
   ) { }
 
   async ngOnInit(): Promise<void> {
+    const current = this.authService.getCurrentUser();
+    if (current) {
+      this.nameCache.set(current.id, this.formatName(current.prenom, current.nom, current.id));
+    }
+
     this.addParticipant({
       id: this.currentUserId,
-      name: this.currentUserId,
+      name: this.getDisplayName(this.currentUserId),
       role: 'User',
       isMuted: false,
       isVideoOff: true,
@@ -225,7 +234,7 @@ export class VideoGridComponent implements OnInit, OnDestroy {
     if (signal.type === 'join') {
       this.addParticipant({
         id: signal.fromUserId,
-        name: signal.fromUserId,
+        name: this.getDisplayName(signal.fromUserId),
         role: 'Participant',
         isMuted: false,
         isVideoOff: true,
@@ -315,7 +324,7 @@ export class VideoGridComponent implements OnInit, OnDestroy {
     if (this.getParticipant(id)) return;
     this.participants.push({
       id,
-      name: id,
+      name: this.getDisplayName(id),
       role: 'Participant',
       isLocal: false,
       isMuted: false,
@@ -334,7 +343,52 @@ export class VideoGridComponent implements OnInit, OnDestroy {
   }
 
   private refreshParticipants(): void {
+    this.participants = this.participants.map(p => ({
+      ...p,
+      name: this.getDisplayName(p.id)
+    }));
     this.participants = [...this.participants];
     this.videoSessionService.setParticipants(this.participants.map(p => p.id));
+  }
+
+  private getDisplayName(userId: string): string {
+    const cached = this.nameCache.get(userId);
+    if (cached) return cached;
+    this.resolveDisplayName(userId);
+    return this.shortenUserId(userId);
+  }
+
+  private resolveDisplayName(userId: string): void {
+    if (!userId || this.loadingNames.has(userId) || this.nameCache.has(userId)) return;
+    this.loadingNames.add(userId);
+    this.authService.getUserById(userId).subscribe({
+      next: user => {
+        this.nameCache.set(userId, this.formatName(user.prenom, user.nom, userId));
+        this.loadingNames.delete(userId);
+        this.refreshParticipants();
+      },
+      error: () => {
+        this.nameCache.set(userId, this.shortenUserId(userId));
+        this.loadingNames.delete(userId);
+        this.refreshParticipants();
+      }
+    });
+  }
+
+  private formatName(prenom?: string, nom?: string, fallback?: string): string {
+    const first = (prenom ?? '').trim();
+    const last = (nom ?? '').trim();
+    if (first && last) {
+      if (first.toLowerCase() === last.toLowerCase()) return first;
+      return `${first} ${last}`;
+    }
+    if (first) return first;
+    if (last) return last;
+    return this.shortenUserId(fallback ?? '');
+  }
+
+  private shortenUserId(userId: string): string {
+    if (!userId) return 'Utilisateur';
+    return userId.length <= 12 ? userId : `${userId.slice(0, 5)}...${userId.slice(-4)}`;
   }
 }

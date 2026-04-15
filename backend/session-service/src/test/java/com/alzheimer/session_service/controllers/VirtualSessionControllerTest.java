@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.time.Instant;
 import java.util.List;
@@ -36,24 +37,33 @@ class VirtualSessionControllerTest {
 
         VirtualSession session = buildSession(3L);
 
-        when(service.updateParticipantPrefs(3L, request)).thenReturn(session);
+        Jwt jwt = mockJwt("admin", "ADMIN");
+        when(service.updateParticipantPrefs(3L, request, "admin", "ADMIN")).thenReturn(session);
 
-        VirtualSession result = controller.updateMyParticipantPrefs(3L, request);
+        VirtualSession result = controller.updateMyParticipantPrefs(3L, request, jwt);
 
         assertSame(session, result);
-        verify(service).updateParticipantPrefs(3L, request);
+        verify(service).updateParticipantPrefs(3L, request, "admin", "ADMIN");
     }
 
     @Test
     void favorites_delegatesToService_withoutJwt() {
         VirtualSession session = buildSession(4L);
-        when(service.listUserFavorites()).thenReturn(List.of(session));
+        Jwt jwt = mockJwt("admin", "ADMIN");
+        when(service.listUserFavorites("admin", "ADMIN")).thenReturn(List.of(session));
 
-        List<VirtualSession> result = controller.favorites();
+        List<VirtualSession> result = controller.favorites(jwt);
 
         assertEquals(1, result.size());
         assertEquals(4L, result.get(0).getId());
-        verify(service).listUserFavorites();
+        verify(service).listUserFavorites("admin", "ADMIN");
+    }
+
+    private Jwt mockJwt(String userId, String role) {
+        Jwt jwt = org.mockito.Mockito.mock(Jwt.class);
+        when(jwt.getSubject()).thenReturn(userId);
+        when(jwt.getClaimAsString("role")).thenReturn(role);
+        return jwt;
     }
 
     private VirtualSession buildSession(Long id) {

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { CommunicationLayoutComponent } from './shared/communication-layout.component';
+import { adminGuard } from '../auth/guards/admin.guard';
 
 export const COMMUNICATION_ROUTES: Routes = [
     {
@@ -17,6 +18,7 @@ export const COMMUNICATION_ROUTES: Routes = [
             },
             {
                 path: 'admin',
+                canActivate: [adminGuard],
                 loadComponent: () => import('./admin/moderation.component').then(m => m.ModerationComponent)
             }
         ]

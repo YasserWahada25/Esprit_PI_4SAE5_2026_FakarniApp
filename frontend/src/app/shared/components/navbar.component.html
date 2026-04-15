@@ -1,7 +1,7 @@
 <header class="header">
     <div class="container header-container">
         <div class="logo">
-            <a href="/">
+            <a routerLink="/home" (click)="isMobileMenuOpen = false">
                 <!-- Logo Image -->
                 <img src="logo.png" alt="Grankare Logo" class="brand-logo">
                 <div class="logo-text">
@@ -60,6 +60,11 @@
                 <li>
                     <a href="#" class="nav-link" (click)="isMobileMenuOpen = false">Contact</a>
                 </li>
+                @if (isAdmin) {
+                    <li>
+                        <a routerLink="/admin" class="nav-link" routerLinkActive="active" (click)="isMobileMenuOpen = false">Admin</a>
+                    </li>
+                }
             </ul>
         </nav>
 

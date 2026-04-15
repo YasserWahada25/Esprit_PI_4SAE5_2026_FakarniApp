@@ -7,13 +7,14 @@ import com.alzheimer.session_service.entities.SessionType;
 import com.alzheimer.session_service.entities.SessionVisibility;
 import com.alzheimer.session_service.entities.VideoSessionStatus;
 import com.alzheimer.session_service.services.VideoSessionService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import tools.jackson.databind.ObjectMapper;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.time.Instant;
 
@@ -58,10 +59,11 @@ class VideoSessionControllerTest {
                 .maxParticipants(8)
                 .build();
         VideoSessionDTO expected = buildDTO(VideoSessionStatus.WAITING);
+        Jwt jwt = mockJwt("alice", "DOCTOR_PROFILE");
 
         when(videoSessionService.startVideoSession(req)).thenReturn(expected);
 
-        VideoSessionDTO result = controller.startVideoSession(req);
+        VideoSessionDTO result = controller.startVideoSession(req, jwt);
 
         assertSame(expected, result);
         verify(videoSessionService).startVideoSession(req);
@@ -74,10 +76,11 @@ class VideoSessionControllerTest {
                 .userId("bob")
                 .build();
         VideoSessionDTO expected = buildDTO(VideoSessionStatus.ACTIVE);
+        Jwt jwt = mockJwt("bob", "PATIENT_PROFILE");
 
         when(videoSessionService.joinVideoSession(req)).thenReturn(expected);
 
-        VideoSessionDTO result = controller.joinVideoSession(req);
+        VideoSessionDTO result = controller.joinVideoSession(req, jwt);
 
         assertSame(expected, result);
         assertEquals(VideoSessionStatus.ACTIVE, result.getStatus());
@@ -87,13 +90,14 @@ class VideoSessionControllerTest {
     @Test
     void getVideoSession_delegatesToService() {
         VideoSessionDTO expected = buildDTO(VideoSessionStatus.ACTIVE);
+        Jwt jwt = mockJwt("alice", "DOCTOR_PROFILE");
 
-        when(videoSessionService.getVideoSession(1L)).thenReturn(expected);
+        when(videoSessionService.getVideoSession(1L, "alice", "DOCTOR_PROFILE")).thenReturn(expected);
 
-        VideoSessionDTO result = controller.getVideoSession(1L);
+        VideoSessionDTO result = controller.getVideoSession(1L, jwt);
 
         assertSame(expected, result);
-        verify(videoSessionService).getVideoSession(1L);
+        verify(videoSessionService).getVideoSession(1L, "alice", "DOCTOR_PROFILE");
     }
 
     @Test
@@ -112,13 +116,21 @@ class VideoSessionControllerTest {
                 .endedAt(Instant.now())
                 .build();
 
+        Jwt jwt = mockJwt("alice", "DOCTOR_PROFILE");
         when(videoSessionService.endVideoSession(1L, "alice")).thenReturn(expected);
 
-        VideoSessionDTO result = controller.endVideoSession(1L, "alice");
+        VideoSessionDTO result = controller.endVideoSession(1L, jwt);
 
         assertSame(expected, result);
         assertEquals(VideoSessionStatus.ENDED, result.getStatus());
         assertNotNull(result.getEndedAt());
         verify(videoSessionService).endVideoSession(1L, "alice");
+    }
+
+    private Jwt mockJwt(String userId, String role) {
+        Jwt jwt = mock(Jwt.class);
+        when(jwt.getSubject()).thenReturn(userId);
+        when(jwt.getClaimAsString("role")).thenReturn(role);
+        return jwt;
     }
 }
