@@ -18,7 +18,7 @@ export class GroupDetailsComponent implements OnInit {
   members: GroupMember[] = [];
   loading = false;
   error: string | null = null;
-  currentUserId = 1; // TODO: Récupérer depuis le service d'authentification
+  currentUserId = '1'; // TODO: Récupérer depuis le service d'authentification
   groupId: number = 0; // ID du groupe actuel
   
   MemberRole = MemberRole;
@@ -93,7 +93,7 @@ export class GroupDetailsComponent implements OnInit {
     return this.members.some(m => m.userId === this.currentUserId);
   }
 
-  removeMember(userId: number): void {
+  removeMember(userId: string): void {
     if (!this.group || !confirm('Êtes-vous sûr de vouloir retirer ce membre ?')) {
       return;
     }
@@ -112,7 +112,7 @@ export class GroupDetailsComponent implements OnInit {
     });
   }
 
-  promoteToModerator(userId: number): void {
+  promoteToModerator(userId: string): void {
     if (!this.group) return;
 
     this.groupService.updateMemberRole(this.group.id, userId, { role: MemberRole.MODERATOR }).subscribe({
@@ -129,7 +129,7 @@ export class GroupDetailsComponent implements OnInit {
     });
   }
 
-  promoteToAdmin(userId: number): void {
+  promoteToAdmin(userId: string): void {
     if (!this.group) return;
 
     this.groupService.updateMemberRole(this.group.id, userId, { role: MemberRole.ADMIN }).subscribe({
@@ -146,7 +146,7 @@ export class GroupDetailsComponent implements OnInit {
     });
   }
 
-  demoteToMember(userId: number): void {
+  demoteToMember(userId: string): void {
     if (!this.group) return;
 
     this.groupService.updateMemberRole(this.group.id, userId, { role: MemberRole.MEMBER }).subscribe({
