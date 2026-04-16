@@ -66,7 +66,7 @@ public class GroupController {
     @DeleteMapping("/{groupId}/members/{userId}")
     public ResponseEntity<Void> removeMember(
             @PathVariable Long groupId,
-            @PathVariable Long userId) {
+            @PathVariable String userId) {
         groupService.removeMember(groupId, userId);
         return ResponseEntity.noContent().build();
     }
@@ -74,7 +74,7 @@ public class GroupController {
     @PatchMapping("/{groupId}/members/{userId}/role")
     public ResponseEntity<GroupMemberResponse> updateMemberRole(
             @PathVariable Long groupId,
-            @PathVariable Long userId,
+            @PathVariable String userId,
             @RequestBody Map<String, String> roleUpdate) {
         MemberRole newRole = MemberRole.valueOf(roleUpdate.get("role"));
         GroupMemberResponse response = groupService.updateMemberRole(groupId, userId, newRole);
@@ -88,7 +88,7 @@ public class GroupController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<GroupResponse>> getUserGroups(@PathVariable Long userId) {
+    public ResponseEntity<List<GroupResponse>> getUserGroups(@PathVariable String userId) {
         List<GroupResponse> groups = groupService.getUserGroups(userId);
         return ResponseEntity.ok(groups);
     }

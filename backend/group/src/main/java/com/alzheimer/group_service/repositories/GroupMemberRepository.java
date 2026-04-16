@@ -13,15 +13,15 @@ public interface GroupMemberRepository extends CrudRepository<GroupMember, Long>
     
     List<GroupMember> findByGroupId(Long groupId);
     
-    List<GroupMember> findByUserId(Long userId);
+    List<GroupMember> findByUserId(String userId);
     
-    Optional<GroupMember> findByGroupIdAndUserId(Long groupId, Long userId);
+    Optional<GroupMember> findByGroupIdAndUserId(Long groupId, String userId);
     
-    boolean existsByGroupIdAndUserId(Long groupId, Long userId);
+    boolean existsByGroupIdAndUserId(Long groupId, String userId);
     
     List<GroupMember> findByGroupIdAndRole(Long groupId, MemberRole role);
     
     long countByGroupId(Long groupId);
     
-    void deleteByGroupIdAndUserId(Long groupId, Long userId);
+    void deleteByGroupIdAndUserId(Long groupId, String userId);
 }

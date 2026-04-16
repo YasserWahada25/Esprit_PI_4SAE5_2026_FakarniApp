@@ -17,7 +17,7 @@ public class GroupMember {
     private Group group;
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private String userId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -27,13 +27,13 @@ public class GroupMember {
     private LocalDateTime joinedAt;
 
     @Column(name = "invited_by")
-    private Long invitedBy;
+    private String invitedBy;
 
     // Constructors
     public GroupMember() {
     }
 
-    public GroupMember(Group group, Long userId, MemberRole role) {
+    public GroupMember(Group group, String userId, MemberRole role) {
         this.group = group;
         this.userId = userId;
         this.role = role;
@@ -62,11 +62,11 @@ public class GroupMember {
         this.group = group;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
@@ -86,11 +86,11 @@ public class GroupMember {
         this.joinedAt = joinedAt;
     }
 
-    public Long getInvitedBy() {
+    public String getInvitedBy() {
         return invitedBy;
     }
 
-    public void setInvitedBy(Long invitedBy) {
+    public void setInvitedBy(String invitedBy) {
         this.invitedBy = invitedBy;
     }
 }

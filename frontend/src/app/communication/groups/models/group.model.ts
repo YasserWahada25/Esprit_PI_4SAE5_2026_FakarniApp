@@ -17,17 +17,17 @@ export enum MemberRole {
 
 export interface GroupMember {
   id: number;
-  userId: number;
+  userId: string;
   role: MemberRole;
   joinedAt: string;
-  invitedBy?: number;
+  invitedBy?: string;
 }
 
 export interface Group {
   id: number;
   name: string;
   description: string;
-  creatorId: number;
+  creatorId: string;
   groupType: GroupType;
   status: GroupStatus;
   coverImageUrl?: string;
@@ -42,7 +42,7 @@ export interface Group {
 export interface CreateGroupRequest {
   name: string;
   description: string;
-  creatorId: number;
+  creatorId: string;
   groupType?: GroupType;
   coverImageUrl?: string;
   maxMembers?: number;
@@ -59,9 +59,9 @@ export interface UpdateGroupRequest {
 }
 
 export interface AddMemberRequest {
-  userId: number;
+  userId: string;
   role?: MemberRole;
-  invitedBy?: number;
+  invitedBy?: string;
 }
 
 export interface UpdateMemberRoleRequest {

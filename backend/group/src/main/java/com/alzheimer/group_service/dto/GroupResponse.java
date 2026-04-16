@@ -10,7 +10,8 @@ public class GroupResponse {
     private Long id;
     private String name;
     private String description;
-    private Long creatorId;
+    private String creatorId;
+    private UserDTO creator;
     private GroupType groupType;
     private GroupStatus status;
     private String coverImageUrl;
@@ -50,12 +51,20 @@ public class GroupResponse {
         this.description = description;
     }
 
-    public Long getCreatorId() {
+    public String getCreatorId() {
         return creatorId;
     }
 
-    public void setCreatorId(Long creatorId) {
+    public void setCreatorId(String creatorId) {
         this.creatorId = creatorId;
+    }
+
+    public UserDTO getCreator() {
+        return creator;
+    }
+
+    public void setCreator(UserDTO creator) {
+        this.creator = creator;
     }
 
     public GroupType getGroupType() {

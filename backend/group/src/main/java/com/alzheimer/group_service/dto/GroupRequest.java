@@ -6,7 +6,7 @@ public class GroupRequest {
 
     private String name;
     private String description;
-    private Long creatorId;
+    private String creatorId;
     private GroupType groupType = GroupType.PUBLIC;
     private String coverImageUrl;
     private Integer maxMembers;
@@ -16,7 +16,7 @@ public class GroupRequest {
     public GroupRequest() {
     }
 
-    public GroupRequest(String name, String description, Long creatorId) {
+    public GroupRequest(String name, String description, String creatorId) {
         this.name = name;
         this.description = description;
         this.creatorId = creatorId;
@@ -39,11 +39,11 @@ public class GroupRequest {
         this.description = description;
     }
 
-    public Long getCreatorId() {
+    public String getCreatorId() {
         return creatorId;
     }
 
-    public void setCreatorId(Long creatorId) {
+    public void setCreatorId(String creatorId) {
         this.creatorId = creatorId;
     }
 

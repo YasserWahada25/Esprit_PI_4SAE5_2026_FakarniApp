@@ -23,7 +23,7 @@ export class GroupsComponent implements OnInit {
     showCreateModal = false;
     showEditModal = false;
     editingGroup: Group | null = null;
-    currentUserId = 1; // TODO: Récupérer depuis le service d'authentification
+    currentUserId: string = ''; // ID MongoDB de l'utilisateur connecté
 
     // Formulaire de création
     newGroup = {
@@ -60,6 +60,18 @@ export class GroupsComponent implements OnInit {
     ) {}
 
     ngOnInit(): void {
+        // Récupérer l'ID de l'utilisateur connecté depuis le token JWT
+        const token = sessionStorage.getItem('fakarni_token');
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                this.currentUserId = payload.sub; // L'ID MongoDB est dans le champ 'sub'
+                console.log('Current user ID:', this.currentUserId);
+            } catch (e) {
+                console.error('Error parsing token:', e);
+            }
+        }
+        
         this.loadAllData();
     }
 

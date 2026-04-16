@@ -20,7 +20,7 @@ public class Group {
     private String description;
 
     @Column(name = "creator_id", nullable = false)
-    private Long creatorId;
+    private String creatorId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "group_type", nullable = false)
@@ -52,7 +52,7 @@ public class Group {
     public Group() {
     }
 
-    public Group(String name, String description, Long creatorId) {
+    public Group(String name, String description, String creatorId) {
         this.name = name;
         this.description = description;
         this.creatorId = creatorId;
@@ -111,11 +111,11 @@ public class Group {
         this.updatedAt = updatedAt;
     }
 
-    public Long getCreatorId() {
+    public String getCreatorId() {
         return creatorId;
     }
 
-    public void setCreatorId(Long creatorId) {
+    public void setCreatorId(String creatorId) {
         this.creatorId = creatorId;
     }
 
