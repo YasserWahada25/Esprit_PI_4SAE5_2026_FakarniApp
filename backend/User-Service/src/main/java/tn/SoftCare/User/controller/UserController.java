@@ -82,9 +82,4 @@ public class UserController {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse.");
         }
     }
-    @GetMapping("/by-role/{role}")
-    @ResponseStatus(HttpStatus.OK)
-    public List<UserResponse> getByRole(@PathVariable String role) {
-        return userService.findByRole(role);
-    }
 }
