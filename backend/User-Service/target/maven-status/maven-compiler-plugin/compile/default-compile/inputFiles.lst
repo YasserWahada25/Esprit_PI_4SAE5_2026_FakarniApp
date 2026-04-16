@@ -1,4 +1,5 @@
 D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\config\MailConfig.java
+D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\config\PasswordConfig.java
 D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\config\SecurityConfig.java
 D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\controller\AuthController.java
 D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\controller\InternalUserController.java
@@ -25,7 +26,10 @@ D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftC
 D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\repository\PasswordResetTokenRepository.java
 D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\repository\SessionRepository.java
 D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\repository\UserRepository.java
+D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\security\AuthenticatedUser.java
 D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\security\JwtService.java
+D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\security\SessionAuthenticationFilter.java
+D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\security\SessionCookieService.java
 D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\service\AuthService.java
 D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\service\EmailService.java
 D:\Downloads\Fakarni_App\Fakarni_App\backend\User-Service\src\main\java\tn\SoftCare\User\service\RecaptchaService.java
