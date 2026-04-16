@@ -25,3 +25,46 @@ mat-dialog-content {
     margin-bottom: 6px;
     font-style: italic;
 }
+
+.cover-upload-block {
+    margin-bottom: 16px;
+
+    input[type='file'] {
+        display: none;
+    }
+}
+
+.cover-upload-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+}
+
+.cover-upload-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.cover-upload-hint {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.cover-preview {
+    margin: -4px 0 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #f8fafc;
+
+    img {
+        display: block;
+        width: 100%;
+        max-height: 220px;
+        object-fit: cover;
+    }
+}

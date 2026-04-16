@@ -12,17 +12,20 @@ public class PatientEngagement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long patientId;
+    @Column(nullable = false, length = 64)
+    private String patientId;
 
     @Column(nullable = false, length = 200)
     private String patientName;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Long activityId;
 
     @Column(nullable = false, length = 200)
     private String activityTitle;
+
+    @Column(name = "event_id")
+    private Long eventId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -52,11 +55,11 @@ public class PatientEngagement {
         this.id = id;
     }
 
-    public Long getPatientId() {
+    public String getPatientId() {
         return patientId;
     }
 
-    public void setPatientId(Long patientId) {
+    public void setPatientId(String patientId) {
         this.patientId = patientId;
     }
 
@@ -82,6 +85,14 @@ public class PatientEngagement {
 
     public void setActivityTitle(String activityTitle) {
         this.activityTitle = activityTitle;
+    }
+
+    public Long getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(Long eventId) {
+        this.eventId = eventId;
     }
 
     public EngagementActivityType getActivityType() {

@@ -15,6 +15,8 @@ public class EventCreateRequest {
 
     private String location;
 
+    private String coverImageUrl;
+
     private boolean remindEnabled;
 
     private Long userId;
@@ -35,6 +37,9 @@ public class EventCreateRequest {
 
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
+
+    public String getCoverImageUrl() { return coverImageUrl; }
+    public void setCoverImageUrl(String coverImageUrl) { this.coverImageUrl = coverImageUrl; }
 
     public boolean isRemindEnabled() { return remindEnabled; }
     public void setRemindEnabled(boolean remindEnabled) { this.remindEnabled = remindEnabled; }

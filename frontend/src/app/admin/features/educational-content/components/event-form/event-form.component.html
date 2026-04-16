@@ -14,6 +14,28 @@
         placeholder="Détails sur le contenu éducatif, objectifs, public cible..."></textarea>
     </mat-form-field>
 
+    <div class="cover-upload-block">
+      <label class="cover-upload-label">Image de couverture</label>
+      <input
+        #coverInput
+        type="file"
+        accept="image/jpeg,image/png,image/gif,image/webp"
+        (change)="onCoverSelected($event)">
+      <div class="cover-upload-actions">
+        <button mat-stroked-button type="button" (click)="coverInput.click()">
+          Sélectionner une image
+        </button>
+        <button mat-stroked-button color="warn" type="button" *ngIf="coverPreview" (click)="removeCover()">
+          Retirer l'image
+        </button>
+      </div>
+      <div class="cover-upload-hint">Choisissez une image locale pour l’affichage de la carte événement.</div>
+    </div>
+
+    <div class="cover-preview" *ngIf="coverPreview">
+      <img [src]="coverPreview" alt="Aperçu de l’image de couverture">
+    </div>
+
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Date et heure de début *</mat-label>
       <input matInput type="datetime-local" formControlName="startDateTime">
@@ -49,7 +71,7 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button (click)="close()">Annuler</button>
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!eventForm.valid">
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!eventForm.valid || uploadingCover">
     {{ isEditMode ? 'Modifier' : 'Planifier' }}
   </button>
 </mat-dialog-actions>

@@ -17,7 +17,7 @@ import { EducationalActivity } from '../../admin/core/models/educational-activit
 })
 export class ImageGameComponent implements OnInit {
     @Input({ required: true }) activity!: EducationalActivity;
-    @Input({ required: true }) userId!: number;
+    @Input({ required: true }) patientId!: string;
     @Output() completed = new EventEmitter<GameSessionResultDto>();
     @Output() cancelled = new EventEmitter<void>();
     @Output() errorMsg = new EventEmitter<string>();
@@ -40,7 +40,7 @@ export class ImageGameComponent implements OnInit {
     ) {}
 
     ngOnInit(): void {
-        this.activityService.startGameSession(this.activity.id, this.userId).subscribe({
+        this.activityService.startGameSession(this.activity.id, this.patientId).subscribe({
             next: s => {
                 this.session = s;
                 this.cards = [...(s.imageCards ?? [])];

@@ -6,6 +6,7 @@ import tn.SoftCare.User.dto.CreateUserRequest;
 import tn.SoftCare.User.dto.UpdateUserRequest;
 import tn.SoftCare.User.dto.UserResponse;
 import tn.SoftCare.User.exception.EmailAlreadyUsedException;
+import tn.SoftCare.User.model.Role;
 import tn.SoftCare.User.model.User;
 import tn.SoftCare.User.repository.UserRepository;
 
@@ -43,6 +44,12 @@ public class UserService {
     public List<UserResponse> findAll() {
         return userRepository.findAll()
                 .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public List<UserResponse> findByRole(Role role) {
+        return userRepository.findByRole(role).stream()
                 .map(this::toResponse)
                 .toList();
     }

@@ -19,7 +19,7 @@ export class EngagementService {
     constructor(private http: HttpClient) { }
 
     reloadEngagements(): Observable<PatientEngagement[]> {
-        return this.http.get<any[]>(this.apiUrl).pipe(
+        return this.http.get<any[]>(`${this.apiUrl}/patients`).pipe(
             map(rows => rows.map(r => this.toPatientEngagement(r))),
             tap(rows => this.engagementsSubject.next(rows))
         );
@@ -59,8 +59,8 @@ export class EngagementService {
         return this.statistics$;
     }
 
-    getEngagementsByPatient(patientId: number): Observable<PatientEngagement[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/${patientId}`).pipe(
+    getEngagementsByPatient(patientId: string): Observable<PatientEngagement[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/patients/${encodeURIComponent(patientId)}`).pipe(
             map(rows => rows.map(r => this.toPatientEngagement(r)))
         );
     }
@@ -71,7 +71,7 @@ export class EngagementService {
 
         return {
             id: row?.id,
-            patientId: row?.patientId,
+            patientId: row?.patientId != null ? String(row.patientId) : '',
             patientName: row?.patientName,
             activityId: row?.activityId,
             activityName: row?.activityTitle,
@@ -106,6 +106,8 @@ export class EngagementService {
                 return 'cognitive_game';
             case 'VIDEO':
                 return 'video';
+            case 'EVENT':
+                return 'event';
             default:
                 return String(type).toLowerCase();
         }

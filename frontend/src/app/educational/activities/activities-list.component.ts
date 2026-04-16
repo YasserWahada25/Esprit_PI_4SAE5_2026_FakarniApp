@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { ActivityService } from '../../admin/core/services/activity.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { EducationalActivity, ActivityType } from '../../admin/core/models/educational-activity.model';
 import { catalogThumbForActivity, DEFAULT_GAME_THUMB } from './activity-catalog-assets';
 
@@ -14,7 +15,6 @@ import { catalogThumbForActivity, DEFAULT_GAME_THUMB } from './activity-catalog-
     styleUrls: ['./activities-list.component.css', './activities-shared.css']
 })
 export class ActivitiesListComponent implements OnInit {
-    readonly demoUserId = 1;
     readonly defaultGameThumb = DEFAULT_GAME_THUMB;
 
     activities: EducationalActivity[] = [];
@@ -23,6 +23,7 @@ export class ActivitiesListComponent implements OnInit {
 
     constructor(
         private activityService: ActivityService,
+        private authService: AuthService,
         private router: Router,
         private cdr: ChangeDetectorRef
     ) {}
@@ -34,8 +35,9 @@ export class ActivitiesListComponent implements OnInit {
     loadActivities(): void {
         this.loading = true;
         this.loadError = null;
+        const pid = this.authService.getCurrentUser()?.id?.trim();
         this.activityService
-            .getActivities(this.demoUserId)
+            .getActivities(pid)
             .pipe(
                 finalize(() => {
                     this.loading = false;

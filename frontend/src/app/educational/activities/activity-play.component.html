@@ -34,7 +34,7 @@
         <app-quiz-game
             *ngIf="showQuiz && !sessionResultView && !contentSheet"
             [activity]="activity"
-            [userId]="demoUserId"
+            [patientId]="currentPatientId"
             (completed)="onQuizDone($event)"
             (cancelled)="onCancelGame()"
             (errorMsg)="onGameError($event)"
@@ -43,7 +43,7 @@
         <app-image-game
             *ngIf="showMemory && !sessionResultView && !contentSheet"
             [activity]="activity"
-            [userId]="demoUserId"
+            [patientId]="currentPatientId"
             (completed)="onQuizDone($event)"
             (cancelled)="onCancelGame()"
             (errorMsg)="onGameError($event)"

@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ActivityService, GameSessionResultDto } from '../../admin/core/services/activity.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { EducationalActivity } from '../../admin/core/models/educational-activity.model';
 import { QuizGameComponent } from './quiz-game.component';
 import { ImageGameComponent } from './image-game.component';
@@ -23,7 +24,7 @@ import { GameResultComponent, GameResultView } from './game-result.component';
     styleUrls: ['./activity-play.component.css', './activities-shared.css']
 })
 export class ActivityPlayComponent implements OnInit {
-    readonly demoUserId = 1;
+    currentPatientId = '';
 
     activity: EducationalActivity | null = null;
     loadError: string | null = null;
@@ -36,6 +37,7 @@ export class ActivityPlayComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private activityService: ActivityService,
+        private authService: AuthService,
         private cdr: ChangeDetectorRef
     ) {}
 
@@ -45,7 +47,13 @@ export class ActivityPlayComponent implements OnInit {
             this.loadError = 'Identifiant d’activité invalide.';
             return;
         }
-        this.activityService.getActivityById(id, this.demoUserId).subscribe({
+        const u = this.authService.getCurrentUser();
+        this.currentPatientId = (u?.id ?? '').trim();
+        if (!this.currentPatientId) {
+            this.loadError = 'Connectez-vous pour lancer une activité.';
+            return;
+        }
+        this.activityService.getActivityById(id, this.currentPatientId).subscribe({
             next: a => {
                 if (!a) {
                     this.loadError = 'Activité introuvable.';

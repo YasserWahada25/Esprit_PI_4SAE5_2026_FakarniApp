@@ -1,11 +1,14 @@
 package com.alzheimer.activite_educative_service.controllers;
 
+import com.alzheimer.activite_educative_service.dto.GameSessionHistoryItemResponse;
 import com.alzheimer.activite_educative_service.dto.GameSessionResultResponse;
 import com.alzheimer.activite_educative_service.dto.MemoryMoveRequest;
 import com.alzheimer.activite_educative_service.dto.MemoryMoveResponse;
 import com.alzheimer.activite_educative_service.services.GameSessionService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * Chemins REST raccourcis {@code /api/game-sessions/...} (en plus de
@@ -32,5 +35,21 @@ public class ApiGameSessionController {
     @GetMapping("/{sessionId}/result")
     public GameSessionResultResponse result(@PathVariable Long sessionId) {
         return gameSessionService.getSessionResult(sessionId);
+    }
+
+    @PostMapping("/{sessionId}/abandon")
+    public GameSessionHistoryItemResponse abandon(@PathVariable Long sessionId) {
+        return gameSessionService.abandonSession(sessionId);
+    }
+
+    /**
+     * Agrégation suivi d’engagement : sessions récentes avec {@code patientId} renseigné (max 500).
+     * Placé ici pour éviter la collision avec {@code GET /{sessionId}/result} sur le même préfixe.
+     */
+    @GetMapping("/engagement-sessions")
+    public List<GameSessionHistoryItemResponse> engagementSessions(
+            @RequestParam(name = "limit", defaultValue = "500") int limit
+    ) {
+        return gameSessionService.listRecentForEngagement(limit);
     }
 }

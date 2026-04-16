@@ -2,9 +2,13 @@ package tn.SoftCare.User.controller;
 
 import org.springframework.web.bind.annotation.*;
 import tn.SoftCare.User.dto.InternalUserAuthResponse;
+import tn.SoftCare.User.dto.PatientSummaryDto;
+import tn.SoftCare.User.model.Role;
 import tn.SoftCare.User.model.User;
 import tn.SoftCare.User.repository.UserRepository;
 import tn.SoftCare.User.service.UserService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/internal/users")
@@ -36,5 +40,13 @@ public class InternalUserController {
     @PutMapping("/{id}/password")
     public void updatePassword(@PathVariable String id, @RequestBody String newPassword) {
         userService.updatePassword(id, newPassword);
+    }
+
+    /** Microservices (suivi engagement, etc.) : patients réels uniquement. */
+    @GetMapping("/patients")
+    public List<PatientSummaryDto> listPatientsForTracking() {
+        return userRepository.findByRole(Role.PATIENT_PROFILE).stream()
+                .map(PatientSummaryDto::fromUser)
+                .toList();
     }
 }

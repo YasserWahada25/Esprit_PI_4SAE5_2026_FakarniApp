@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.EnumSet;
@@ -89,22 +90,22 @@ public class ActiviteEducativeService {
     }
 
     @Transactional(readOnly = true)
-    public List<ActiviteEducativeResponse> getAllActivities(Long userId) {
+    public List<ActiviteEducativeResponse> getAllActivities(String patientIdForScores) {
         List<ActiviteEducative> entities = activiteEducativeRepository.findAll();
-        log.info("Retrieved {} educational activities from repository (userId filter for scores: {})",
-                entities.size(), userId);
+        log.info("Retrieved {} educational activities from repository (patientId filter for scores: {})",
+                entities.size(), patientIdForScores);
         List<ActiviteEducativeResponse> list = entities.stream()
-                .map(a -> toResponse(a, userId))
+                .map(a -> toResponse(a, patientIdForScores))
                 .collect(Collectors.toList());
         log.debug("Mapped {} activity DTOs for API response", list.size());
         return list;
     }
 
     @Transactional(readOnly = true)
-    public ActiviteEducativeResponse getActivityById(Long id, Long userId) {
+    public ActiviteEducativeResponse getActivityById(Long id, String patientIdForScores) {
         ActiviteEducative entity = activiteEducativeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Activity not found: " + id));
-        return toResponse(entity, userId);
+        return toResponse(entity, patientIdForScores);
     }
 
     @Transactional
@@ -133,12 +134,12 @@ public class ActiviteEducativeService {
         }
     }
 
-    private ActiviteEducativeResponse toResponse(ActiviteEducative entity, Long userId) {
+    private ActiviteEducativeResponse toResponse(ActiviteEducative entity, String patientIdForScores) {
         ActiviteEducativeResponse r = new ActiviteEducativeResponse(entity);
-        if (userId != null && isGameLikeForScores(entity.getType())) {
+        if (StringUtils.hasText(patientIdForScores) && isGameLikeForScores(entity.getType())) {
             gameSessionRepository
-                    .findFirstByUserIdAndActivity_IdAndStatusInOrderByFinishedAtDesc(
-                            userId,
+                    .findFirstByPatientIdAndActivity_IdAndStatusInOrderByFinishedAtDesc(
+                            patientIdForScores.trim(),
                             entity.getId(),
                             EnumSet.of(SessionStatus.SUCCESS, SessionStatus.FAILURE, SessionStatus.COMPLETED))
                     .ifPresent(s -> r.setLatestScorePercent(s.getScorePercent()));

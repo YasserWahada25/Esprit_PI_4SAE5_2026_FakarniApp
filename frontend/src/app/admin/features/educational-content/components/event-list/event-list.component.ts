@@ -18,7 +18,7 @@ import { MapModalComponent } from '../map-modal/map-modal.component';
 export class EventListComponent implements OnInit {
     events: EducationalEvent[] = [];
     dataSource: MatTableDataSource<EducationalEvent>;
-    displayedColumns: string[] = ['title', 'date', 'time', 'status', 'participants', 'map', 'actions'];
+    displayedColumns: string[] = ['cover', 'title', 'date', 'time', 'status', 'participants', 'map', 'actions'];
 
     @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
