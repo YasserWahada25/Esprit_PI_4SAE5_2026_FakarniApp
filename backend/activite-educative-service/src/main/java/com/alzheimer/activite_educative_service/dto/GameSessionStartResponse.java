@@ -9,7 +9,7 @@ public class GameSessionStartResponse {
 
     private Long sessionId;
     private Long activityId;
-    private Long userId;
+    private String patientId;
     private SessionStatus status;
     private Integer totalQuestions;
     /** {@link GameType#MEMORY_QUIZ} ou {@link GameType#IMAGE_RECOGNITION} pour l’activité lancée. */
@@ -34,12 +34,12 @@ public class GameSessionStartResponse {
         this.activityId = activityId;
     }
 
-    public Long getUserId() {
-        return userId;
+    public String getPatientId() {
+        return patientId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
     }
 
     public SessionStatus getStatus() {

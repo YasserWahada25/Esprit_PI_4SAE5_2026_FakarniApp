@@ -79,7 +79,8 @@ export class EventsComponent implements OnInit {
   }
 
   coverUrl(event: EducationalEvent): string {
-    return eventCoverImageUrl(event);
+    const customCover = (event.coverImageUrl ?? '').trim();
+    return customCover.length > 0 ? customCover : eventCoverImageUrl(event);
   }
 
   coverGradient(event: EducationalEvent): string {

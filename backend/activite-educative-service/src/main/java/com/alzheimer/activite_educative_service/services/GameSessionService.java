@@ -13,8 +13,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -55,7 +58,8 @@ public class GameSessionService {
 
     @Transactional
     public GameSessionStartResponse startGameSession(Long activityId, GameSessionStartRequest request) {
-        log.info("Starting game session for activityId={}, userId={}", activityId, request.getUserId());
+        String patientId = resolvePatientId(request);
+        log.info("Starting game session for activityId={}, patientId={}", activityId, patientId);
         ActiviteEducative activity = activiteEducativeRepository.findById(activityId)
                 .orElseThrow(() -> new ResourceNotFoundException("Activity not found: " + activityId));
         if (activity.getStatus() != ActivityStatus.ACTIVE) {
@@ -73,7 +77,7 @@ public class GameSessionService {
         }
 
         GameSession session = new GameSession();
-        session.setUserId(request.getUserId());
+        session.setPatientId(patientId);
         session.setActivity(activity);
         session.setStatus(SessionStatus.IN_PROGRESS);
         session.setCorrectCount(0);
@@ -93,7 +97,7 @@ public class GameSessionService {
         GameSessionStartResponse resp = new GameSessionStartResponse();
         resp.setSessionId(saved.getId());
         resp.setActivityId(activityId);
-        resp.setUserId(request.getUserId());
+        resp.setPatientId(patientId);
         resp.setStatus(saved.getStatus());
         resp.setTotalQuestions(saved.getTotalQuestions());
         resp.setGameType(activity.getGameType());
@@ -184,6 +188,27 @@ public class GameSessionService {
             out.setGameCompleted(false);
         }
         return out;
+    }
+
+    /**
+     * Abandon explicite : statut {@link SessionStatus#ABANDONED}, score partiel, progression partielle.
+     */
+    @Transactional
+    public GameSessionHistoryItemResponse abandonSession(Long sessionId) {
+        GameSession session = gameSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Session not found: " + sessionId));
+        if (session.getStatus() != SessionStatus.IN_PROGRESS) {
+            throw new BusinessRuleException("Session is not in progress");
+        }
+        long correct = sessionAnswerRepository.countBySessionIdAndCorrectTrue(sessionId);
+        int total = session.getTotalQuestions() == null ? 0 : session.getTotalQuestions();
+        double scorePct = total == 0 ? 0.0 : correct * 100.0 / total;
+        session.setStatus(SessionStatus.ABANDONED);
+        session.setCorrectCount((int) correct);
+        session.setScorePercent(scorePct);
+        session.setFinishedAt(LocalDateTime.now());
+        gameSessionRepository.save(session);
+        return toHistoryItem(session);
     }
 
     @Transactional
@@ -302,8 +327,26 @@ public class GameSessionService {
     }
 
     @Transactional(readOnly = true)
-    public List<GameSessionHistoryItemResponse> getHistory(Long userId) {
-        return gameSessionRepository.findByUserIdOrderByStartedAtDesc(userId).stream()
+    public List<GameSessionHistoryItemResponse> getHistory(String patientId) {
+        if (!StringUtils.hasText(patientId)) {
+            return List.of();
+        }
+        return gameSessionRepository.findByPatientIdOrderByStartedAtDesc(patientId.trim()).stream()
+                .map(this::toHistoryItem)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Dernières sessions (tous patients) pour le microservice suivi-engagement, sans dépendre de la liste User.
+     */
+    @Transactional(readOnly = true)
+    public List<GameSessionHistoryItemResponse> listRecentForEngagement(int limit) {
+        int safe = Math.min(Math.max(limit, 1), 500);
+        return gameSessionRepository
+                .findAll(PageRequest.of(0, safe, Sort.by(Sort.Direction.DESC, "startedAt")))
+                .getContent()
+                .stream()
+                .filter(gs -> StringUtils.hasText(gs.getPatientId()))
                 .map(this::toHistoryItem)
                 .collect(Collectors.toList());
     }
@@ -311,13 +354,42 @@ public class GameSessionService {
     private GameSessionHistoryItemResponse toHistoryItem(GameSession s) {
         GameSessionHistoryItemResponse h = new GameSessionHistoryItemResponse();
         h.setSessionId(s.getId());
+        h.setPatientId(s.getPatientId());
         h.setActivityId(s.getActivity().getId());
         h.setActivityTitle(s.getActivity().getTitle());
+        h.setActivityType(s.getActivity().getType());
         h.setStatus(s.getStatus());
         h.setScorePercent(s.getScorePercent());
+        h.setProgressPercentage(computeProgressPercent(s));
         h.setStartedAt(s.getStartedAt());
         h.setFinishedAt(s.getFinishedAt());
         return h;
+    }
+
+    private int computeProgressPercent(GameSession s) {
+        int total = s.getTotalQuestions() == null ? 0 : s.getTotalQuestions();
+        if (total <= 0) {
+            return 0;
+        }
+        SessionStatus st = s.getStatus();
+        if (st == SessionStatus.SUCCESS || st == SessionStatus.FAILURE || st == SessionStatus.COMPLETED) {
+            return 100;
+        }
+        long answered = sessionAnswerRepository.countBySessionId(s.getId());
+        return (int) Math.round(Math.min(100.0, answered * 100.0 / total));
+    }
+
+    private static String resolvePatientId(GameSessionStartRequest request) {
+        if (request == null) {
+            throw new BusinessRuleException("Request body is required");
+        }
+        if (StringUtils.hasText(request.getPatientId())) {
+            return request.getPatientId().trim();
+        }
+        if (request.getUserId() != null) {
+            return String.valueOf(request.getUserId());
+        }
+        throw new BusinessRuleException("patientId is required (identifiant utilisateur du microservice User)");
     }
 
     private GameSessionResultResponse buildResult(GameSession session) {
@@ -325,7 +397,7 @@ public class GameSessionService {
         r.setSessionId(session.getId());
         r.setActivityId(session.getActivity().getId());
         r.setActivityTitle(session.getActivity().getTitle());
-        r.setUserId(session.getUserId());
+        r.setPatientId(session.getPatientId());
         r.setStatus(session.getStatus());
         r.setTotalQuestions(session.getTotalQuestions());
         r.setCorrectCount(session.getCorrectCount());

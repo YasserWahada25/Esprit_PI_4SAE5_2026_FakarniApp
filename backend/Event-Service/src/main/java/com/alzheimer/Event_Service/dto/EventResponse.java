@@ -8,6 +8,7 @@ public class EventResponse {
     private String description;
     private String startDateTime;   // ISO string, ex: "2026-03-04T20:33:56"
     private String location;
+    private String coverImageUrl;
     private boolean remindEnabled;
     private Long userId;
     private String createdAt;
@@ -21,6 +22,7 @@ public class EventResponse {
         this.description = description;
         this.startDateTime = startDateTime != null ? startDateTime.toString() : null;
         this.location = location;
+        this.coverImageUrl = null;
         this.remindEnabled = remindEnabled;
         this.userId = userId;
         this.createdAt = createdAt != null ? createdAt.toString() : null;
@@ -34,6 +36,7 @@ public class EventResponse {
         this.description = e.getDescription();
         this.startDateTime = e.getStartDateTime() != null ? e.getStartDateTime().toString() : null;
         this.location = e.getLocation();
+        this.coverImageUrl = e.getCoverImageUrl();
         this.remindEnabled = e.isRemindEnabled();
         this.userId = e.getUserId();
         this.createdAt = e.getCreatedAt() != null ? e.getCreatedAt().toString() : null;
@@ -80,6 +83,14 @@ public class EventResponse {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getCoverImageUrl() {
+        return coverImageUrl;
+    }
+
+    public void setCoverImageUrl(String coverImageUrl) {
+        this.coverImageUrl = coverImageUrl;
     }
 
     public boolean isRemindEnabled() {

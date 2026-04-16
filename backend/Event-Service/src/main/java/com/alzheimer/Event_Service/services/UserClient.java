@@ -7,13 +7,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.Map;
 
 /**
- * Interface Feign pour communiquer avec User-Service (ou Gateway).
- * L'URL pointe soit vers le Gateway (8090) soit vers l'Eureka ID du User Service "user-service".
- * Assurez-vous que l'endpoint correspond à votre architecture réelle.
+ * Client Feign vers la Gateway ou le User-Service (identifiants utilisateur Mongo = {@link String}).
  */
-@FeignClient(name = "user-service", url = "http://localhost:8090") // Utilise Gateway par défaut
+@FeignClient(name = "user-service", url = "${feign.user-service.url:http://localhost:8090}")
 public interface UserClient {
 
     @GetMapping("/api/users/{id}")
-    Map<String, Object> getUserById(@PathVariable("id") Long id);
+    Map<String, Object> getUserById(@PathVariable("id") String id);
 }

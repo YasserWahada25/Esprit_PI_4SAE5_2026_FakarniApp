@@ -47,7 +47,7 @@ public class EventReminderScheduler {
         for (Event event : eventsToRemind) {
             try {
                 // 1. Récupérer le User
-                Map<String, Object> userData = userClient.getUserById(event.getUserId());
+                Map<String, Object> userData = userClient.getUserById(String.valueOf(event.getUserId()));
                 String userEmail = (userData != null && userData.containsKey("email")) 
                                    ? userData.get("email").toString() 
                                    : null;

@@ -2,6 +2,7 @@ package com.alzheimer.suivi_engagement_service.controllers;
 
 import com.alzheimer.suivi_engagement_service.dto.EngagementDistributionResponse;
 import com.alzheimer.suivi_engagement_service.dto.EngagementRowResponse;
+import com.alzheimer.suivi_engagement_service.dto.EngagementStatsResponse;
 import com.alzheimer.suivi_engagement_service.dto.EngagementSummaryResponse;
 import com.alzheimer.suivi_engagement_service.dto.MlDatasetRowResponse;
 import com.alzheimer.suivi_engagement_service.services.PatientEngagementService;
@@ -20,9 +21,20 @@ public class PatientEngagementController {
         this.service = service;
     }
 
+    /** Liste plate (rétrocompat front existant). */
     @GetMapping
     public List<EngagementRowResponse> getAllEngagements() {
         return service.getAllEngagements();
+    }
+
+    @GetMapping("/patients")
+    public List<EngagementRowResponse> listPatientsEngagement() {
+        return service.getAllEngagements();
+    }
+
+    @GetMapping("/stats")
+    public EngagementStatsResponse stats() {
+        return service.getStats();
     }
 
     @GetMapping("/summary")
@@ -40,14 +52,23 @@ public class PatientEngagementController {
         return service.getDistribution();
     }
 
-    @GetMapping("/{patientId}")
-    public List<EngagementRowResponse> byPatient(@PathVariable Long patientId) {
-        return service.getEngagementByPatientId(patientId);
-    }
-
     @GetMapping("/ml-dataset")
     public List<MlDatasetRowResponse> mlDataset() {
         return service.getMlDataset();
     }
-}
 
+    @GetMapping("/patients/{patientId}")
+    public List<EngagementRowResponse> patientDetail(@PathVariable String patientId) {
+        return service.getEngagementByPatientId(patientId);
+    }
+
+    @GetMapping("/patients/{patientId}/activities")
+    public List<EngagementRowResponse> patientActivities(@PathVariable String patientId) {
+        return service.getEngagementByPatientId(patientId);
+    }
+
+    @GetMapping("/{patientId}")
+    public List<EngagementRowResponse> byPatient(@PathVariable String patientId) {
+        return service.getEngagementByPatientId(patientId);
+    }
+}

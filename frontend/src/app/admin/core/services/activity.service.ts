@@ -86,7 +86,9 @@ export interface ImageCardPlayDto {
 export interface GameSessionStartResponseDto {
     sessionId: number;
     activityId: number;
-    userId: number;
+    patientId?: string;
+    /** @deprecated API activité : préférer patientId */
+    userId?: number;
     status: string;
     totalQuestions: number;
     /** MEMORY_QUIZ, IMAGE_RECOGNITION (QCM), MEMORY_MATCH (paires). */
@@ -124,6 +126,7 @@ export interface GameSessionResultDto {
     sessionId: number;
     activityId: number;
     activityTitle?: string;
+    patientId?: string;
     userId?: number;
     status: string;
     totalQuestions?: number;
@@ -161,10 +164,10 @@ export class ActivityService {
         this.gameSessionsRoot = base ? `${base}/api/activities/game-sessions` : '/api/activities/game-sessions';
     }
 
-    getActivities(userId?: number): Observable<EducationalActivity[]> {
+    getActivities(patientId?: string): Observable<EducationalActivity[]> {
         let params = new HttpParams();
-        if (userId != null) {
-            params = params.set('userId', String(userId));
+        if (patientId != null && patientId.trim() !== '') {
+            params = params.set('patientId', patientId.trim());
         }
         return this.http.get<ActiviteEducativeResponseDto[]>(this.apiUrl, { params }).pipe(
             map(raw => {
@@ -180,10 +183,10 @@ export class ActivityService {
         );
     }
 
-    getActivityById(id: number, userId?: number): Observable<EducationalActivity | undefined> {
+    getActivityById(id: number, patientId?: string): Observable<EducationalActivity | undefined> {
         let params = new HttpParams();
-        if (userId != null) {
-            params = params.set('userId', String(userId));
+        if (patientId != null && patientId.trim() !== '') {
+            params = params.set('patientId', patientId.trim());
         }
         return this.http.get<ActiviteEducativeResponseDto>(`${this.apiUrl}/${id}`, { params }).pipe(
             map(dto => this.safeToEducationalActivity(dto) ?? undefined),
@@ -308,9 +311,9 @@ export class ActivityService {
             .pipe(map(raw => this.normalizeQuestionAdmin(raw)));
     }
 
-    startGameSession(activityId: number, userId: number): Observable<GameSessionStartResponseDto> {
+    startGameSession(activityId: number, patientId: string): Observable<GameSessionStartResponseDto> {
         return this.http
-            .post<unknown>(`${this.apiUrl}/${activityId}/start`, { userId })
+            .post<unknown>(`${this.apiUrl}/${activityId}/start`, { patientId })
             .pipe(map(raw => this.normalizeGameSessionStartResponse(raw)));
     }
 
@@ -380,6 +383,10 @@ export class ActivityService {
             sessionId: Number(o['sessionId'] ?? o['session_id'] ?? 0),
             activityId: Number(o['activityId'] ?? o['activity_id'] ?? 0),
             activityTitle: o['activityTitle'] != null ? String(o['activityTitle']) : undefined,
+            patientId:
+                o['patientId'] != null || o['patient_id'] != null
+                    ? String(o['patientId'] ?? o['patient_id'])
+                    : undefined,
             userId:
                 o['userId'] != null || o['user_id'] != null
                     ? Number(o['userId'] ?? o['user_id'])
@@ -468,7 +475,14 @@ export class ActivityService {
         return {
             sessionId: Number(o['sessionId'] ?? o['session_id'] ?? 0),
             activityId: Number(o['activityId'] ?? o['activity_id'] ?? 0),
-            userId: Number(o['userId'] ?? o['user_id'] ?? 0),
+            patientId:
+                o['patientId'] != null || o['patient_id'] != null
+                    ? String(o['patientId'] ?? o['patient_id'])
+                    : undefined,
+            userId:
+                o['userId'] != null || o['user_id'] != null
+                    ? Number(o['userId'] ?? o['user_id'])
+                    : undefined,
             status: String(o['status'] ?? ''),
             totalQuestions: Number(
                 o['totalQuestions'] ?? o['total_questions'] ?? fallbackTotal

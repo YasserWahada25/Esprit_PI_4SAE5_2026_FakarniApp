@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
+import { finalize } from 'rxjs/operators';
 import { EducationalEventService } from '../../../../core/services/educational-event.service';
 import { EducationalEvent } from '../../../../core/models/educational-event.model';
 import { LocationPickerComponent, LocationSelection } from '../location-picker/location-picker.component';
@@ -21,6 +22,9 @@ import { LocationPickerComponent, LocationSelection } from '../location-picker/l
 export class EventFormComponent implements OnInit {
   eventForm: FormGroup;
   isEditMode = false;
+  coverPreview: string | null = null;
+  coverFile: File | null = null;
+  uploadingCover = false;
 
   constructor(
     private fb: FormBuilder,
@@ -36,6 +40,7 @@ export class EventFormComponent implements OnInit {
       description: [data?.description ?? ''],
       startDateTime: [data?.startDateTime ?? '', Validators.required],
       location: [data?.location ?? ''],
+      coverImageUrl: [data?.coverImageUrl ?? ''],
       remindEnabled: [data?.remindEnabled ?? false],
       userId: [data?.userId ?? 1, Validators.required],
       lat: [data?.lat ?? null],
@@ -43,7 +48,9 @@ export class EventFormComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    this.updateCoverPreview(this.eventForm.get('coverImageUrl')?.value ?? null);
+  }
 
   /** Called by LocationPickerComponent when the user clicks on the map */
   onLocationSelected(selection: LocationSelection): void {
@@ -57,15 +64,65 @@ export class EventFormComponent implements OnInit {
   onSubmit(): void {
     if (this.eventForm.invalid) return;
 
+    if (this.coverFile) {
+      this.uploadingCover = true;
+      this.eventService
+        .uploadCoverImage(this.coverFile)
+        .pipe(finalize(() => (this.uploadingCover = false)))
+        .subscribe({
+          next: (response) => {
+            this.eventForm.patchValue({ coverImageUrl: response.url });
+            this.persistEvent();
+          },
+          error: (err) => console.error('Erreur upload image', err)
+        });
+      return;
+    }
+
+    this.persistEvent();
+  }
+
+  close(): void {
+    this.dialogRef.close(false);
+  }
+
+  onCoverSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.coverFile = file;
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.coverPreview = typeof reader.result === 'string' ? reader.result : null;
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  removeCover(): void {
+    this.coverFile = null;
+    this.eventForm.patchValue({
+      coverImageUrl: this.isEditMode ? (this.data?.coverImageUrl ?? '') : ''
+    });
+    this.updateCoverPreview(this.eventForm.get('coverImageUrl')?.value ?? null);
+  }
+
+  private updateCoverPreview(value: string | null | undefined): void {
+    const normalized = (value ?? '').trim();
+    this.coverPreview = normalized.length > 0 ? normalized : null;
+  }
+
+  private persistEvent(): void {
     const payload = this.eventForm.value;
 
-    // Fermer immédiatement toutes les popups pour l'utilisateur
     this.dialog.closeAll();
 
     if (this.isEditMode && this.data) {
       this.eventService.updateEvent(this.data.id, payload).subscribe({
         next: () => {
-          // Après succès, on recharge la liste partagée puis on ferme le formulaire
           this.eventService.reloadEvents().subscribe(() => {
             this.router.navigate(['/admin/educational-content/events']);
           });
@@ -75,7 +132,6 @@ export class EventFormComponent implements OnInit {
     } else {
       this.eventService.createEvent(payload).subscribe({
         next: () => {
-          // Après succès, on recharge la liste partagée puis on ferme le formulaire
           this.eventService.reloadEvents().subscribe(() => {
             this.router.navigate(['/admin/educational-content/events']);
           });
@@ -83,10 +139,6 @@ export class EventFormComponent implements OnInit {
         error: (err) => console.error('Erreur création', err)
       });
     }
-  }
-
-  close(): void {
-    this.dialogRef.close(false);
   }
 }
 

@@ -9,9 +9,10 @@ import java.time.LocalDateTime;
 public class EngagementRowResponse {
 
     private Long id;
-    private Long patientId;
+    private String patientId;
     private String patientName;
     private Long activityId;
+    private Long eventId;
     private String activityTitle;
     private EngagementActivityType activityType;
     private EngagementStatus status;
@@ -28,6 +29,7 @@ public class EngagementRowResponse {
         this.patientId = e.getPatientId();
         this.patientName = e.getPatientName();
         this.activityId = e.getActivityId();
+        this.eventId = e.getEventId();
         this.activityTitle = e.getActivityTitle();
         this.activityType = e.getActivityType();
         this.status = e.getStatus();
@@ -37,37 +39,99 @@ public class EngagementRowResponse {
         this.endDate = e.getEndDate();
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Long getPatientId() { return patientId; }
-    public void setPatientId(Long patientId) { this.patientId = patientId; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getPatientName() { return patientName; }
-    public void setPatientName(String patientName) { this.patientName = patientName; }
+    public String getPatientId() {
+        return patientId;
+    }
 
-    public Long getActivityId() { return activityId; }
-    public void setActivityId(Long activityId) { this.activityId = activityId; }
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
+    }
 
-    public String getActivityTitle() { return activityTitle; }
-    public void setActivityTitle(String activityTitle) { this.activityTitle = activityTitle; }
+    public String getPatientName() {
+        return patientName;
+    }
 
-    public EngagementActivityType getActivityType() { return activityType; }
-    public void setActivityType(EngagementActivityType activityType) { this.activityType = activityType; }
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
 
-    public EngagementStatus getStatus() { return status; }
-    public void setStatus(EngagementStatus status) { this.status = status; }
+    public Long getActivityId() {
+        return activityId;
+    }
 
-    public Integer getScore() { return score; }
-    public void setScore(Integer score) { this.score = score; }
+    public void setActivityId(Long activityId) {
+        this.activityId = activityId;
+    }
 
-    public Integer getProgression() { return progression; }
-    public void setProgression(Integer progression) { this.progression = progression; }
+    public Long getEventId() {
+        return eventId;
+    }
 
-    public LocalDateTime getStartDate() { return startDate; }
-    public void setStartDate(LocalDateTime startDate) { this.startDate = startDate; }
+    public void setEventId(Long eventId) {
+        this.eventId = eventId;
+    }
 
-    public LocalDateTime getEndDate() { return endDate; }
-    public void setEndDate(LocalDateTime endDate) { this.endDate = endDate; }
+    public String getActivityTitle() {
+        return activityTitle;
+    }
+
+    public void setActivityTitle(String activityTitle) {
+        this.activityTitle = activityTitle;
+    }
+
+    public EngagementActivityType getActivityType() {
+        return activityType;
+    }
+
+    public void setActivityType(EngagementActivityType activityType) {
+        this.activityType = activityType;
+    }
+
+    public EngagementStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(EngagementStatus status) {
+        this.status = status;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
+    }
+
+    public Integer getProgression() {
+        return progression;
+    }
+
+    public void setProgression(Integer progression) {
+        this.progression = progression;
+    }
+
+    public LocalDateTime getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDateTime startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDateTime getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDateTime endDate) {
+        this.endDate = endDate;
+    }
 }
-

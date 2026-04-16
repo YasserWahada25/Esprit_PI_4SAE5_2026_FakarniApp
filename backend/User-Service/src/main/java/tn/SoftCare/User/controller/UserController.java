@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import tn.SoftCare.User.dto.CreateUserRequest;
 import tn.SoftCare.User.dto.UpdateUserRequest;
 import tn.SoftCare.User.dto.UserResponse;
+import tn.SoftCare.User.model.Role;
 import tn.SoftCare.User.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -31,6 +32,16 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public List<UserResponse> getAll() {
         return userService.findAll();
+    }
+
+    /**
+     * Liste les utilisateurs d'un rôle donné (ex. PATIENT_PROFILE pour le front / suivi).
+     */
+    @GetMapping("/by-role/{role}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserResponse> getByRole(@PathVariable String role) {
+        Role r = Role.valueOf(role.trim().toUpperCase());
+        return userService.findByRole(r);
     }
 
     @GetMapping("/{id}")

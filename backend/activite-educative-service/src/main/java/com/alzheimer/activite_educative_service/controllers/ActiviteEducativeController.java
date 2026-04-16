@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -64,10 +65,15 @@ public class ActiviteEducativeController {
     @GetMapping("/{activityId}/start")
     public GameSessionStartResponse startGameSessionGet(
             @PathVariable Long activityId,
-            @RequestParam Long userId
+            @RequestParam(required = false) String patientId,
+            @RequestParam(required = false) Long userId
     ) {
         GameSessionStartRequest req = new GameSessionStartRequest();
-        req.setUserId(userId);
+        if (StringUtils.hasText(patientId)) {
+            req.setPatientId(patientId.trim());
+        } else if (userId != null) {
+            req.setUserId(userId);
+        }
         return gameSessionService.startGameSession(activityId, req);
     }
 
@@ -110,19 +116,32 @@ public class ActiviteEducativeController {
 
     @GetMapping
     public List<ActiviteEducativeResponse> getAllActivities(
+            @RequestParam(required = false) String patientId,
             @RequestParam(required = false) Long userId
     ) {
-        List<ActiviteEducativeResponse> list = service.getAllActivities(userId);
-        log.info("GET /api/activities → {} activities (userId={})", list.size(), userId);
+        String pid = resolvePatientQuery(patientId, userId);
+        List<ActiviteEducativeResponse> list = service.getAllActivities(pid);
+        log.info("GET /api/activities → {} activities (patientId={})", list.size(), pid);
         return list;
     }
 
     @GetMapping("/{id}")
     public ActiviteEducativeResponse getActivityById(
             @PathVariable Long id,
+            @RequestParam(required = false) String patientId,
             @RequestParam(required = false) Long userId
     ) {
-        return service.getActivityById(id, userId);
+        return service.getActivityById(id, resolvePatientQuery(patientId, userId));
+    }
+
+    private static String resolvePatientQuery(String patientId, Long legacyUserId) {
+        if (StringUtils.hasText(patientId)) {
+            return patientId.trim();
+        }
+        if (legacyUserId != null) {
+            return String.valueOf(legacyUserId);
+        }
+        return null;
     }
 
     @PutMapping("/{id}")

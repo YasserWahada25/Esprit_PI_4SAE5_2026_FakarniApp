@@ -4,6 +4,7 @@ export interface EducationalEvent {
     title: string;
     startDateTime: string;   // ISO 8601 ex: "2026-03-01T10:00:00"
     location?: string;
+    coverImageUrl?: string;
     remindEnabled: boolean;
     userId: number;
     createdAt?: string;

@@ -58,6 +58,12 @@ export class EducationalEventService {
         );
     }
 
+    uploadCoverImage(file: File): Observable<{ url: string; message: string }> {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this.http.post<{ url: string; message: string }>(`${this.apiUrl}/upload/image`, formData);
+    }
+
     deleteEvent(id: number): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
             tap(() => {

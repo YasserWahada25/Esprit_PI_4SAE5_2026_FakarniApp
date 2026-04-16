@@ -1,7 +1,7 @@
 package com.alzheimer.suivi_engagement_service.dto;
 
 public class MlDatasetRowResponse {
-    private Long patientId;
+    private String patientId;
     private String patientName;
     private double averageScore;
     private double engagementRate;
@@ -16,7 +16,7 @@ public class MlDatasetRowResponse {
     }
 
     public MlDatasetRowResponse(
-            Long patientId,
+            String patientId,
             String patientName,
             double averageScore,
             double engagementRate,
@@ -39,34 +39,83 @@ public class MlDatasetRowResponse {
         this.improvementLabel = improvementLabel;
     }
 
-    public Long getPatientId() { return patientId; }
-    public void setPatientId(Long patientId) { this.patientId = patientId; }
+    public String getPatientId() {
+        return patientId;
+    }
 
-    public String getPatientName() { return patientName; }
-    public void setPatientName(String patientName) { this.patientName = patientName; }
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
+    }
 
-    public double getAverageScore() { return averageScore; }
-    public void setAverageScore(double averageScore) { this.averageScore = averageScore; }
+    public String getPatientName() {
+        return patientName;
+    }
 
-    public double getEngagementRate() { return engagementRate; }
-    public void setEngagementRate(double engagementRate) { this.engagementRate = engagementRate; }
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
 
-    public double getProgression() { return progression; }
-    public void setProgression(double progression) { this.progression = progression; }
+    public double getAverageScore() {
+        return averageScore;
+    }
 
-    public long getCompletedActivities() { return completedActivities; }
-    public void setCompletedActivities(long completedActivities) { this.completedActivities = completedActivities; }
+    public void setAverageScore(double averageScore) {
+        this.averageScore = averageScore;
+    }
 
-    public long getInProgressActivities() { return inProgressActivities; }
-    public void setInProgressActivities(long inProgressActivities) { this.inProgressActivities = inProgressActivities; }
+    public double getEngagementRate() {
+        return engagementRate;
+    }
 
-    public long getAbandonedActivities() { return abandonedActivities; }
-    public void setAbandonedActivities(long abandonedActivities) { this.abandonedActivities = abandonedActivities; }
+    public void setEngagementRate(double engagementRate) {
+        this.engagementRate = engagementRate;
+    }
 
-    public String getRiskLevel() { return riskLevel; }
-    public void setRiskLevel(String riskLevel) { this.riskLevel = riskLevel; }
+    public double getProgression() {
+        return progression;
+    }
 
-    public String getImprovementLabel() { return improvementLabel; }
-    public void setImprovementLabel(String improvementLabel) { this.improvementLabel = improvementLabel; }
+    public void setProgression(double progression) {
+        this.progression = progression;
+    }
+
+    public long getCompletedActivities() {
+        return completedActivities;
+    }
+
+    public void setCompletedActivities(long completedActivities) {
+        this.completedActivities = completedActivities;
+    }
+
+    public long getInProgressActivities() {
+        return inProgressActivities;
+    }
+
+    public void setInProgressActivities(long inProgressActivities) {
+        this.inProgressActivities = inProgressActivities;
+    }
+
+    public long getAbandonedActivities() {
+        return abandonedActivities;
+    }
+
+    public void setAbandonedActivities(long abandonedActivities) {
+        this.abandonedActivities = abandonedActivities;
+    }
+
+    public String getRiskLevel() {
+        return riskLevel;
+    }
+
+    public void setRiskLevel(String riskLevel) {
+        this.riskLevel = riskLevel;
+    }
+
+    public String getImprovementLabel() {
+        return improvementLabel;
+    }
+
+    public void setImprovementLabel(String improvementLabel) {
+        this.improvementLabel = improvementLabel;
+    }
 }
-

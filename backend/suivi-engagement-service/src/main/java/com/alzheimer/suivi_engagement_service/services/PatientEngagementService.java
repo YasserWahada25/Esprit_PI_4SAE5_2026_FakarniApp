@@ -2,11 +2,10 @@ package com.alzheimer.suivi_engagement_service.services;
 
 import com.alzheimer.suivi_engagement_service.dto.EngagementDistributionResponse;
 import com.alzheimer.suivi_engagement_service.dto.EngagementRowResponse;
+import com.alzheimer.suivi_engagement_service.dto.EngagementStatsResponse;
 import com.alzheimer.suivi_engagement_service.dto.EngagementSummaryResponse;
 import com.alzheimer.suivi_engagement_service.dto.MlDatasetRowResponse;
 import com.alzheimer.suivi_engagement_service.entities.EngagementStatus;
-import com.alzheimer.suivi_engagement_service.entities.PatientEngagement;
-import com.alzheimer.suivi_engagement_service.repositories.PatientEngagementRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -15,92 +14,76 @@ import java.util.stream.Collectors;
 @Service
 public class PatientEngagementService {
 
-    private final PatientEngagementRepository repository;
+    private final RemoteEngagementAggregator remoteEngagementAggregator;
 
-    public PatientEngagementService(PatientEngagementRepository repository) {
-        this.repository = repository;
+    public PatientEngagementService(RemoteEngagementAggregator remoteEngagementAggregator) {
+        this.remoteEngagementAggregator = remoteEngagementAggregator;
     }
 
     public List<EngagementRowResponse> getAllEngagements() {
-        return repository.findAll().stream()
-                .map(EngagementRowResponse::new)
-                .collect(Collectors.toList());
+        return remoteEngagementAggregator.aggregateAll();
     }
 
-    public List<EngagementRowResponse> getEngagementByPatientId(Long patientId) {
-        return repository.findByPatientId(patientId).stream()
-                .map(EngagementRowResponse::new)
-                .collect(Collectors.toList());
+    public List<EngagementRowResponse> getEngagementByPatientId(String patientId) {
+        return remoteEngagementAggregator.aggregateForPatient(patientId);
     }
 
     public EngagementSummaryResponse getSummary() {
-        List<PatientEngagement> all = repository.findAll();
+        return buildSummary(remoteEngagementAggregator.aggregateAll());
+    }
 
-        long totalActivities = all.stream()
-                .map(PatientEngagement::getActivityId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .count();
-
-        long activePatients = all.stream()
-                .map(PatientEngagement::getPatientId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .count();
-
-        double avgEngagement = all.stream()
-                .filter(e -> e.getProgression() != null)
-                .mapToInt(PatientEngagement::getProgression)
-                .average()
-                .orElse(0.0);
-
-        return new EngagementSummaryResponse(totalActivities, activePatients, avgEngagement);
+    public EngagementStatsResponse getStats() {
+        List<EngagementRowResponse> rows = remoteEngagementAggregator.aggregateAll();
+        EngagementSummaryResponse base = buildSummary(rows);
+        Map<String, Long> byType = rows.stream()
+                .filter(e -> e.getActivityType() != null)
+                .collect(Collectors.groupingBy(e -> e.getActivityType().name(), Collectors.counting()));
+        return new EngagementStatsResponse(
+                base.getTotalActivities(),
+                base.getActivePatients(),
+                base.getAverageEngagement(),
+                byType,
+                buildDistribution(rows)
+        );
     }
 
     public Map<String, Long> getByType() {
-        return repository.findAll().stream()
+        return remoteEngagementAggregator.aggregateAll().stream()
                 .filter(e -> e.getActivityType() != null)
                 .collect(Collectors.groupingBy(e -> e.getActivityType().name(), Collectors.counting()));
     }
 
     public EngagementDistributionResponse getDistribution() {
-        List<PatientEngagement> all = repository.findAll();
-
-        long completed = all.stream().filter(e -> e.getStatus() == EngagementStatus.COMPLETED).count();
-        long inProgress = all.stream().filter(e -> e.getStatus() == EngagementStatus.IN_PROGRESS).count();
-        long notStarted = all.stream().filter(e -> e.getStatus() == EngagementStatus.NOT_STARTED).count();
-        long abandoned = all.stream().filter(e -> e.getStatus() == EngagementStatus.ABANDONED).count();
-
-        return new EngagementDistributionResponse(completed, inProgress, notStarted, abandoned);
+        return buildDistribution(remoteEngagementAggregator.aggregateAll());
     }
 
     public List<MlDatasetRowResponse> getMlDataset() {
-        List<PatientEngagement> all = repository.findAll();
-        Map<Long, List<PatientEngagement>> byPatient = all.stream()
+        List<EngagementRowResponse> all = remoteEngagementAggregator.aggregateAll();
+        Map<String, List<EngagementRowResponse>> byPatient = all.stream()
                 .filter(e -> e.getPatientId() != null)
-                .collect(Collectors.groupingBy(PatientEngagement::getPatientId));
+                .collect(Collectors.groupingBy(EngagementRowResponse::getPatientId));
 
         List<MlDatasetRowResponse> rows = new ArrayList<>();
 
-        for (Map.Entry<Long, List<PatientEngagement>> entry : byPatient.entrySet()) {
-            Long patientId = entry.getKey();
-            List<PatientEngagement> engagements = entry.getValue();
+        for (Map.Entry<String, List<EngagementRowResponse>> entry : byPatient.entrySet()) {
+            String patientId = entry.getKey();
+            List<EngagementRowResponse> engagements = entry.getValue();
 
             String patientName = engagements.stream()
-                    .map(PatientEngagement::getPatientName)
+                    .map(EngagementRowResponse::getPatientName)
                     .filter(Objects::nonNull)
                     .findFirst()
                     .orElse(null);
 
             double avgScore = engagements.stream()
                     .filter(e -> e.getScore() != null)
-                    .mapToInt(PatientEngagement::getScore)
+                    .mapToInt(EngagementRowResponse::getScore)
                     .average()
                     .orElse(0.0);
 
             double avgProgress = engagements.stream()
                     .filter(e -> e.getProgression() != null)
-                    .mapToInt(PatientEngagement::getProgression)
+                    .mapToInt(EngagementRowResponse::getProgression)
                     .average()
                     .orElse(0.0);
 
@@ -131,6 +114,46 @@ public class PatientEngagementService {
         return rows;
     }
 
+    private EngagementSummaryResponse buildSummary(List<EngagementRowResponse> all) {
+        long totalActivities = all.stream()
+                .map(this::activityOrEventKey)
+                .filter(Objects::nonNull)
+                .distinct()
+                .count();
+
+        long activePatients = all.stream()
+                .map(EngagementRowResponse::getPatientId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .count();
+
+        double avgEngagement = all.stream()
+                .filter(e -> e.getProgression() != null)
+                .mapToInt(EngagementRowResponse::getProgression)
+                .average()
+                .orElse(0.0);
+
+        return new EngagementSummaryResponse(totalActivities, activePatients, avgEngagement);
+    }
+
+    private EngagementDistributionResponse buildDistribution(List<EngagementRowResponse> all) {
+        long completed = all.stream().filter(e -> e.getStatus() == EngagementStatus.COMPLETED).count();
+        long inProgress = all.stream().filter(e -> e.getStatus() == EngagementStatus.IN_PROGRESS).count();
+        long notStarted = all.stream().filter(e -> e.getStatus() == EngagementStatus.NOT_STARTED).count();
+        long abandoned = all.stream().filter(e -> e.getStatus() == EngagementStatus.ABANDONED).count();
+        return new EngagementDistributionResponse(completed, inProgress, notStarted, abandoned);
+    }
+
+    private String activityOrEventKey(EngagementRowResponse r) {
+        if (r.getActivityId() != null) {
+            return "A:" + r.getActivityId();
+        }
+        if (r.getEventId() != null) {
+            return "E:" + r.getEventId();
+        }
+        return null;
+    }
+
     private String computeRiskLevel(double avgScore, double engagementRate, double avgProgress, long abandoned, long total) {
         double abandonedRate = total == 0 ? 0.0 : (double) abandoned / (double) total;
 
@@ -152,4 +175,3 @@ public class PatientEngagementService {
         };
     }
 }
-

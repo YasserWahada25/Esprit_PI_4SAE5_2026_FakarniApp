@@ -10,7 +10,7 @@ public class GameSessionResultResponse {
     private Long sessionId;
     private Long activityId;
     private String activityTitle;
-    private Long userId;
+    private String patientId;
     private SessionStatus status;
     private Integer totalQuestions;
     private Integer correctCount;
@@ -52,12 +52,12 @@ public class GameSessionResultResponse {
         this.activityTitle = activityTitle;
     }
 
-    public Long getUserId() {
-        return userId;
+    public String getPatientId() {
+        return patientId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
     }
 
     public SessionStatus getStatus() {

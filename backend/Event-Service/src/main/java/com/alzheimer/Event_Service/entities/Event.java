@@ -23,6 +23,9 @@ public class Event {
     @Column(length = 120)
     private String location;
 
+    @Column(length = 1000)
+    private String coverImageUrl;
+
     @Column(nullable = false)
     private boolean remindEnabled = false;
 
@@ -61,6 +64,9 @@ public class Event {
 
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
+
+    public String getCoverImageUrl() { return coverImageUrl; }
+    public void setCoverImageUrl(String coverImageUrl) { this.coverImageUrl = coverImageUrl; }
 
     public boolean isRemindEnabled() { return remindEnabled; }
     public void setRemindEnabled(boolean remindEnabled) { this.remindEnabled = remindEnabled; }

@@ -3,7 +3,7 @@ package com.alzheimer.activite_educative_service.controllers;
 import com.alzheimer.activite_educative_service.dto.*;
 import com.alzheimer.activite_educative_service.services.GameSessionService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +42,11 @@ public class GameSessionController {
         return gameSessionService.finishSession(sessionId);
     }
 
+    @PostMapping("/{sessionId}/abandon")
+    public GameSessionHistoryItemResponse abandon(@PathVariable Long sessionId) {
+        return gameSessionService.abandonSession(sessionId);
+    }
+
     /** Memory paires : même logique que {@code POST /api/game-sessions/{id}/move} (chemin compatible gateway). */
     @PostMapping("/{sessionId}/move")
     public MemoryMoveResponse memoryMove(
@@ -57,7 +62,7 @@ public class GameSessionController {
     }
 
     @GetMapping("/history")
-    public List<GameSessionHistoryItemResponse> history(@RequestParam @NotNull Long userId) {
-        return gameSessionService.getHistory(userId);
+    public List<GameSessionHistoryItemResponse> history(@RequestParam @NotBlank String patientId) {
+        return gameSessionService.getHistory(patientId);
     }
 }

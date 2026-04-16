@@ -13,10 +13,10 @@ import java.util.Optional;
 
 public interface GameSessionRepository extends JpaRepository<GameSession, Long> {
 
-    List<GameSession> findByUserIdOrderByStartedAtDesc(Long userId);
+    List<GameSession> findByPatientIdOrderByStartedAtDesc(String patientId);
 
-    Optional<GameSession> findFirstByUserIdAndActivity_IdAndStatusInOrderByFinishedAtDesc(
-            Long userId,
+    Optional<GameSession> findFirstByPatientIdAndActivity_IdAndStatusInOrderByFinishedAtDesc(
+            String patientId,
             Long activityId,
             Collection<SessionStatus> statuses
     );
