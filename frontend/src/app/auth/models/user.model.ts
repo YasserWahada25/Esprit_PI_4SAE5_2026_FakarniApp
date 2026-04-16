@@ -20,7 +20,6 @@ export interface UserUpdateRequest {
 }
 
 export interface AuthResponse {
-    accessToken: string;
-    refreshToken: string;
+    sessionId?: string;
     user: User;
 }

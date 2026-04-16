@@ -36,7 +36,7 @@ public class GatewayServiceApplication {
 
 				// USER-SERVICE
 				.route("User-Service", r -> r
-						.path("/api/users/**", "/auth/**", "/internal/users/**")
+						.path("/api/users/**", "/auth/**")
 						.uri("lb://USER-SERVICE"))
 
 				.build();

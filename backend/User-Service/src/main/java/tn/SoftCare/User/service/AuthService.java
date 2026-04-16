@@ -34,9 +34,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -83,6 +85,9 @@ public class AuthService {
     @Value("${facebook.graph-api-version}")
     private String facebookGraphVersion;
 
+    @Value("${app.security.session-days:7}")
+    private long sessionDays;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
@@ -106,90 +111,42 @@ public class AuthService {
         User user = userRepository.findByEmail(req.getEmail())
                 .orElseThrow(() -> new RuntimeException("Email ou mot de passe incorrect"));
 
-        // ✅ Comparaison correcte
         if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
             throw new RuntimeException("Email ou mot de passe incorrect");
         }
 
-        // ✅ Créer une session
-        Session s = new Session();
-        s.setId(UUID.randomUUID().toString());
-        s.setUserId(user.getId());
-        s.setCreatedAt(Instant.now());
-        s.setExpiresAt(Instant.now().plusSeconds(jwtService.getRefreshDays() * 24 * 3600));
-        s.setRevoked(false);
-        s.setUserAgent(userAgent);
-        s.setIp(ip);
+        Session session = createSession(user, userAgent, ip);
+        sessionRepository.save(session);
 
-        // ✅ Générer refresh token (JWT)
-        String refreshToken = jwtService.generateRefreshToken(user.getId(), s.getId());
-
-        // ✅ IMPORTANT: on ne fait PAS bcrypt(refreshToken) (limite 72 bytes)
-        // On stocke plutôt un SHA-256 du refresh token
-        s.setRefreshTokenHash(hashTokenSha256(refreshToken));
-
-        sessionRepository.save(s);
-
-        // ✅ Générer access token
-        String accessToken = jwtService.generateAccessToken(user);
-
-        AuthResponse res = new AuthResponse();
-        res.setAccessToken(accessToken);
-        res.setRefreshToken(refreshToken);
-        res.setUser(toUserResponse(user));
-        return res;
+        return buildAuthResponse(user, session);
     }
 
-    public AuthResponse refresh(RefreshRequest req) {
-        String refreshToken = req.getRefreshToken();
-        if (refreshToken == null || refreshToken.isBlank()) {
-            throw new RuntimeException("Refresh token invalide");
+    public void logout(String sessionId) {
+        if (!StringUtils.hasText(sessionId)) {
+            return;
         }
-
-        if (!jwtService.isValid(refreshToken)) {
-            throw new RuntimeException("Refresh token invalide");
-        }
-
-        String userId = jwtService.extractUserId(refreshToken);
-        String sessionId = jwtService.extractSessionId(refreshToken);
-
-        Session s = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Session introuvable"));
-
-        if (s.isRevoked() || s.getExpiresAt().isBefore(Instant.now())) {
-            throw new RuntimeException("Session expirée");
-        }
-
-        // ✅ Comparer SHA-256(token) avec le hash stocké
-        if (!constantTimeEquals(hashTokenSha256(refreshToken), s.getRefreshTokenHash())) {
-            throw new RuntimeException("Refresh token invalide");
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User introuvable"));
-
-        // ✅ Rotation du refresh token (même sessionId)
-        String newRefresh = jwtService.generateRefreshToken(userId, sessionId);
-        s.setRefreshTokenHash(hashTokenSha256(newRefresh));
-        sessionRepository.save(s);
-
-        AuthResponse res = new AuthResponse();
-        res.setAccessToken(jwtService.generateAccessToken(user));
-        res.setRefreshToken(newRefresh);
-        res.setUser(toUserResponse(user));
-        return res;
-    }
-
-    public void logout(String refreshToken) {
-        if (refreshToken == null || refreshToken.isBlank()) return;
-        if (!jwtService.isValid(refreshToken)) return;
-
-        String sessionId = jwtService.extractSessionId(refreshToken);
 
         sessionRepository.findById(sessionId).ifPresent(s -> {
             s.setRevoked(true);
             sessionRepository.save(s);
         });
+    }
+
+    public Optional<UserResponse> findAuthenticatedUserBySessionId(String sessionId) {
+        if (!StringUtils.hasText(sessionId)) {
+            return Optional.empty();
+        }
+
+        return sessionRepository.findById(sessionId)
+                .filter(session -> !session.isRevoked())
+                .filter(session -> session.getExpiresAt() != null && session.getExpiresAt().isAfter(Instant.now()))
+                .flatMap(session -> userRepository.findById(session.getUserId()))
+                .map(this::toUserResponse);
+    }
+
+    public UserResponse getCurrentUser(String sessionId) {
+        return findAuthenticatedUserBySessionId(sessionId)
+                .orElseThrow(() -> new RuntimeException("Session invalide ou expirée"));
     }
 
     public MessageResponse forgotPassword(ForgotPasswordRequest req) {
@@ -279,27 +236,10 @@ public class AuthService {
             return userRepository.save(newUser);
         });
 
-        // 3. Créer une session et retourner les tokens
-        Session s = new Session();
-        s.setId(UUID.randomUUID().toString());
-        s.setUserId(user.getId());
-        s.setCreatedAt(Instant.now());
-        s.setExpiresAt(Instant.now().plusSeconds(jwtService.getRefreshDays() * 24 * 3600));
-        s.setRevoked(false);
-        s.setUserAgent(userAgent);
-        s.setIp(ip);
+        Session session = createSession(user, userAgent, ip);
+        sessionRepository.save(session);
 
-        String refreshToken = jwtService.generateRefreshToken(user.getId(), s.getId());
-        s.setRefreshTokenHash(hashTokenSha256(refreshToken));
-        sessionRepository.save(s);
-
-        String accessToken = jwtService.generateAccessToken(user);
-
-        AuthResponse res = new AuthResponse();
-        res.setAccessToken(accessToken);
-        res.setRefreshToken(refreshToken);
-        res.setUser(toUserResponse(user));
-        return res;
+        return buildAuthResponse(user, session);
     }
 
     public AuthResponse facebookLogin(FacebookLoginRequest req, String userAgent, String ip) {
@@ -336,26 +276,10 @@ public class AuthService {
             return userRepository.save(newUser);
         });
 
-        Session s = new Session();
-        s.setId(UUID.randomUUID().toString());
-        s.setUserId(user.getId());
-        s.setCreatedAt(Instant.now());
-        s.setExpiresAt(Instant.now().plusSeconds(jwtService.getRefreshDays() * 24 * 3600));
-        s.setRevoked(false);
-        s.setUserAgent(userAgent);
-        s.setIp(ip);
+        Session session = createSession(user, userAgent, ip);
+        sessionRepository.save(session);
 
-        String refreshToken = jwtService.generateRefreshToken(user.getId(), s.getId());
-        s.setRefreshTokenHash(hashTokenSha256(refreshToken));
-        sessionRepository.save(s);
-
-        String jwtAccess = jwtService.generateAccessToken(user);
-
-        AuthResponse res = new AuthResponse();
-        res.setAccessToken(jwtAccess);
-        res.setRefreshToken(refreshToken);
-        res.setUser(toUserResponse(user));
-        return res;
+        return buildAuthResponse(user, session);
     }
 
     private void verifyFacebookAccessToken(String userAccessToken) {
@@ -458,6 +382,26 @@ public class AuthService {
         return r;
     }
 
+    private AuthResponse buildAuthResponse(User user, Session session) {
+        AuthResponse response = new AuthResponse();
+        response.setSessionId(session.getId());
+        response.setUser(toUserResponse(user));
+        return response;
+    }
+
+    private Session createSession(User user, String userAgent, String ip) {
+        Session session = new Session();
+        session.setId(UUID.randomUUID().toString());
+        session.setUserId(user.getId());
+        session.setRefreshTokenHash(UUID.randomUUID().toString());
+        session.setCreatedAt(Instant.now());
+        session.setExpiresAt(Instant.now().plus(sessionDays, ChronoUnit.DAYS));
+        session.setRevoked(false);
+        session.setUserAgent(userAgent);
+        session.setIp(ip);
+        return session;
+    }
+
     private String resolveSmtpFromAddress() {
         if (StringUtils.hasText(mailFromOverride)) {
             return mailFromOverride.trim();
@@ -504,27 +448,4 @@ public class AuthService {
                 """.formatted(safeFirstName, link);
     }
 
-    /**
-     * Hash SHA-256 du token, encodé en Base64 (stockage DB friendly)
-     */
-    private String hashTokenSha256(String token) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] digest = md.digest(token.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(digest);
-        } catch (Exception e) {
-            throw new RuntimeException("Erreur hashing refresh token", e);
-        }
-    }
-
-    /**
-     * Comparaison en temps constant (évite timing attacks)
-     */
-    private boolean constantTimeEquals(String a, String b) {
-        if (a == null || b == null) return false;
-        return MessageDigest.isEqual(
-                a.getBytes(StandardCharsets.UTF_8),
-                b.getBytes(StandardCharsets.UTF_8)
-        );
-    }
 }

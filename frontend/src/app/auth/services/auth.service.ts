@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, of, tap } from 'rxjs';
 import { SignUpRequest } from '../models/sign-up.model';
 import { AuthResponse, User, UserUpdateRequest } from '../models/user.model';
 
@@ -9,8 +9,6 @@ const API = '/api';
 const AUTH = '/backend-auth';
 
 const STORAGE_KEY = 'fakarni_user';
-const TOKEN_KEY = 'fakarni_token';
-const REFRESH_TOKEN_KEY = 'fakarni_refresh';
 
 export interface LoginRequest {
   email: string;
@@ -39,8 +37,7 @@ export class AuthService {
   currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    console.log('✅ AuthService loaded');
-    console.log('✅ AUTH =', AUTH);
+    this.restoreSession();
   }
 
   private hasSessionStorage(): boolean {
@@ -65,18 +62,13 @@ export class AuthService {
   private loadStoredUser(): User | null {
     try {
       const raw = this.getSessionItem(STORAGE_KEY);
-      const user = raw ? JSON.parse(raw) : null;
-      console.log('loadStoredUser() =>', user);
-      return user;
-    } catch (error) {
-      console.error('loadStoredUser() error:', error);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
       return null;
     }
   }
 
   private storeUser(user: User | null): void {
-    console.log('storeUser() called with:', user);
-
     if (user) {
       this.setSessionItem(STORAGE_KEY, JSON.stringify(user));
     } else {
@@ -86,73 +78,29 @@ export class AuthService {
     this.currentUserSubject.next(user);
   }
 
-  private storeAuthResponse(res: AuthResponse): void {
-    console.log('storeAuthResponse() called with:', res);
-
-    if (res?.accessToken) {
-      this.setSessionItem(TOKEN_KEY, res.accessToken);
-      console.log('✅ accessToken stored');
-    }
-
-    if (res?.refreshToken) {
-      this.setSessionItem(REFRESH_TOKEN_KEY, res.refreshToken);
-      console.log('✅ refreshToken stored');
-    }
-
-    if (res?.user) {
-      this.storeUser(res.user);
-    }
-  }
-
   // ============================================================
   // AUTH CLASSIQUE
   // ============================================================
 
   register(body: SignUpRequest): Observable<User> {
-    console.log('register() URL =', `${API}/users`);
-    console.log('register() body =', body);
-
     return this.http.post<User>(`${API}/users`, body);
   }
 
   login(body: LoginRequest): Observable<AuthResponse> {
-    console.log('login() URL =', `${AUTH}/login`);
-    console.log('login() body =', body);
-
     return this.http.post<AuthResponse>(`${AUTH}/login`, body).pipe(
-      tap((res) => {
-        console.log('login() response =', res);
-        this.storeAuthResponse(res);
-      })
+      tap((res) => this.storeUser(res.user))
     );
   }
 
   logout(): void {
-    const refresh = this.getRefreshToken();
-    console.log('logout() refresh token =', refresh);
-
-    if (refresh) {
-      console.log('logout() URL =', `${AUTH}/logout`);
-
-      this.http.post(
-        `${AUTH}/logout`,
-        { refreshToken: refresh },
-        { responseType: 'text' }
-      ).subscribe({
-        next: (res) => console.log('logout() success =', res),
-        error: (err) => console.error('logout() error =', err)
-      });
-    }
-
-    this.removeSessionItem(TOKEN_KEY);
-    this.removeSessionItem(REFRESH_TOKEN_KEY);
+    this.http.post<void>(`${AUTH}/logout`, {}).subscribe({
+      next: () => undefined,
+      error: () => undefined
+    });
     this.storeUser(null);
   }
 
   resetPassword(token: string, newPassword: string): Observable<MessageResponse> {
-    console.log('resetPassword() URL =', `${AUTH}/reset-password`);
-    console.log('resetPassword() body =', { token, newPassword });
-
     return this.http.post<MessageResponse>(
       `${AUTH}/reset-password`,
       { token, newPassword }
@@ -160,9 +108,6 @@ export class AuthService {
   }
 
   forgotPassword(email: string): Observable<MessageResponse> {
-    console.log('forgotPassword() URL =', `${AUTH}/forgot-password`);
-    console.log('forgotPassword() body =', { email });
-
     return this.http.post<MessageResponse>(`${AUTH}/forgot-password`, { email });
   }
 
@@ -171,43 +116,19 @@ export class AuthService {
   // ============================================================
 
   loginWithGoogle(idToken: string): Observable<AuthResponse> {
-    const url = `${AUTH}/google`;
-
-    console.log('✅ loginWithGoogle() called');
-    console.log('✅ loginWithGoogle() URL =', url);
-    console.log('✅ loginWithGoogle() body =', { credential: '…' });
-    console.log('✅ loginWithGoogle() token exists =', !!idToken);
-
     return this.http.post<AuthResponse>(
-      url,
+      `${AUTH}/google`,
       { credential: idToken }
     ).pipe(
-      tap({
-        next: (res) => {
-          console.log('✅ loginWithGoogle() response =', res);
-          this.storeAuthResponse(res);
-        },
-        error: (err) => {
-          console.error('❌ loginWithGoogle() error status =', err?.status);
-          console.error('❌ loginWithGoogle() error body =', err?.error);
-          console.error('❌ loginWithGoogle() full error =', err);
-        }
-      })
+      tap((res) => this.storeUser(res.user))
     );
   }
 
   loginWithFacebook(accessToken: string): Observable<AuthResponse> {
-    const url = `${AUTH}/facebook`;
     const body: FacebookLoginRequest = { accessToken };
 
-    console.log('loginWithFacebook() URL =', url);
-    console.log('loginWithFacebook() token exists =', !!accessToken);
-
-    return this.http.post<AuthResponse>(url, body).pipe(
-      tap((res) => {
-        console.log('loginWithFacebook() response =', res);
-        this.storeAuthResponse(res);
-      })
+    return this.http.post<AuthResponse>(`${AUTH}/facebook`, body).pipe(
+      tap((res) => this.storeUser(res.user))
     );
   }
 
@@ -217,7 +138,6 @@ export class AuthService {
 
   getCurrentUser(): User | null {
     let user = this.currentUserSubject.value;
-    console.log('getCurrentUser() subject value =', user);
 
     if (!user) {
       user = this.loadStoredUser();
@@ -226,50 +146,39 @@ export class AuthService {
       }
     }
 
-    console.log('getCurrentUser() return =', user);
     return user;
   }
 
-  getAccessToken(): string | null {
-    const token = this.getSessionItem(TOKEN_KEY);
-    console.log('getAccessToken() =', token);
-    return token;
-  }
-
-  getRefreshToken(): string | null {
-    const refresh = this.getSessionItem(REFRESH_TOKEN_KEY);
-    console.log('getRefreshToken() =', refresh);
-    return refresh;
-  }
-
   isLoggedIn(): boolean {
-    const loggedIn = this.currentUserSubject.value !== null
-      || this.getSessionItem(STORAGE_KEY) !== null;
-
-    console.log('isLoggedIn() =', loggedIn);
-    return loggedIn;
+    return this.currentUserSubject.value !== null || this.getSessionItem(STORAGE_KEY) !== null;
   }
 
   getUserById(id: string): Observable<User> {
-    console.log('getUserById() URL =', `${API}/users/${id}`);
-    console.log('getUserById() id =', id);
-
     return this.http.get<User>(`${API}/users/${id}`);
   }
 
   updateUser(id: string, body: UserUpdateRequest): Observable<User> {
-    console.log('updateUser() URL =', `${API}/users/${id}`);
-    console.log('updateUser() body =', body);
-
     return this.http.put<User>(`${API}/users/${id}`, body).pipe(
       tap((updated) => {
-        console.log('updateUser() response =', updated);
-
         const current = this.getCurrentUser();
         if (current?.id === id) {
           this.storeUser(updated);
         }
       })
     );
+  }
+
+  private restoreSession(): void {
+    if (!this.hasSessionStorage()) {
+      return;
+    }
+
+    this.http.get<User>(`${AUTH}/me`).pipe(
+      tap((user) => this.storeUser(user)),
+      catchError(() => {
+        this.storeUser(null);
+        return of(null);
+      })
+    ).subscribe();
   }
 }

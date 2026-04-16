@@ -1,10 +1,14 @@
 package tn.SoftCare.User.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import tn.SoftCare.User.dto.*;
+import tn.SoftCare.User.security.AuthenticatedUser;
+import tn.SoftCare.User.security.SessionCookieService;
 import tn.SoftCare.User.service.AuthService;
 
 @RestController
@@ -12,41 +16,59 @@ import tn.SoftCare.User.service.AuthService;
 public class AuthController {
 
     private final AuthService authService;
+    private final SessionCookieService sessionCookieService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, SessionCookieService sessionCookieService) {
         this.authService = authService;
+        this.sessionCookieService = sessionCookieService;
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody LoginRequest req, HttpServletRequest request) {
+    public AuthResponse login(@Valid @RequestBody LoginRequest req,
+                              HttpServletRequest request,
+                              HttpServletResponse response) {
         String userAgent = request.getHeader("User-Agent");
         String ip = request.getRemoteAddr();
-        return authService.login(req, userAgent, ip);
+        AuthResponse authResponse = authService.login(req, userAgent, ip);
+        sessionCookieService.addSessionCookie(response, authResponse.getSessionId());
+        return authResponse;
     }
 
     @PostMapping("/google")
-    public AuthResponse googleLogin(@Valid @RequestBody GoogleLoginRequest req, HttpServletRequest request) {
+    public AuthResponse googleLogin(@Valid @RequestBody GoogleLoginRequest req,
+                                    HttpServletRequest request,
+                                    HttpServletResponse response) {
         String userAgent = request.getHeader("User-Agent");
         String ip = request.getRemoteAddr();
-        return authService.googleLogin(req, userAgent, ip);
+        AuthResponse authResponse = authService.googleLogin(req, userAgent, ip);
+        sessionCookieService.addSessionCookie(response, authResponse.getSessionId());
+        return authResponse;
     }
 
     @PostMapping("/facebook")
-    public AuthResponse facebookLogin(@Valid @RequestBody FacebookLoginRequest req, HttpServletRequest request) {
+    public AuthResponse facebookLogin(@Valid @RequestBody FacebookLoginRequest req,
+                                      HttpServletRequest request,
+                                      HttpServletResponse response) {
         String userAgent = request.getHeader("User-Agent");
         String ip = request.getRemoteAddr();
-        return authService.facebookLogin(req, userAgent, ip);
-    }
-
-    @PostMapping("/refresh")
-    public AuthResponse refresh(@Valid @RequestBody RefreshRequest req) {
-        return authService.refresh(req);
+        AuthResponse authResponse = authService.facebookLogin(req, userAgent, ip);
+        sessionCookieService.addSessionCookie(response, authResponse.getSessionId());
+        return authResponse;
     }
 
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void logout(@Valid @RequestBody RefreshRequest req) {
-        authService.logout(req.getRefreshToken());
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        sessionCookieService.extractSessionId(request).ifPresent(authService::logout);
+        sessionCookieService.clearSessionCookie(response);
+    }
+
+    @GetMapping("/me")
+    public UserResponse me(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof AuthenticatedUser principal)) {
+            throw new org.springframework.security.authentication.BadCredentialsException("Session invalide ou expirée");
+        }
+        return authService.getCurrentUser(principal.getSessionId());
     }
 
     @PostMapping("/forgot-password")
