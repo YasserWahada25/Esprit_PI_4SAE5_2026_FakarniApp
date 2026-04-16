@@ -1,0 +1,81 @@
+<section class="auth-section section-padding">
+    <div class="container auth-container">
+        <div class="auth-box">
+            <h2>Sign In</h2>
+            <p>Welcome back! Please login to your account.</p>
+
+            @if (errorMessage) {
+            <p class="auth-error">{{ errorMessage }}</p>
+            }
+            <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input id="email" type="email" formControlName="email" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-with-toggle"
+                        [class.invalid]="loginForm.get('password')?.invalid && (loginForm.get('password')?.touched || loginForm.get('password')?.dirty)">
+                        <input id="password" [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+                            placeholder="Enter your password">
+                        <button type="button" class="password-toggle" (click)="togglePasswordVisibility()"
+                            [attr.aria-label]="hidePassword ? 'Afficher le mot de passe' : 'Masquer le mot de passe'">
+                            @if (hidePassword) {
+                            <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                    d="M2.1 12c2.1-4.6 6-7.5 9.9-7.5s7.8 2.9 9.9 7.5c-2.1 4.6-6 7.5-9.9 7.5S4.2 16.6 2.1 12Z"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                                <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2" />
+                            </svg>
+                            } @else {
+                            <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M3 3l18 18" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" />
+                                <path
+                                    d="M2.1 12c2.1-4.6 6-7.5 9.9-7.5 2.1 0 4.2.8 6.1 2.3M21.9 12c-2.1 4.6-6 7.5-9.9 7.5-2.1 0-4.1-.8-6-2.2"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                                <path d="M10.3 10.3A3 3 0 0 0 13.7 13.7" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" />
+                            </svg>
+                            }
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <label class="remember-me">
+                        <input type="checkbox"> Remember Me
+                    </label>
+                    <a routerLink="/auth/forgot-password" class="forgot-pass">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" [disabled]="loginForm.invalid || loading">
+                    {{ loading ? 'Please wait...' : 'SIGN IN' }}
+                </button>
+            </form>
+
+            <div class="auth-divider">
+                <span>OR</span>
+            </div>
+
+            <div class="social-login">
+                <button type="button" class="btn btn-social btn-google"
+                    (click)="signInWithGoogle()"
+                    [disabled]="googleLoading">
+                    <i class="fa-brands fa-google"></i>
+                    {{ googleLoading ? 'Opening Google...' : 'Sign in with Google' }}
+                </button>
+                <button type="button" class="btn btn-social btn-facebook"
+                    (click)="signInWithFacebook()"
+                    [disabled]="facebookLoading">
+                    <i class="fa-brands fa-facebook-f"></i>
+                    {{ facebookLoading ? 'Opening Facebook...' : 'Sign in with Facebook' }}
+                </button>
+            </div>
+
+            <p class="auth-footer">
+                Don't have an account? <a routerLink="/auth/signup">Sign Up</a>
+            </p>
+        </div>
+    </div>
+</section>

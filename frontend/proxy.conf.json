@@ -1,0 +1,17 @@
+{
+  "/api": {
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
+  },
+  "/backend-auth": {
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/backend-auth": "/auth"
+    },
+    "logLevel": "info"
+  }
+}

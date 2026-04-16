@@ -1,0 +1,53 @@
+package tn.SoftCare.User.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
+import tn.SoftCare.User.model.Role;
+
+public class UpdateUserRequest {
+
+    @Pattern(
+            regexp = "^[A-Za-zÀ-ÖØ-öø-ÿ\\s'-]+$",
+            message = "First name must not contain numbers."
+    )
+    private String nom;
+
+    @Pattern(
+            regexp = "^[A-Za-zÀ-ÖØ-öø-ÿ\\s'-]+$",
+            message = "Last name must not contain numbers."
+    )
+    private String prenom;
+
+    @Email(message = "Invalid email format.")
+    private String email;
+
+    private Role role;
+
+    @Pattern(
+            regexp = "^[0-9]{8}$",
+            message = "Phone number must contain exactly 8 digits."
+    )
+    private String numTel;
+
+    private String adresse;
+
+    // Getters & Setters
+
+    public String getNom() { return nom; }
+    public void setNom(String nom) { this.nom = nom; }
+
+    public String getPrenom() { return prenom; }
+    public void setPrenom(String prenom) { this.prenom = prenom; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
+
+    public String getNumTel() { return numTel; }
+    public void setNumTel(String numTel) { this.numTel = numTel; }
+
+    public String getAdresse() { return adresse; }
+    public void setAdresse(String adresse) { this.adresse = adresse; }
+}
