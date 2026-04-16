@@ -28,15 +28,28 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const token = auth.getAccessToken();
 
+<<<<<<< HEAD
   if (!token || !shouldSendAuthHeader(req)) {
+=======
+  console.log('🔐 Auth Interceptor:', {
+    url: req.url,
+    hasToken: !!token,
+    token: token ? `${token.substring(0, 20)}...` : 'NO TOKEN'
+  });
+
+  if (!token) {
+    console.warn('⚠️ No token found - request will be sent without Authorization header');
+>>>>>>> 34a87b605fecf5b2caf4446596de1916397f7f44
     return next(req);
   }
 
-  return next(
-    req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-  );
+  const clonedReq = req.clone({
+    setHeaders: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  console.log('✅ Token added to request:', clonedReq.headers.get('Authorization')?.substring(0, 30) + '...');
+
+  return next(clonedReq);
 };

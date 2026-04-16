@@ -70,12 +70,12 @@ export class GroupService {
     return this.http.post<GroupMember>(`${this.apiUrl}/${groupId}/members`, request);
   }
 
-  removeMember(groupId: number, userId: number): Observable<void> {
+  removeMember(groupId: number, userId: string): Observable<void> {
     this.clearCache();
     return this.http.delete<void>(`${this.apiUrl}/${groupId}/members/${userId}`);
   }
 
-  updateMemberRole(groupId: number, userId: number, request: UpdateMemberRoleRequest): Observable<GroupMember> {
+  updateMemberRole(groupId: number, userId: string, request: UpdateMemberRoleRequest): Observable<GroupMember> {
     return this.http.patch<GroupMember>(`${this.apiUrl}/${groupId}/members/${userId}/role`, request);
   }
 
@@ -83,7 +83,7 @@ export class GroupService {
     return this.http.get<GroupMember[]>(`${this.apiUrl}/${groupId}/members`);
   }
 
-  getUserGroups(userId: number): Observable<Group[]> {
+  getUserGroups(userId: string): Observable<Group[]> {
     return this.http.get<Group[]>(`${this.apiUrl}/user/${userId}`);
   }
 

@@ -1,13 +1,17 @@
 package com.alzheimer.group_service.services;
 
+import com.alzheimer.group_service.client.UserClient;
 import com.alzheimer.group_service.dto.AddMemberRequest;
 import com.alzheimer.group_service.dto.GroupMemberResponse;
 import com.alzheimer.group_service.dto.GroupRequest;
 import com.alzheimer.group_service.dto.GroupResponse;
+import com.alzheimer.group_service.dto.UserDTO;
 import com.alzheimer.group_service.entities.*;
 import com.alzheimer.group_service.repositories.GroupMemberRepository;
 import com.alzheimer.group_service.repositories.GroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,12 +28,25 @@ public class GroupService {
     @Autowired
     private GroupMemberRepository groupMemberRepository;
 
+    @Autowired
+    private UserClient userClient;
+
+    private String getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User not authenticated");
+        }
+        return authentication.getName();
+    }
+
     @Transactional
     public GroupResponse createGroup(GroupRequest request) {
+        String userId = getCurrentUserId();
+        
         Group group = new Group();
         group.setName(request.getName());
         group.setDescription(request.getDescription());
-        group.setCreatorId(request.getCreatorId());
+        group.setCreatorId(userId);
         group.setGroupType(request.getGroupType());
         group.setCoverImageUrl(request.getCoverImageUrl());
         group.setMaxMembers(request.getMaxMembers());
@@ -38,7 +55,7 @@ public class GroupService {
         Group savedGroup = groupRepository.save(group);
 
         // Ajouter le créateur comme ADMIN
-        GroupMember creatorMember = new GroupMember(savedGroup, request.getCreatorId(), MemberRole.ADMIN);
+        GroupMember creatorMember = new GroupMember(savedGroup, userId, MemberRole.ADMIN);
         groupMemberRepository.save(creatorMember);
 
         return toResponse(savedGroup, true);
@@ -131,7 +148,7 @@ public class GroupService {
     }
 
     @Transactional
-    public void removeMember(Long groupId, Long userId) {
+    public void removeMember(Long groupId, String userId) {
         if (!groupMemberRepository.existsByGroupIdAndUserId(groupId, userId)) {
             throw new RuntimeException("User is not a member of this group");
         }
@@ -139,7 +156,7 @@ public class GroupService {
     }
 
     @Transactional
-    public GroupMemberResponse updateMemberRole(Long groupId, Long userId, MemberRole newRole) {
+    public GroupMemberResponse updateMemberRole(Long groupId, String userId, MemberRole newRole) {
         Optional<GroupMember> memberOptional = groupMemberRepository.findByGroupIdAndUserId(groupId, userId);
         if (memberOptional.isEmpty()) {
             throw new RuntimeException("Member not found");
@@ -159,7 +176,7 @@ public class GroupService {
                 .collect(Collectors.toList());
     }
 
-    public List<GroupResponse> getUserGroups(Long userId) {
+    public List<GroupResponse> getUserGroups(String userId) {
         List<GroupMember> memberships = groupMemberRepository.findByUserId(userId);
         return memberships.stream()
                 .map(membership -> toResponse(membership.getGroup(), false))
@@ -182,6 +199,14 @@ public class GroupService {
         response.setCreatedAt(group.getCreatedAt());
         response.setUpdatedAt(group.getUpdatedAt());
 
+        // Fetch creator details from User-Service
+        try {
+            UserDTO creator = userClient.getUserById(group.getCreatorId());
+            response.setCreator(creator);
+        } catch (Exception e) {
+            System.err.println("Failed to fetch creator details: " + e.getMessage());
+        }
+
         if (includeMembers) {
             List<GroupMemberResponse> memberResponses = group.getMembers().stream()
                     .map(this::toMemberResponse)
@@ -193,12 +218,22 @@ public class GroupService {
     }
 
     private GroupMemberResponse toMemberResponse(GroupMember member) {
-        return new GroupMemberResponse(
+        GroupMemberResponse response = new GroupMemberResponse(
                 member.getId(),
                 member.getUserId(),
                 member.getRole(),
                 member.getJoinedAt(),
                 member.getInvitedBy()
         );
+        
+        // Fetch user details from User-Service
+        try {
+            UserDTO user = userClient.getUserById(member.getUserId());
+            response.setUser(user);
+        } catch (Exception e) {
+            System.err.println("Failed to fetch user details: " + e.getMessage());
+        }
+        
+        return response;
     }
 }

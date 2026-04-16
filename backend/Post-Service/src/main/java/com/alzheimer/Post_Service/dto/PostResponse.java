@@ -7,6 +7,8 @@ public class PostResponse {
     private Long id;
     private String content;
     private String imageUrl;
+    private String userId;
+    private UserDTO user;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
@@ -47,6 +49,22 @@ public class PostResponse {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public UserDTO getUser() {
+        return user;
+    }
+
+    public void setUser(UserDTO user) {
+        this.user = user;
     }
 
     public LocalDateTime getCreatedAt() {

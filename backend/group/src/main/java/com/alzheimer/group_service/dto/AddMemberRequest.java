@@ -4,25 +4,25 @@ import com.alzheimer.group_service.entities.MemberRole;
 
 public class AddMemberRequest {
 
-    private Long userId;
+    private String userId;
     private MemberRole role = MemberRole.MEMBER;
-    private Long invitedBy;
+    private String invitedBy;
 
     public AddMemberRequest() {
     }
 
-    public AddMemberRequest(Long userId, MemberRole role, Long invitedBy) {
+    public AddMemberRequest(String userId, MemberRole role, String invitedBy) {
         this.userId = userId;
         this.role = role;
         this.invitedBy = invitedBy;
     }
 
     // Getters and Setters
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
@@ -34,11 +34,11 @@ public class AddMemberRequest {
         this.role = role;
     }
 
-    public Long getInvitedBy() {
+    public String getInvitedBy() {
         return invitedBy;
     }
 
-    public void setInvitedBy(Long invitedBy) {
+    public void setInvitedBy(String invitedBy) {
         this.invitedBy = invitedBy;
     }
 }

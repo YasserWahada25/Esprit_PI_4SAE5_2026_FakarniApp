@@ -65,6 +65,18 @@ public class PostController {
         return new ResponseEntity<>(responses, HttpStatus.OK);
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<PostResponse>> getPostsByUserId(@PathVariable String userId) {
+        List<PostResponse> responses = postService.getPostsByUserId(userId);
+        return new ResponseEntity<>(responses, HttpStatus.OK);
+    }
+
+    @GetMapping("/my-posts")
+    public ResponseEntity<List<PostResponse>> getCurrentUserPosts() {
+        List<PostResponse> responses = postService.getCurrentUserPosts();
+        return new ResponseEntity<>(responses, HttpStatus.OK);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<PostResponse> updatePost(
         @PathVariable Long id,

@@ -89,6 +89,8 @@ export class PostsService {
             id: response.id,
             content: response.content,
             imageUrl: response.imageUrl,
+            userId: response.userId,
+            user: response.user,
             createdAt: response.createdAt,
             updatedAt: response.updatedAt
         };

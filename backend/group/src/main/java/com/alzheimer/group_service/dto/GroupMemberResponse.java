@@ -6,15 +6,16 @@ import java.time.LocalDateTime;
 public class GroupMemberResponse {
 
     private Long id;
-    private Long userId;
+    private String userId;
+    private UserDTO user;
     private MemberRole role;
     private LocalDateTime joinedAt;
-    private Long invitedBy;
+    private String invitedBy;
 
     public GroupMemberResponse() {
     }
 
-    public GroupMemberResponse(Long id, Long userId, MemberRole role, LocalDateTime joinedAt, Long invitedBy) {
+    public GroupMemberResponse(Long id, String userId, MemberRole role, LocalDateTime joinedAt, String invitedBy) {
         this.id = id;
         this.userId = userId;
         this.role = role;
@@ -31,12 +32,20 @@ public class GroupMemberResponse {
         this.id = id;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public UserDTO getUser() {
+        return user;
+    }
+
+    public void setUser(UserDTO user) {
+        this.user = user;
     }
 
     public MemberRole getRole() {
@@ -55,11 +64,11 @@ public class GroupMemberResponse {
         this.joinedAt = joinedAt;
     }
 
-    public Long getInvitedBy() {
+    public String getInvitedBy() {
         return invitedBy;
     }
 
-    public void setInvitedBy(Long invitedBy) {
+    public void setInvitedBy(String invitedBy) {
         this.invitedBy = invitedBy;
     }
 }

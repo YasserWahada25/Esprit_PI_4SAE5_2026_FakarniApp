@@ -55,6 +55,8 @@ export class PostsListComponent implements OnInit {
                     id: p.id,
                     content: p.content,
                     imageUrl: p.imageUrl,
+                    userId: p.userId,
+                    user: p.user,
                     createdAt: p.createdAt,
                     updatedAt: p.updatedAt
                 }));

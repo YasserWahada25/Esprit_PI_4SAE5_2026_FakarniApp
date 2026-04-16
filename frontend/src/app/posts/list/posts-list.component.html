@@ -63,7 +63,9 @@
                                 <i class="fa-solid fa-user"></i>
                             </div>
                             <div class="user-details">
-                                <span class="user-name">Community Member</span>
+                                <span class="user-name">
+                                    {{ post.user ? (post.user.prenom + ' ' + post.user.nom) : 'Community Member' }}
+                                </span>
                                 <span class="post-time">
                                     <i class="fa-solid fa-clock"></i>
                                     {{ formatDate(post.createdAt) }}
