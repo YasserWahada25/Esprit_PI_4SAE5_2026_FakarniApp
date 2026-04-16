@@ -17,6 +17,7 @@
         <module name="suivi-engagement-service" />
         <module name="Dossier_Medical-Service" />
         <module name="Geofencing-Service" />
+        <module name="User-Service" />
       </profile>
       <profile name="Annotation profile for session-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -27,7 +28,7 @@
         </processorPath>
         <module name="session-service" />
       </profile>
-      <profile name="Annotation profile for Chat_Service" enabled="true">
+      <profile name="Annotation profile for Fakarni Backend (multi-module)" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -40,9 +41,6 @@
         <module name="Chat_Service" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="User-Service" target="21" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
@@ -57,6 +55,7 @@
       <module name="Post-Service" options="-parameters" />
       <module name="Tracking-Service" options="-parameters" />
       <module name="User" options="-parameters" />
+      <module name="User-Service" options="-parameters" />
       <module name="activite-educative-service" options="-parameters" />
       <module name="meeting-insights-service" options="-parameters" />
       <module name="session-service" options="-parameters" />

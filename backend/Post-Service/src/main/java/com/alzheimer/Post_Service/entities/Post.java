@@ -19,6 +19,9 @@ public class Post {
     @Column(columnDefinition = "LONGTEXT", nullable = true)
     private String imageUrl;
 
+    @Column(nullable = false)
+    private String userId;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -40,6 +43,14 @@ public class Post {
         this.imageUrl = imageUrl;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public Long getId() {
