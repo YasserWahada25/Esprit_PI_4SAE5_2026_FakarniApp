@@ -14,7 +14,6 @@
 		<module>Eureka-Service</module>
 		<module>Gateway-Service</module>
 		<module>User-Service</module>
-		<module>UserSession-Service</module>
 		<module>Event-Service</module>
 		<module>activite-educative-service</module>
 		<module>suivi-engagement-service</module>

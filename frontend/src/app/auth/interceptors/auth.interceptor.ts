@@ -24,32 +24,32 @@ function shouldSendAuthHeader(req: { url: string; method: string }): boolean {
   return true;
 }
 
+function shouldUseCredentials(url: string): boolean {
+  const lowered = url.toLowerCase();
+  return (
+    lowered.startsWith('/api') ||
+    lowered.startsWith('/auth') ||
+    lowered.startsWith('/session') ||
+    lowered.startsWith('/ws') ||
+    lowered.includes('localhost:8090')
+  );
+}
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const token = auth.getAccessToken();
+  const withCredentials = shouldUseCredentials(req.url);
 
-<<<<<<< HEAD
   if (!token || !shouldSendAuthHeader(req)) {
-=======
-  console.log('🔐 Auth Interceptor:', {
-    url: req.url,
-    hasToken: !!token,
-    token: token ? `${token.substring(0, 20)}...` : 'NO TOKEN'
-  });
-
-  if (!token) {
-    console.warn('⚠️ No token found - request will be sent without Authorization header');
->>>>>>> 34a87b605fecf5b2caf4446596de1916397f7f44
-    return next(req);
+    return next(req.clone({ withCredentials }));
   }
 
   const clonedReq = req.clone({
+    withCredentials,
     setHeaders: {
       Authorization: `Bearer ${token}`
     }
   });
-
-  console.log('✅ Token added to request:', clonedReq.headers.get('Authorization')?.substring(0, 30) + '...');
 
   return next(clonedReq);
 };
