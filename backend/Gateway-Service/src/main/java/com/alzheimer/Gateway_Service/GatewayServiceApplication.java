@@ -28,6 +28,7 @@ public class GatewayServiceApplication {
 			@Value("${gateway.routes.group.uri:lb://GROUP-SERVICE}") String groupUri,
 			@Value("${gateway.routes.chat.uri:lb://CHAT-SERVICE}") String chatUri,
 			@Value("${gateway.routes.chat-ws.uri:lb:ws://CHAT-SERVICE}") String chatWsUri,
+			@Value("${gateway.routes.meeting-insights.uri:lb://MEETING-INSIGHTS-SERVICE}") String meetingInsightsUri,
 			@Value("${gateway.direct.activite-educative-service-uri:}") String directActiviteUri) {
 		String activiteTarget = StringUtils.hasText(directActiviteUri)
 				? directActiviteUri.trim()
@@ -81,6 +82,9 @@ public class GatewayServiceApplication {
 				.route("Chat-Service-WebSocket", r ->
 						r.path("/chat-ws/**")
 								.uri(chatWsUri))
+				.route("meeting-insights-service", r ->
+						r.path("/api/meet/**")
+								.uri(meetingInsightsUri))
 				.route("tracking_route", r -> r.path("/api/tracking/**")
 						.uri("lb://TRACKING-SERVICE"))
 				.route("geofencing_route", r -> r.path("/api/geofencing/**")

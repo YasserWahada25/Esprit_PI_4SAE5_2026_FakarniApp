@@ -1,8 +1,11 @@
+from uuid import uuid4
+
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from jwt import InvalidTokenError
 
+from app.services.insights_store import InsightsStore
 from app.services.report_service import ReportService
 from app.services.transcription_service import TranscriptionService
 from app.schemas import GeneratedReport, ReportRequest, TranscriptionResponse
@@ -15,6 +18,7 @@ app = FastAPI(
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+insights_store = InsightsStore()
 
 
 def verify_token(token: str = Depends(oauth2_scheme)) -> dict:
@@ -53,12 +57,16 @@ async def transcribe_audio(
 
     transcription_service = TranscriptionService()
     result = await transcription_service.transcribe_audio(file=file, language=language)
-    return TranscriptionResponse(
+    saved = TranscriptionResponse(
+        id=str(uuid4()),
         requested_by=auth["user_id"],
         filename=file.filename,
         language=result.get("language"),
         transcription=result["transcription"],
+        created_at=InsightsStore.now_utc(),
     )
+    insights_store.add_transcription(saved)
+    return saved
 
 
 @app.post("/api/meet/report", response_model=GeneratedReport)
@@ -75,5 +83,21 @@ async def generate_report(
         meeting_title=request.meeting_title,
         language=request.language,
     )
+    report.id = str(uuid4())
+    report.transcription_id = request.transcription_id
     report.generated_by = auth["user_id"]
+    report.created_at = InsightsStore.now_utc()
+    insights_store.add_report(report)
     return report
+
+
+@app.get("/api/meet/transcriptions", response_model=list[TranscriptionResponse])
+def list_transcriptions(auth: dict = Depends(verify_token)) -> list[TranscriptionResponse]:
+    _ = auth
+    return insights_store.list_transcriptions()
+
+
+@app.get("/api/meet/reports", response_model=list[GeneratedReport])
+def list_reports(auth: dict = Depends(verify_token)) -> list[GeneratedReport]:
+    _ = auth
+    return insights_store.list_reports()

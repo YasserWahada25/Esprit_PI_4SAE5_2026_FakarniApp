@@ -1,14 +1,42 @@
 <div class="reports-container">
     <div class="header-section">
         <h2>Monitoring & Reports</h2>
-        <p>Track progress and review session history.</p>
+        <p>Transcrire une reunion et generer automatiquement un rapport de synthese.</p>
     </div>
 
-    <!-- Reports Section -->
+    <div class="section composer">
+        <h3>Meeting Insights</h3>
+        <div class="composer-grid">
+            <label>
+                Titre reunion
+                <input type="text" [(ngModel)]="meetingTitle" placeholder="Ex: Reunion equipe soins" />
+            </label>
+            <label>
+                Langue
+                <input type="text" [(ngModel)]="language" placeholder="fr" />
+            </label>
+            <label class="file-label">
+                Audio
+                <input type="file" accept="audio/*" (change)="onFileSelected($event)" />
+            </label>
+        </div>
+        <div class="actions">
+            <button class="primary-btn" (click)="runTranscription()" [disabled]="loadingTranscription">
+                {{ loadingTranscription ? 'Transcription...' : 'Transcrire le discours' }}
+            </button>
+            <button class="secondary-btn" (click)="generateSummaryReport()" [disabled]="loadingReport">
+                {{ loadingReport ? 'Generation...' : 'Generer le rapport' }}
+            </button>
+            <button class="ghost-btn" (click)="refreshHistory()" [disabled]="loadingHistory">
+                Rafraichir
+            </button>
+        </div>
+        <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    </div>
+
     <div class="section">
         <div class="section-header">
-            <h3>Available Reports</h3>
-            <button class="filter-btn">Filter <i class="fa fa-filter"></i></button>
+            <h3>Rapports generes</h3>
         </div>
 
         <div class="card-grid">
@@ -17,28 +45,48 @@
                     <i class="fa-regular fa-file-pdf"></i>
                 </div>
                 <div class="report-info">
-                    <h4>{{ report.title }}</h4>
-                    <span class="report-date">{{ report.date | date:'mediumDate' }}</span>
-                    <span class="badge" [class.pending]="report.status === 'Pending'">{{ report.status }}</span>
+                    <h4>{{ report.meeting_title || 'Rapport de reunion' }}</h4>
+                    <span class="report-date">{{ report.created_at | date:'medium' }}</span>
+                    <span class="badge">Done</span>
                 </div>
-                <button class="download-btn" (click)="downloadReport(report)">
-                    Download
+                <button class="download-btn" (click)="previewReport(report)">
+                    Voir
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Transcriptions Section -->
     <div class="section">
-        <h3>Session Transcriptions</h3>
+        <h3>Transcriptions</h3>
         <div class="list-container">
             <div class="list-item" *ngFor="let trans of transcriptions">
                 <div class="item-main">
-                    <h4>{{ trans.sessionTitle }}</h4>
-                    <span class="meta">{{ trans.date | date:'short' }} • {{ trans.duration }}</span>
+                    <h4>{{ trans.filename }}</h4>
+                    <span class="meta">{{ trans.created_at | date:'short' }} • {{ trans.language || 'n/a' }}</span>
                 </div>
-                <button class="view-btn" (click)="viewTranscription(trans)">View Transcript</button>
+                <button class="view-btn" (click)="viewTranscription(trans)">Voir transcript</button>
             </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Texte transcrit</h3>
+        <textarea class="transcript-area" [(ngModel)]="transcriptionText" rows="8"></textarea>
+    </div>
+
+    <div class="section" *ngIf="selectedReport">
+        <h3>Resume du discours</h3>
+        <div class="report-preview">
+            <p><strong>Summary:</strong> {{ selectedReport.summary }}</p>
+            <p><strong>Sentiment:</strong> {{ selectedReport.sentiment_analysis.label }} ({{ selectedReport.sentiment_analysis.score }})</p>
+            <p><strong>Key points:</strong></p>
+            <ul>
+                <li *ngFor="let kp of selectedReport.key_points">{{ kp }}</li>
+            </ul>
+            <p><strong>Action items:</strong></p>
+            <ul>
+                <li *ngFor="let ai of selectedReport.action_items">{{ ai }}</li>
+            </ul>
         </div>
     </div>
 </div>
