@@ -1,7 +1,7 @@
 # Java / Spring
-/backend/target/
-/backend/*.iml
-/.idea/
+**/target/
+**/*.iml
+**/.idea/
 /*.log
 
 # Node / Angular
