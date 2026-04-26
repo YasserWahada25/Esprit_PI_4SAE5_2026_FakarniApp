@@ -3,6 +3,8 @@ import { MainLayoutComponent } from './shared/components/main-layout.component';
 import { HomeComponent } from './home/home.component';
 import { SignInComponent } from './auth/sign-in.component';
 import { SignUpComponent } from './auth/sign-up.component';
+import { ForgotPasswordComponent } from './auth/forgot-password.component';
+import { ResetPasswordComponent } from './auth/reset-password.component';
 import { ProfileEditComponent } from './profile/profile-edit.component';
 import { authGuard } from './auth/guards/auth.guard';
 import { adminGuard } from './auth/guards/admin.guard';
@@ -14,6 +16,8 @@ export const routes: Routes = [
     // Auth Routes (Standalone, No Header/Footer)
     { path: 'auth/signin', component: SignInComponent },
     { path: 'auth/signup', component: SignUpComponent },
+    { path: 'auth/forgot-password', component: ForgotPasswordComponent },
+    { path: 'auth/password-reset', component: ResetPasswordComponent },
 
     // Main Routes (Wrapped in MainLayout)
     {

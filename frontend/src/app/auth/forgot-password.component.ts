@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from './services/auth.service';
 
 @Component({
@@ -35,11 +36,11 @@ export class ForgotPasswordComponent {
         this.loading = true;
 
         this.authService.forgotPassword(this.forgotForm.value.email).subscribe({
-            next: (res) => {
+            next: (res: { message?: string }) => {
                 this.loading = false;
                 this.successMessage = res?.message || 'A password reset link has been sent to your email.';
             },
-            error: (err) => {
+            error: (err: HttpErrorResponse) => {
                 this.loading = false;
                 this.errorMessage = err?.error?.message || 'An error occurred. Please try again.';
             }

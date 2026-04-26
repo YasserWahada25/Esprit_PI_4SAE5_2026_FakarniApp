@@ -35,6 +35,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
 import jakarta.mail.internet.InternetAddress;
@@ -181,6 +182,28 @@ public class AuthService {
             s.setRevoked(true);
             sessionRepository.save(s);
         });
+    }
+
+    /**
+     * Résout l'utilisateur authentifié à partir d'un sessionId (cookie HTTP).
+     * Retourne vide si la session n'existe pas, est révoquée/expirée, ou si l'utilisateur est introuvable.
+     */
+    public Optional<User> findAuthenticatedUserBySessionId(String sessionId) {
+        if (sessionId == null || sessionId.isBlank()) {
+            return Optional.empty();
+        }
+
+        Optional<Session> session = sessionRepository.findById(sessionId);
+        if (session.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Session s = session.get();
+        if (s.isRevoked() || s.getExpiresAt() == null || s.getExpiresAt().isBefore(Instant.now())) {
+            return Optional.empty();
+        }
+
+        return userRepository.findById(s.getUserId());
     }
 
     public MessageResponse forgotPassword(ForgotPasswordRequest req) {

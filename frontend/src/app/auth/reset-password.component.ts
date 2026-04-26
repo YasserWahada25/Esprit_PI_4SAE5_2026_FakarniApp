@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from './services/auth.service';
 
@@ -69,12 +70,12 @@ export class ResetPasswordComponent implements OnInit {
         this.loading = true;
 
         this.authService.resetPassword(this.token, this.resetForm.value.newPassword).subscribe({
-            next: (res) => {
+            next: (res: { message?: string }) => {
                 this.loading = false;
                 this.successMessage = res?.message || 'Your password has been reset successfully!';
                 setTimeout(() => this.router.navigate(['/auth/signin']), 3000);
             },
-            error: (err) => {
+            error: (err: HttpErrorResponse) => {
                 this.loading = false;
                 this.errorMessage = err?.error?.message || 'An error occurred. Please try again.';
             }

@@ -2,12 +2,12 @@
   "name": "care-template",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve --proxy-config proxy.conf.json",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadless",
+    "ng": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng",
+    "start": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng serve --proxy-config proxy.conf.json",
+    "build": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng build",
+    "watch": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng build --watch --configuration development",
+    "test": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng test",
+    "test:ci": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng test --watch=false --browsers=ChromeHeadless",
     "serve:ssr:careTemplate": "node dist/careTemplate/server/server.mjs"
   },
   "prettier": {

@@ -1,6 +1,14 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { GeographicZone } from '../../../../core/models/geographic-zone.model';
 import { GeolocationService } from '../../../../core/services/geolocation.service';
 import { PatientService } from '../../../../core/services/patient.service';
@@ -8,7 +16,17 @@ import { Patient } from '../../../../core/models/patient.model';
 
 @Component({
     selector: 'app-zone-form',
-    standalone: false,
+    standalone: true,
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatSlideToggleModule,
+        MatButtonModule
+    ],
     templateUrl: './zone-form.component.html',
     styleUrls: ['./zone-form.component.scss']
 })
@@ -28,7 +46,7 @@ export class ZoneFormComponent implements OnInit {
         private geolocationService: GeolocationService,
         private patientService: PatientService,
         public dialogRef: MatDialogRef<ZoneFormComponent>,
-        @Inject(MAT_DIALOG_DATA) public data: GeographicZone
+        @Inject(MAT_DIALOG_DATA) public data: GeographicZone | null
     ) {
         this.isEditMode = !!data;
         this.zoneForm = this.fb.group({
@@ -65,7 +83,7 @@ export class ZoneFormComponent implements OnInit {
                 notifyOnExit: formValue.notifyOnExit
             };
 
-            if (this.isEditMode) {
+            if (this.isEditMode && this.data) {
                 this.geolocationService.updateZone(this.data.id, zoneData).subscribe(() => {
                     this.dialogRef.close(true);
                 });
