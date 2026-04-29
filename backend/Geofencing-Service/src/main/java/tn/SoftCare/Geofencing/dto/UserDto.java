@@ -26,4 +26,14 @@ public class UserDto {
     public String getFullName() {
         return ((prenom != null ? prenom : "") + " " + (nom != null ? nom : "")).trim();
     }
+
+    public void setFullName(String fullName) {
+    }
+
+    public void setFirstName(String firstName) {
+
+    }
+
+    public void setLastName(String lastName) {
+    }
 }

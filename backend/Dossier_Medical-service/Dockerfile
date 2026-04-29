@@ -1,15 +1,25 @@
-# Build autonome : depuis le dossier du module
-#   docker build -t <image>:local .
-# .dockerignore recommandé : target/ , .git
-#
-FROM maven:3.9.9-eclipse-temurin-21 AS build
+# ─── Stage 1 : Build ───────────────────────────────────────────────────────
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY . .
-RUN mvn -B -e -q package -Dmaven.test.skip=true -Dfile.encoding=UTF-8
 
-FROM eclipse-temurin:21-jre-jammy
+# Cache des dépendances Maven
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Compilation
+COPY src ./src
+RUN mvn clean package -DskipTests -B
+
+# ─── Stage 2 : Runtime ─────────────────────────────────────────────────────
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /app/target/*.jar /app/app.jar
-ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -Dfile.encoding=UTF-8"
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+
+# Sécurité : utilisateur non-root
+RUN addgroup -S softcare && adduser -S softcare -G softcare
+USER softcare
+
+COPY --from=build /app/target/*.jar app.jar
+
+EXPOSE 8059
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
