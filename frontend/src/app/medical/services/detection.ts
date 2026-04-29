@@ -54,7 +54,7 @@ export class DetectionService {
 
   private readonly API_URL    = 'http://localhost:8058';
   private readonly DOSSIER_URL = 'http://localhost:8059';
-  private readonly USER_URL    = 'http://localhost:8081'; // ← port de ton User service
+  private readonly USER_URL    = 'http://localhost:8090'; // ← port de ton User service
 
   constructor(private http: HttpClient) {}
 

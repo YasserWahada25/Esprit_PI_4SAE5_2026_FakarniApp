@@ -1,7 +1,8 @@
+/* ===== MEDICAL LAYOUT Violet Theme ===== */
+
 .medical-layout {
     display: flex;
     min-height: calc(100vh - 80px);
-    /* Adjust based on navbar height */
     background-color: #f8f9fa;
 }
 
@@ -29,8 +30,7 @@
 .sidebar-header h2 {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #43a047;
-    /* Medical Green/Teal Theme */
+    color: #7b1fa2;   /* Violet */
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -74,11 +74,12 @@
     text-align: center;
 }
 
+/* Hover + Active Violet */
 .sidebar-nav li a:hover,
 .sidebar-nav li a.active {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    border-left-color: #2e7d32;
+    background-color: #f3e5f5;   /* Violet clair */
+    color: #7b1fa2;
+    border-left-color: #7b1fa2;
 }
 
 .separator {
