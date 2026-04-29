@@ -1,11 +1,11 @@
-package com.alzheimer.event_service.controllers;
+package com.alzheimer.Event_Service.controllers;
 
-import com.alzheimer.event_service.dto.EventCreateRequest;
-import com.alzheimer.event_service.dto.EventParticipationRequest;
-import com.alzheimer.event_service.dto.EventParticipationResponse;
-import com.alzheimer.event_service.dto.EventResponse;
-import com.alzheimer.event_service.entities.EventParticipationStatus;
-import com.alzheimer.event_service.services.EventService;
+import com.alzheimer.Event_Service.dto.EventCreateRequest;
+import com.alzheimer.Event_Service.dto.EventParticipationRequest;
+import com.alzheimer.Event_Service.dto.EventParticipationResponse;
+import com.alzheimer.Event_Service.dto.EventResponse;
+import com.alzheimer.Event_Service.entities.EventParticipationStatus;
+import com.alzheimer.Event_Service.services.EventService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -70,7 +70,7 @@ public class EventController {
         return eventService.updateParticipationStatus(participationId, status);
     }
 
-    /** Agrégation suivi engagement : toutes les participations ou filtrées par patient. */
+    /** AgrÃ©gation suivi engagement : toutes les participations ou filtrÃ©es par patient. */
     @GetMapping("/participations")
     public List<EventParticipationResponse> listParticipations(
             @RequestParam(required = false) String patientId

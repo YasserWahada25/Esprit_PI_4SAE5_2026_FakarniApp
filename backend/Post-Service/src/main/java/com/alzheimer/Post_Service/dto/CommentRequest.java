@@ -1,4 +1,4 @@
-package com.alzheimer.post_service.dto;
+package com.alzheimer.Post_Service.dto;
 
 public class CommentRequest {
     private Long userId;
@@ -38,3 +38,4 @@ public class CommentRequest {
         this.parentCommentId = parentCommentId;
     }
 }
+

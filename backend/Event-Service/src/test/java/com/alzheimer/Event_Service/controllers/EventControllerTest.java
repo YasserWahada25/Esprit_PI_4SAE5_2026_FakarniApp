@@ -1,8 +1,8 @@
-package com.alzheimer.event_service.controllers;
+package com.alzheimer.Event_Service.controllers;
 
-import com.alzheimer.event_service.dto.EventCreateRequest;
-import com.alzheimer.event_service.dto.EventResponse;
-import com.alzheimer.event_service.services.EventService;
+import com.alzheimer.Event_Service.dto.EventCreateRequest;
+import com.alzheimer.Event_Service.dto.EventResponse;
+import com.alzheimer.Event_Service.services.EventService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,3 +67,4 @@ class EventControllerTest {
                 .andExpect(status().isOk());
     }
 }
+

@@ -1,7 +1,7 @@
-package com.alzheimer.event_service.services;
+package com.alzheimer.Event_Service.services;
 
-import com.alzheimer.event_service.entities.Event;
-import com.alzheimer.event_service.repositories.EventRepository;
+import com.alzheimer.Event_Service.entities.Event;
+import com.alzheimer.Event_Service.repositories.EventRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -27,12 +27,12 @@ public class EventReminderScheduler {
     }
 
     /**
-     * S'exécute toutes les minutes pour vérifier les événements qui auront lieu
-     * dans les prochaines 24 heures et pour lesquels le rappel (remind_enabled) est activé.
+     * S'exÃ©cute toutes les minutes pour vÃ©rifier les Ã©vÃ©nements qui auront lieu
+     * dans les prochaines 24 heures et pour lesquels le rappel (remind_enabled) est activÃ©.
      */
     @Scheduled(fixedRate = 60000)
     public void checkAndSendReminders() {
-        log.info("[EventReminderScheduler] Vérification des événements imminents...");
+        log.info("[EventReminderScheduler] VÃ©rification des Ã©vÃ©nements imminents...");
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime next24Hours = now.plusDays(1);
@@ -40,25 +40,25 @@ public class EventReminderScheduler {
         List<Event> eventsToRemind = eventRepository.findByRemindEnabledTrueAndRemindSentFalseAndStartDateTimeBetween(now, next24Hours);
 
         if (eventsToRemind.isEmpty()) {
-            log.info("[EventReminderScheduler] Aucun nouvel événement à rappeler.");
+            log.info("[EventReminderScheduler] Aucun nouvel Ã©vÃ©nement Ã  rappeler.");
             return;
         }
 
         for (Event event : eventsToRemind) {
             try {
-                // 1. Récupérer le User
+                // 1. RÃ©cupÃ©rer le User
                 Map<String, Object> userData = userClient.getUserById(String.valueOf(event.getUserId()));
                 String userEmail = (userData != null && userData.containsKey("email")) 
                                    ? userData.get("email").toString() 
                                    : null;
 
                 if (userEmail == null || userEmail.isBlank()) {
-                    log.warn("[EventReminderScheduler] Impossible de trouver l'email pour le user_id {}. Rappel ignoré pour l'événement {}.", event.getUserId(), event.getId());
+                    log.warn("[EventReminderScheduler] Impossible de trouver l'email pour le user_id {}. Rappel ignorÃ© pour l'Ã©vÃ©nement {}.", event.getUserId(), event.getId());
                     continue;
                 }
 
                 // 2. Envoyer l'email
-                log.info("[EventReminderScheduler] Envoi d'un email de rappel à {} pour l'événement '{}'", userEmail, event.getTitle());
+                log.info("[EventReminderScheduler] Envoi d'un email de rappel Ã  {} pour l'Ã©vÃ©nement '{}'", userEmail, event.getTitle());
                 emailService.sendEventReminder(
                         userEmail, 
                         event.getTitle(), 
@@ -67,15 +67,16 @@ public class EventReminderScheduler {
                         event.getLocation()
                 );
 
-                // 3. Marquer comme envoyé
+                // 3. Marquer comme envoyÃ©
                 event.setRemindSent(true);
                 eventRepository.save(event);
                 
-                log.info("[EventReminderScheduler] Rappel envoyé avec succès pour l'événement '{}'", event.getTitle());
+                log.info("[EventReminderScheduler] Rappel envoyÃ© avec succÃ¨s pour l'Ã©vÃ©nement '{}'", event.getTitle());
 
             } catch (Exception e) {
-                log.error("[EventReminderScheduler] Erreur lors de l'envoi du rappel pour l'événement '{}': {}", event.getTitle(), e.getMessage());
+                log.error("[EventReminderScheduler] Erreur lors de l'envoi du rappel pour l'Ã©vÃ©nement '{}': {}", event.getTitle(), e.getMessage());
             }
         }
     }
 }
+

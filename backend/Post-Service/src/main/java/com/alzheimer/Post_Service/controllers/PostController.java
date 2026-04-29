@@ -1,8 +1,8 @@
-package com.alzheimer.post_service.controllers;
+package com.alzheimer.Post_Service.controllers;
 
-import com.alzheimer.post_service.dto.PostRequest;
-import com.alzheimer.post_service.dto.PostResponse;
-import com.alzheimer.post_service.services.PostService;
+import com.alzheimer.Post_Service.dto.PostRequest;
+import com.alzheimer.Post_Service.dto.PostResponse;
+import com.alzheimer.Post_Service.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -91,3 +91,4 @@ public class PostController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
+

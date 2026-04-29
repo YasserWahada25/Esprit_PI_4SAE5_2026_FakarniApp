@@ -1,4 +1,4 @@
-package com.alzheimer.event_service.entities;
+package com.alzheimer.Event_Service.entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -86,4 +86,5 @@ public class Event {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
+
 

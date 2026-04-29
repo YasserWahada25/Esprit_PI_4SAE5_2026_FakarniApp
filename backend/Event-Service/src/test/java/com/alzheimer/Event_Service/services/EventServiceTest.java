@@ -1,10 +1,10 @@
-package com.alzheimer.event_service.services;
+package com.alzheimer.Event_Service.services;
 
-import com.alzheimer.event_service.dto.EventCreateRequest;
-import com.alzheimer.event_service.dto.EventResponse;
-import com.alzheimer.event_service.entities.Event;
-import com.alzheimer.event_service.repositories.EventParticipationRepository;
-import com.alzheimer.event_service.repositories.EventRepository;
+import com.alzheimer.Event_Service.dto.EventCreateRequest;
+import com.alzheimer.Event_Service.dto.EventResponse;
+import com.alzheimer.Event_Service.entities.Event;
+import com.alzheimer.Event_Service.repositories.EventParticipationRepository;
+import com.alzheimer.Event_Service.repositories.EventRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -79,3 +79,4 @@ class EventServiceTest {
         verify(eventRepository, never()).findById(7L);
     }
 }
+

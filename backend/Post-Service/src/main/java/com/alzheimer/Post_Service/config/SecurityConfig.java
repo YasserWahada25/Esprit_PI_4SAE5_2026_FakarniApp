@@ -1,4 +1,4 @@
-package com.alzheimer.post_service.config;
+package com.alzheimer.Post_Service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,3 +54,4 @@ public class SecurityConfig {
         return source;
     }
 }
+

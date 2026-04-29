@@ -1,4 +1,4 @@
-package com.alzheimer.post_service.dto;
+package com.alzheimer.Post_Service.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -80,3 +80,4 @@ public class CommentResponse {
         this.replies = replies;
     }
 }
+

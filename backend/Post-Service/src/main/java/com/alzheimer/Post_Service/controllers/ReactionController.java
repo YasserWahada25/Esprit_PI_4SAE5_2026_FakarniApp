@@ -1,8 +1,8 @@
-package com.alzheimer.post_service.controllers;
+package com.alzheimer.Post_Service.controllers;
 
-import com.alzheimer.post_service.dto.ReactionCountResponse;
-import com.alzheimer.post_service.dto.ReactionRequest;
-import com.alzheimer.post_service.services.ReactionService;
+import com.alzheimer.Post_Service.dto.ReactionCountResponse;
+import com.alzheimer.Post_Service.dto.ReactionRequest;
+import com.alzheimer.Post_Service.services.ReactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,3 +51,4 @@ public class ReactionController {
         }
     }
 }
+

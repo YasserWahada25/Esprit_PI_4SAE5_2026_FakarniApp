@@ -1,7 +1,7 @@
-package com.alzheimer.post_service.repositories;
+package com.alzheimer.Post_Service.repositories;
 
-import com.alzheimer.post_service.entities.Reaction;
-import com.alzheimer.post_service.entities.Reaction.ReactionType;
+import com.alzheimer.Post_Service.entities.Reaction;
+import com.alzheimer.Post_Service.entities.Reaction.ReactionType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
@@ -21,3 +21,4 @@ public interface ReactionRepository extends JpaRepository<Reaction, Long> {
     @Transactional
     void deleteByPostId(Long postId);
 }
+

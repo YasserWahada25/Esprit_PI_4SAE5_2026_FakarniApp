@@ -1,4 +1,4 @@
-package com.alzheimer.post_service.dto;
+package com.alzheimer.Post_Service.dto;
 
 import java.util.Map;
 
@@ -30,3 +30,4 @@ public class ReactionCountResponse {
         this.userReaction = userReaction;
     }
 }
+

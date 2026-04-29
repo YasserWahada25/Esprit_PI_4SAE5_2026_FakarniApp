@@ -1,4 +1,4 @@
-package com.alzheimer.post_service.dto;
+package com.alzheimer.Post_Service.dto;
 
 public class PostRequest {
     private String content;
@@ -28,3 +28,4 @@ public class PostRequest {
         this.imageUrl = imageUrl;
     }
 }
+

@@ -1,12 +1,12 @@
-package com.alzheimer.post_service.services;
+package com.alzheimer.Post_Service.services;
 
-import com.alzheimer.post_service.dto.ReactionCountResponse;
-import com.alzheimer.post_service.dto.ReactionRequest;
-import com.alzheimer.post_service.entities.Post;
-import com.alzheimer.post_service.entities.Reaction;
-import com.alzheimer.post_service.entities.Reaction.ReactionType;
-import com.alzheimer.post_service.repositories.PostRepository;
-import com.alzheimer.post_service.repositories.ReactionRepository;
+import com.alzheimer.Post_Service.dto.ReactionCountResponse;
+import com.alzheimer.Post_Service.dto.ReactionRequest;
+import com.alzheimer.Post_Service.entities.Post;
+import com.alzheimer.Post_Service.entities.Reaction;
+import com.alzheimer.Post_Service.entities.Reaction.ReactionType;
+import com.alzheimer.Post_Service.repositories.PostRepository;
+import com.alzheimer.Post_Service.repositories.ReactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +50,8 @@ class ReactionServiceTest {
         // Arrange
         ReactionRequest request = new ReactionRequest(userId, ReactionType.LIKE);
         when(postRepository.findById(postId)).thenReturn(Optional.of(testPost));
-        when(reactionRepository.findByPostIdAndUserId(postId, userId)).thenReturn(Optional.empty());
+        when(reactionRepository.findByPostIdAndUserId(postId, userId))
+                .thenReturn(Optional.empty(), Optional.of(new Reaction(testPost, userId, ReactionType.LIKE)));
         when(reactionRepository.countByPostIdAndType(postId, ReactionType.LIKE)).thenReturn(1L);
         when(reactionRepository.countByPostIdAndType(postId, ReactionType.HEART)).thenReturn(0L);
         when(reactionRepository.countByPostIdAndType(postId, ReactionType.SUPPORT)).thenReturn(0L);
@@ -71,7 +72,8 @@ class ReactionServiceTest {
         ReactionRequest request = new ReactionRequest(userId, ReactionType.LIKE);
         
         when(postRepository.findById(postId)).thenReturn(Optional.of(testPost));
-        when(reactionRepository.findByPostIdAndUserId(postId, userId)).thenReturn(Optional.of(existingReaction));
+        when(reactionRepository.findByPostIdAndUserId(postId, userId))
+                .thenReturn(Optional.of(existingReaction), Optional.empty());
         when(reactionRepository.countByPostIdAndType(postId, ReactionType.LIKE)).thenReturn(0L);
         when(reactionRepository.countByPostIdAndType(postId, ReactionType.HEART)).thenReturn(0L);
         when(reactionRepository.countByPostIdAndType(postId, ReactionType.SUPPORT)).thenReturn(0L);
@@ -91,7 +93,8 @@ class ReactionServiceTest {
         ReactionRequest request = new ReactionRequest(userId, ReactionType.HEART);
         
         when(postRepository.findById(postId)).thenReturn(Optional.of(testPost));
-        when(reactionRepository.findByPostIdAndUserId(postId, userId)).thenReturn(Optional.of(existingReaction));
+        when(reactionRepository.findByPostIdAndUserId(postId, userId))
+                .thenReturn(Optional.of(existingReaction), Optional.of(existingReaction));
         when(reactionRepository.countByPostIdAndType(postId, ReactionType.LIKE)).thenReturn(0L);
         when(reactionRepository.countByPostIdAndType(postId, ReactionType.HEART)).thenReturn(1L);
         when(reactionRepository.countByPostIdAndType(postId, ReactionType.SUPPORT)).thenReturn(0L);
@@ -115,3 +118,4 @@ class ReactionServiceTest {
         assertThrows(RuntimeException.class, () -> reactionService.toggleReaction(postId, request));
     }
 }
+

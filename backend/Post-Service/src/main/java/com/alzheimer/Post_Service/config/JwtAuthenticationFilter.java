@@ -1,4 +1,4 @@
-package com.alzheimer.post_service.config;
+package com.alzheimer.Post_Service.config;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -61,3 +61,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
+

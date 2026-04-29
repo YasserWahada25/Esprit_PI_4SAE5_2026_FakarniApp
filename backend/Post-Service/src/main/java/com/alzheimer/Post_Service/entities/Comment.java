@@ -1,4 +1,4 @@
-package com.alzheimer.post_service.entities;
+package com.alzheimer.Post_Service.entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -108,3 +108,4 @@ public class Comment {
         this.updatedAt = LocalDateTime.now();
     }
 }
+

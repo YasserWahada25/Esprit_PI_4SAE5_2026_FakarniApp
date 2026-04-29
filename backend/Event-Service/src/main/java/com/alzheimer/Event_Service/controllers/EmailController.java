@@ -1,6 +1,6 @@
-package com.alzheimer.event_service.controllers;
+package com.alzheimer.Event_Service.controllers;
 
-import com.alzheimer.event_service.services.EmailService;
+import com.alzheimer.Event_Service.services.EmailService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,3 +28,4 @@ public class EmailController {
         }
     }
 }
+

@@ -1,4 +1,4 @@
-package com.alzheimer.event_service.controllers;
+package com.alzheimer.Event_Service.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -119,3 +119,4 @@ public class MapsController {
         }
     }
 }
+

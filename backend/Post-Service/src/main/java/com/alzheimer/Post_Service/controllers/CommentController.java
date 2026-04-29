@@ -1,8 +1,8 @@
-package com.alzheimer.post_service.controllers;
+package com.alzheimer.Post_Service.controllers;
 
-import com.alzheimer.post_service.dto.CommentRequest;
-import com.alzheimer.post_service.dto.CommentResponse;
-import com.alzheimer.post_service.services.CommentService;
+import com.alzheimer.Post_Service.dto.CommentRequest;
+import com.alzheimer.Post_Service.dto.CommentResponse;
+import com.alzheimer.Post_Service.services.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -76,3 +76,4 @@ public class CommentController {
         }
     }
 }
+

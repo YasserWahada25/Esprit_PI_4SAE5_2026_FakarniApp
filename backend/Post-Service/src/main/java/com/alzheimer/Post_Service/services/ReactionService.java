@@ -1,12 +1,12 @@
-package com.alzheimer.post_service.services;
+package com.alzheimer.Post_Service.services;
 
-import com.alzheimer.post_service.dto.ReactionCountResponse;
-import com.alzheimer.post_service.dto.ReactionRequest;
-import com.alzheimer.post_service.entities.Post;
-import com.alzheimer.post_service.entities.Reaction;
-import com.alzheimer.post_service.entities.Reaction.ReactionType;
-import com.alzheimer.post_service.repositories.PostRepository;
-import com.alzheimer.post_service.repositories.ReactionRepository;
+import com.alzheimer.Post_Service.dto.ReactionCountResponse;
+import com.alzheimer.Post_Service.dto.ReactionRequest;
+import com.alzheimer.Post_Service.entities.Post;
+import com.alzheimer.Post_Service.entities.Reaction;
+import com.alzheimer.Post_Service.entities.Reaction.ReactionType;
+import com.alzheimer.Post_Service.repositories.PostRepository;
+import com.alzheimer.Post_Service.repositories.ReactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,3 +67,4 @@ public class ReactionService {
         return new ReactionCountResponse(counts, userReaction);
     }
 }
+

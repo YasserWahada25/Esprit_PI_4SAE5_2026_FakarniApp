@@ -1,13 +1,13 @@
-package com.alzheimer.post_service.services;
+package com.alzheimer.Post_Service.services;
 
-import com.alzheimer.post_service.client.UserClient;
-import com.alzheimer.post_service.dto.PostRequest;
-import com.alzheimer.post_service.dto.PostResponse;
-import com.alzheimer.post_service.dto.UserDTO;
-import com.alzheimer.post_service.entities.Post;
-import com.alzheimer.post_service.repositories.CommentRepository;
-import com.alzheimer.post_service.repositories.PostRepository;
-import com.alzheimer.post_service.repositories.ReactionRepository;
+import com.alzheimer.Post_Service.client.UserClient;
+import com.alzheimer.Post_Service.dto.PostRequest;
+import com.alzheimer.Post_Service.dto.PostResponse;
+import com.alzheimer.Post_Service.dto.UserDTO;
+import com.alzheimer.Post_Service.entities.Post;
+import com.alzheimer.Post_Service.repositories.CommentRepository;
+import com.alzheimer.Post_Service.repositories.PostRepository;
+import com.alzheimer.Post_Service.repositories.ReactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -120,3 +120,4 @@ public class PostService {
         return response;
     }
 }
+

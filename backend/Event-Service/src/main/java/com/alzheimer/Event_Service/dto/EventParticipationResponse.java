@@ -1,7 +1,7 @@
-package com.alzheimer.event_service.dto;
+package com.alzheimer.Event_Service.dto;
 
-import com.alzheimer.event_service.entities.EventParticipation;
-import com.alzheimer.event_service.entities.EventParticipationStatus;
+import com.alzheimer.Event_Service.entities.EventParticipation;
+import com.alzheimer.Event_Service.entities.EventParticipationStatus;
 
 import java.time.LocalDateTime;
 
@@ -94,3 +94,4 @@ public class EventParticipationResponse {
         this.updatedAt = updatedAt;
     }
 }
+

@@ -1,4 +1,4 @@
-package com.alzheimer.event_service.entities;
+package com.alzheimer.Event_Service.entities;
 
 import jakarta.persistence.*;
 
@@ -89,3 +89,4 @@ public class EventParticipation {
         this.updatedAt = updatedAt;
     }
 }
+

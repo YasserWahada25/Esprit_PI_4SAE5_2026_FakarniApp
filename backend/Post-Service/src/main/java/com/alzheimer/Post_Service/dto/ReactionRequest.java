@@ -1,6 +1,6 @@
-package com.alzheimer.post_service.dto;
+package com.alzheimer.Post_Service.dto;
 
-import com.alzheimer.post_service.entities.Reaction.ReactionType;
+import com.alzheimer.Post_Service.entities.Reaction.ReactionType;
 
 public class ReactionRequest {
     private Long userId;
@@ -30,3 +30,4 @@ public class ReactionRequest {
         this.type = type;
     }
 }
+

@@ -45,6 +45,7 @@ class TrackingControllerTest {
 
         mockMvc.perform(post("/api/tracking/add")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"patientId":"p1","latitude":36.8,"longitude":10.2,"accuracy":5}
                                 """))
@@ -58,7 +59,8 @@ class TrackingControllerTest {
                 new Position(1L, "p1", 36.8, 10.2, LocalDateTime.now())
         ));
 
-        mockMvc.perform(get("/api/tracking/last"))
+        mockMvc.perform(get("/api/tracking/last")
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].patientId").value("p1"));
     }
@@ -67,7 +69,8 @@ class TrackingControllerTest {
     void getLastPosition_whenMissing_returnsEmptyBody() throws Exception {
         when(trackingService.getLastPosition(eq("missing"))).thenReturn(null);
 
-        mockMvc.perform(get("/api/tracking/last/missing"))
+        mockMvc.perform(get("/api/tracking/last/missing")
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").doesNotExist());
     }

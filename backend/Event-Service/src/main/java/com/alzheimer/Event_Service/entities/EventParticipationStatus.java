@@ -1,13 +1,14 @@
-package com.alzheimer.event_service.entities;
+package com.alzheimer.Event_Service.entities;
 
 /**
- * Chaîne simplifiée participation → suivi engagement (progress indicatif).
+ * ChaÃ®ne simplifiÃ©e participation â†’ suivi engagement (progress indicatif).
  */
 public enum EventParticipationStatus {
-    /** Inscrit, événement à venir ou non démarré côté patient. */
+    /** Inscrit, Ã©vÃ©nement Ã  venir ou non dÃ©marrÃ© cÃ´tÃ© patient. */
     REGISTERED,
-    /** Participation effective (présence confirmée). */
+    /** Participation effective (prÃ©sence confirmÃ©e). */
     ATTENDED,
     TERMINATED,
     CANCELLED
 }
+

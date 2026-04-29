@@ -1,6 +1,6 @@
-package com.alzheimer.post_service.repositories;
+package com.alzheimer.Post_Service.repositories;
 
-import com.alzheimer.post_service.entities.Comment;
+import com.alzheimer.Post_Service.entities.Comment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,3 +18,4 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Transactional
     void deleteByPostId(Long postId);
 }
+

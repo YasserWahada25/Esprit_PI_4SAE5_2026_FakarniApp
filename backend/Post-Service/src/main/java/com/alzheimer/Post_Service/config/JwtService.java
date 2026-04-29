@@ -1,4 +1,4 @@
-package com.alzheimer.post_service.config;
+package com.alzheimer.Post_Service.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -45,3 +45,4 @@ public class JwtService {
         }
     }
 }
+

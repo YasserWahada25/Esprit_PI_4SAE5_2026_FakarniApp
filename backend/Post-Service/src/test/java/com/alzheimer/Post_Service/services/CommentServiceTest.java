@@ -1,11 +1,11 @@
-package com.alzheimer.post_service.services;
+package com.alzheimer.Post_Service.services;
 
-import com.alzheimer.post_service.dto.CommentRequest;
-import com.alzheimer.post_service.dto.CommentResponse;
-import com.alzheimer.post_service.entities.Comment;
-import com.alzheimer.post_service.entities.Post;
-import com.alzheimer.post_service.repositories.CommentRepository;
-import com.alzheimer.post_service.repositories.PostRepository;
+import com.alzheimer.Post_Service.dto.CommentRequest;
+import com.alzheimer.Post_Service.dto.CommentResponse;
+import com.alzheimer.Post_Service.entities.Comment;
+import com.alzheimer.Post_Service.entities.Post;
+import com.alzheimer.Post_Service.repositories.CommentRepository;
+import com.alzheimer.Post_Service.repositories.PostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -136,3 +136,4 @@ class CommentServiceTest {
         assertTrue(exception.getMessage().contains("your own"));
     }
 }
+

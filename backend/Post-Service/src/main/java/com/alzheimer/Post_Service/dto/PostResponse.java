@@ -1,4 +1,4 @@
-package com.alzheimer.post_service.dto;
+package com.alzheimer.Post_Service.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
@@ -83,3 +83,4 @@ public class PostResponse {
         this.updatedAt = updatedAt;
     }
 }
+

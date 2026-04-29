@@ -1,6 +1,6 @@
-package com.alzheimer.event_service.repositories;
+package com.alzheimer.Event_Service.repositories;
 
-import com.alzheimer.event_service.entities.EventParticipation;
+import com.alzheimer.Event_Service.entities.EventParticipation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -15,3 +15,4 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
 
     void deleteAllByEvent_Id(Long eventId);
 }
+

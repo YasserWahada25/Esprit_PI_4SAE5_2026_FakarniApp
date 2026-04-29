@@ -1,4 +1,4 @@
-package com.alzheimer.post_service.config;
+package com.alzheimer.Post_Service.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -18,3 +18,4 @@ public class WebConfig implements WebMvcConfigurer {
         converters.add(jsonConverter);
     }
 }
+

@@ -1,14 +1,14 @@
-package com.alzheimer.event_service.services;
+package com.alzheimer.Event_Service.services;
 
-import com.alzheimer.event_service.dto.EventCreateRequest;
-import com.alzheimer.event_service.dto.EventParticipationRequest;
-import com.alzheimer.event_service.dto.EventParticipationResponse;
-import com.alzheimer.event_service.dto.EventResponse;
-import com.alzheimer.event_service.entities.Event;
-import com.alzheimer.event_service.entities.EventParticipation;
-import com.alzheimer.event_service.entities.EventParticipationStatus;
-import com.alzheimer.event_service.repositories.EventParticipationRepository;
-import com.alzheimer.event_service.repositories.EventRepository;
+import com.alzheimer.Event_Service.dto.EventCreateRequest;
+import com.alzheimer.Event_Service.dto.EventParticipationRequest;
+import com.alzheimer.Event_Service.dto.EventParticipationResponse;
+import com.alzheimer.Event_Service.dto.EventResponse;
+import com.alzheimer.Event_Service.entities.Event;
+import com.alzheimer.Event_Service.entities.EventParticipation;
+import com.alzheimer.Event_Service.entities.EventParticipationStatus;
+import com.alzheimer.Event_Service.repositories.EventParticipationRepository;
+import com.alzheimer.Event_Service.repositories.EventRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,7 +46,7 @@ public class EventService {
         this.emailService = emailService;
     }
 
-    // Création d'un événement
+    // CrÃ©ation d'un Ã©vÃ©nement
     public EventResponse create(EventCreateRequest request) {
         Event event = new Event();
         event.setTitle(request.getTitle());
@@ -62,7 +62,7 @@ public class EventService {
 
         Event savedEvent = eventRepository.save(event);
         
-        // Envoi d'email statique immédiat si le rappel est activé
+        // Envoi d'email statique immÃ©diat si le rappel est activÃ©
         if (savedEvent.isRemindEnabled()) {
             emailService.sendImmediateReminderToStaticUser(savedEvent);
         }
@@ -70,7 +70,7 @@ public class EventService {
         return new EventResponse(savedEvent);
     }
 
-    // Mise à jour d'un événement
+    // Mise Ã  jour d'un Ã©vÃ©nement
     public EventResponse update(Long id, EventCreateRequest request) {
         Event event = eventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found"));
         event.setTitle(request.getTitle());
@@ -86,7 +86,7 @@ public class EventService {
 
         Event updatedEvent = eventRepository.save(event);
 
-        // Envoi d'email statique immédiat si le rappel est toujours activé
+        // Envoi d'email statique immÃ©diat si le rappel est toujours activÃ©
         if (updatedEvent.isRemindEnabled()) {
             emailService.sendImmediateReminderToStaticUser(updatedEvent);
         }
@@ -94,13 +94,13 @@ public class EventService {
         return new EventResponse(updatedEvent);
     }
 
-    // Récupérer un événement par ID
+    // RÃ©cupÃ©rer un Ã©vÃ©nement par ID
     public EventResponse getById(Long id) {
         Event event = eventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found"));
         return new EventResponse(event);
     }
 
-    // Récupérer tous les événements
+    // RÃ©cupÃ©rer tous les Ã©vÃ©nements
     public List<EventResponse> getAll() {
         List<Event> events = eventRepository.findAll();
         return events.stream()
@@ -108,7 +108,7 @@ public class EventService {
                 .collect(Collectors.toList());
     }
 
-    // Supprimer un événement
+    // Supprimer un Ã©vÃ©nement
     public void delete(Long id) {
         participationRepository.deleteAllByEvent_Id(id);
         eventRepository.deleteById(id);
@@ -162,7 +162,7 @@ public class EventService {
 
             String contentType = file.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
-                response.put("error", "Le fichier doit être une image");
+                response.put("error", "Le fichier doit Ãªtre une image");
                 return ResponseEntity.badRequest().body(response);
             }
 
