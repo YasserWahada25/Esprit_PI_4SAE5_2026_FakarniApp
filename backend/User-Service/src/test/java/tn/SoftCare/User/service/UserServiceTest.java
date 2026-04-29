@@ -60,7 +60,7 @@ class UserServiceTest {
 
         assertThatThrownBy(() -> userService.create(request))
                 .isInstanceOf(EmailAlreadyUsedException.class)
-                .hasMessage("Email déjà utilisé");
+                .hasMessage("This email is already registered. Sign in or use another email.");
 
         verify(userRepository, never()).save(any(User.class));
     }

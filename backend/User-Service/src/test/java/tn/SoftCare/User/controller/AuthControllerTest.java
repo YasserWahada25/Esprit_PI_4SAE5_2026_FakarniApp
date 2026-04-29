@@ -1,53 +1,44 @@
 package tn.SoftCare.User.controller;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import tn.SoftCare.User.dto.AuthResponse;
 import tn.SoftCare.User.dto.LoginRequest;
 import tn.SoftCare.User.dto.UserResponse;
 import tn.SoftCare.User.model.Role;
-import tn.SoftCare.User.security.SessionAuthenticationFilter;
-import tn.SoftCare.User.security.SessionCookieService;
 import tn.SoftCare.User.service.AuthService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AuthController.class)
-@AutoConfigureMockMvc(addFilters = false)
-@Import(SessionCookieService.class)
-@TestPropertySource(properties = {
-        "app.security.cookie.secure=false",
-        "app.security.cookie.same-site=Lax",
-        "app.security.session-days=7"
-})
+@ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @Mock
     private AuthService authService;
 
-    @MockitoBean
-    private SessionAuthenticationFilter sessionAuthenticationFilter;
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService)).build();
+    }
 
     @Test
-    void loginShouldReturnUserAndSetSessionCookie() throws Exception {
+    void loginShouldReturnUserAndTokens() throws Exception {
         AuthResponse response = new AuthResponse();
-        response.setSessionId("session-123");
+        response.setAccessToken("access-token-123");
+        response.setRefreshToken("refresh-token-123");
         response.setUser(buildUserResponse());
 
         when(authService.login(any(LoginRequest.class), any(String.class), any(String.class))).thenReturn(response);
@@ -67,18 +58,22 @@ class AuthControllerTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.user.email").value("sara@example.com"))
-                .andExpect(cookie().value(SessionCookieService.SESSION_COOKIE_NAME, "session-123"))
-                .andExpect(cookie().httpOnly(SessionCookieService.SESSION_COOKIE_NAME, true));
+                .andExpect(jsonPath("$.accessToken").value("access-token-123"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-token-123"));
     }
 
     @Test
-    void logoutShouldRevokeSessionAndClearCookie() throws Exception {
+    void logoutShouldRevokeRefreshToken() throws Exception {
         mockMvc.perform(post("/auth/logout")
-                        .cookie(new jakarta.servlet.http.Cookie(SessionCookieService.SESSION_COOKIE_NAME, "session-123")))
-                .andExpect(status().isNoContent())
-                .andExpect(cookie().maxAge(SessionCookieService.SESSION_COOKIE_NAME, 0));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "refreshToken": "refresh-token-123"
+                                }
+                                """))
+                .andExpect(status().isNoContent());
 
-        verify(authService).logout("session-123");
+        verify(authService).logout("refresh-token-123");
     }
     private static UserResponse buildUserResponse() {
         UserResponse user = new UserResponse();

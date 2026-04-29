@@ -1,17 +1,18 @@
 package tn.SoftCare.User.controller;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import tn.SoftCare.User.dto.CreateUserRequest;
 import tn.SoftCare.User.dto.UserResponse;
 import tn.SoftCare.User.exception.EmailAlreadyUsedException;
+import tn.SoftCare.User.exception.GlobalExceptionHandler;
 import tn.SoftCare.User.model.Role;
-import tn.SoftCare.User.security.SessionAuthenticationFilter;
 import tn.SoftCare.User.service.UserService;
 
 import java.util.List;
@@ -23,18 +24,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(UserController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@ExtendWith(MockitoExtension.class)
 class UserControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @Mock
     private UserService userService;
 
-    @MockitoBean
-    private SessionAuthenticationFilter sessionAuthenticationFilter;
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(new UserController(userService))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+    }
 
     @Test
     void createShouldReturnCreatedUser() throws Exception {
@@ -76,7 +80,7 @@ class UserControllerTest {
                                 }
                                 """))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("Email déjà utilisé"));
+                .andExpect(jsonPath("$.message").value("This email is already registered. Sign in or use another email."));
     }
 
     @Test
