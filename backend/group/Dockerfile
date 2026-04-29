@@ -5,7 +5,7 @@
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY . .
-RUN mvn -B -e -q package -DskipTests -Dfile.encoding=UTF-8
+RUN mvn -B -e -q package -Dmaven.test.skip=true -Dfile.encoding=UTF-8
 
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
