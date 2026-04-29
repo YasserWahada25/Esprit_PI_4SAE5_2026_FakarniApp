@@ -1,306 +1,555 @@
-# Fakarni — stack complète (infra + microservices + frontend)
-#
-# Démarrage (depuis c:\FakarniApp) :
-#   copy env.docker.example .env
-#   docker compose build
-#   docker compose up -d
-#
-# Stack minimale (ex.) : eureka, mysql, mongo, user-service, session-service, gateway, frontend
-#   docker compose up -d eureka-service mysql mongo user-service session-service gateway-service frontend
-#
-# Surcharges JDBC / Eureka : variables d'environnement Spring Boot (les URLs localhost:3306
-# des application.properties sont remplacées par l'hôte « mysql » dans le réseau Docker).
-#
-# Suivi-engagement : conflit de port 8086 avec meeting-insights en local — en Docker, port interne 8088.
-
 services:
-  eureka-service:
-    build: ./backend/Eureka-Service
-    image: fakarni/eureka-service:local
-    container_name: fakarni-eureka
+  # ==========================================
+  # 1. BASES DE DONNÉES
+  # ==========================================
+  mongodb:
+    image: mongo:latest
+    container_name: fakarni_mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
     ports:
-      - "8761:8761"
-    restart: unless-stopped
+      - "27018:27017"
+    volumes:
+      - fakarni_mongo_data:/data/db
+    networks:
+      - fakarni-net
 
-  mysql:
+  db-tracking:
     image: mysql:8.0
-    container_name: fakarni-mysql
+    container_name: fakarni_db_tracking
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: db_tracking
+      MYSQL_ROOT_PASSWORD: root
     ports:
-      - "3306:3306"
+      - "3310:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
-    restart: unless-stopped
+      - fakarni_db_tracking_data:/var/lib/mysql
+    networks:
+      - fakarni-net
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD:-root}" ]
-      interval: 5s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
       timeout: 5s
-      retries: 30
-      start_period: 20s
-    command: [ "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci" ]
+      retries: 5
 
-  mongo:
-    image: mongo:7
-    container_name: fakarni-mongo
-    restart: unless-stopped
+  db-geofencing:
+    image: mysql:8.0
+    container_name: fakarni_db_geofencing
+    environment:
+      MYSQL_DATABASE: db_geofencing
+      MYSQL_ROOT_PASSWORD: root
     ports:
-      - "27017:27017"
+      - "3311:3306"
     volumes:
-      - mongo_data:/data/db
-    # Sans auth (aligné sur les profils de dev) — à durcir pour la production.
+      - fakarni_db_geofencing_data:/var/lib/mysql
+    networks:
+      - fakarni-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # --- Microservices (Spring Boot) — ordre indéfini au-delà d'Eureka + MySQL ---
-  user-service:
-    build: ./backend/User-Service
-    image: fakarni/user-service:local
-    container_name: fakarni-user
-    depends_on:
-      - eureka-service
-      - mongo
-    ports:
-      - "8081:8081"
+  db-activite:
+    image: mysql:8.0
+    container_name: fakarni_db_activite
     environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      SPRING_MONGODB_URI: ${USER_MONGODB_URI:-mongodb://mongo:27017/rayen}
-    restart: unless-stopped
-
-  session-service:
-    build: ./backend/session-service
-    image: fakarni/session-service:local
-    container_name: fakarni-session
-    depends_on:
-      eureka-service:
-        condition: service_started
-      mysql:
-        condition: service_healthy
+      MYSQL_DATABASE: activite_educative_db
+      MYSQL_ROOT_PASSWORD: root
     ports:
-      - "8085:8085"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/alzheimer_session_db?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-    restart: unless-stopped
+      - "3312:3306"
+    volumes:
+      - fakarni_db_activite_data:/var/lib/mysql
+    networks:
+      - fakarni-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  gateway-service:
-    build: ./backend/Gateway-Service
-    image: fakarni/gateway-service:local
-    container_name: fakarni-gateway
+  db-detection:
+    image: mysql:8.0
+    container_name: fakarni_db_detection
+    environment:
+      MYSQL_DATABASE: detection_maladie_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3313:3306"
+    volumes:
+      - fakarni_db_detection_data:/var/lib/mysql
+    networks:
+      - fakarni-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-dossier:
+    image: mysql:8.0
+    container_name: fakarni_db_dossier
+    environment:
+      MYSQL_DATABASE: dossier_medical_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3314:3306"
+    volumes:
+      - fakarni_db_dossier_data:/var/lib/mysql
+    networks:
+      - fakarni-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-event:
+    image: mysql:8.0
+    container_name: fakarni_db_event
+    environment:
+      MYSQL_DATABASE: EventFakerni
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3315:3306"
+    volumes:
+      - fakarni_db_event_data:/var/lib/mysql
+    networks:
+      - fakarni-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-group:
+    image: mysql:8.0
+    container_name: fakarni_db_group
+    environment:
+      MYSQL_DATABASE: group_service_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3316:3306"
+    volumes:
+      - fakarni_db_group_data:/var/lib/mysql
+    networks:
+      - fakarni-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-post:
+    image: mysql:8.0
+    container_name: fakarni_db_post
+    environment:
+      MYSQL_DATABASE: post_service_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3317:3306"
+    volumes:
+      - fakarni_db_post_data:/var/lib/mysql
+    networks:
+      - fakarni-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-session:
+    image: mysql:8.0
+    container_name: fakarni_db_session
+    environment:
+      MYSQL_DATABASE: alzheimer_session_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3318:3306"
+    volumes:
+      - fakarni_db_session_data:/var/lib/mysql
+    networks:
+      - fakarni-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-suivi:
+    image: mysql:8.0
+    container_name: fakarni_db_suivi
+    environment:
+      MYSQL_DATABASE: suivi_engagement_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3319:3306"
+    volumes:
+      - fakarni_db_suivi_data:/var/lib/mysql
+    networks:
+      - fakarni-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: fakarni_phpmyadmin
+    restart: always
+    ports:
+      - "8086:80"
+    environment:
+      PMA_HOSTS: db-tracking,db-geofencing,db-activite,db-detection,db-dossier,db-event,db-group,db-post,db-session,db-suivi
     depends_on:
-      - eureka-service
-      - session-service
+      - db-tracking
+      - db-geofencing
+    networks:
+      - fakarni-net
+
+  # ==========================================
+  # 2. DISCOVERY & GATEWAY
+  # ==========================================
+  eureka-server:
+    build:
+      context: ./backend/Eureka-Service
+    container_name: fakarni_eureka_server
+    ports:
+      - "8762:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    restart: always
+    networks:
+      - fakarni-net
+
+  api-gateway:
+    build:
+      context: ./backend/Gateway-Service
+    container_name: fakarni_api_gateway
     ports:
       - "8090:8090"
     environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      GATEWAY_ROUTES_SESSION_URI: http://session-service:8085
-      GATEWAY_DIRECT_ACTIVITE_EDUCATIVE_SERVICE_URI: http://activite-educative-service:8084
-    restart: unless-stopped
-
-  event-service:
-    build: ./backend/Event-Service
-    image: fakarni/event-service:local
-    container_name: fakarni-event
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
     depends_on:
-      eureka-service:
+      eureka-server:
         condition: service_started
-      mysql:
-        condition: service_healthy
-    ports:
-      - "8087:8087"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/EventFakerni?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&connectTimeout=10000&socketTimeout=30000&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-    restart: unless-stopped
+    restart: always
+    networks:
+      - fakarni-net
 
-  post-service:
-    build: ./backend/Post-Service
-    image: fakarni/post-service:local
-    container_name: fakarni-post
-    depends_on:
-      eureka-service:
-        condition: service_started
-      mysql:
-        condition: service_healthy
+  # ==========================================
+  # 3. MICROSERVICES
+  # ==========================================
+  user-service:
+    build:
+      context: ./backend/User-Service
+    container_name: fakarni_user_service
     ports:
-      - "8069:8069"
+      - "8081:8081"
     environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/post_service_db?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-    restart: unless-stopped
-
-  group-service:
-    build: ./backend/group
-    image: fakarni/group-service:local
-    container_name: fakarni-group
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - SPRING_DATA_MONGODB_URI=mongodb://admin:admin@mongodb:27017/rayen?authSource=admin
+      - MAIL_USERNAME_USER=${MAIL_USERNAME_USER}
+      - MAIL_PASSWORD_USER=${MAIL_PASSWORD_USER}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - FACEBOOK_APP_ID=${FACEBOOK_APP_ID}
+      - FACEBOOK_APP_SECRET=${FACEBOOK_APP_SECRET}
+      - FACEBOOK_GRAPH_API_VERSION=v21.0
     depends_on:
-      eureka-service:
-        condition: service_started
-      mysql:
-        condition: service_healthy
-    ports:
-      - "8097:8097"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/group_service_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-    restart: unless-stopped
-
-  chat-service:
-    build: ./backend/Chat_Service
-    image: fakarni/chat-service:local
-    container_name: fakarni-chat
-    depends_on:
-      - eureka-service
-      - mongo
-    ports:
-      - "8070:8070"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/chat_db
-    restart: unless-stopped
-
-  activite-educative-service:
-    build: ./backend/activite-educative-service
-    image: fakarni/activite-educative:local
-    container_name: fakarni-activite
-    depends_on:
-      eureka-service:
-        condition: service_started
-      mysql:
-        condition: service_healthy
-    ports:
-      - "8084:8084"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/activite_educative_db?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&connectTimeout=10000&socketTimeout=30000&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-    restart: unless-stopped
-
-  suivi-engagement-service:
-    build: ./backend/suivi-engagement-service
-    image: fakarni/suivi-engagement:local
-    container_name: fakarni-suivi
-    depends_on:
-      eureka-service:
-        condition: service_started
-      mysql:
-        condition: service_healthy
-    ports:
-      - "8088:8088"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      SERVER_PORT: "8088"
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/suivi_engagement_db?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&connectTimeout=10000&socketTimeout=30000&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-    restart: unless-stopped
-
-  meeting-insights-service:
-    build: ./backend/meeting-insights-service
-    image: fakarni/meeting-insights:local
-    container_name: fakarni-meeting-insights
-    depends_on:
-      - eureka-service
-    ports:
-      - "8086:8086"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-    restart: unless-stopped
+      - mongodb
+      - eureka-server
+    networks:
+      - fakarni-net
+    restart: on-failure
 
   tracking-service:
-    build: ./backend/Tracking-Service
-    image: fakarni/tracking-service:local
-    container_name: fakarni-tracking
-    depends_on:
-      eureka-service:
-        condition: service_started
-      mysql:
-        condition: service_healthy
+    build:
+      context: ./backend/Tracking-Service
+    container_name: fakarni_tracking_service
     ports:
       - "9011:9011"
     environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_tracking?createDatabaseIfNotExist=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-    restart: unless-stopped
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-tracking:3306/db_tracking?createDatabaseIfNotExist=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    depends_on:
+      db-tracking:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - fakarni-net
+    restart: on-failure
 
   geofencing-service:
-    build: ./backend/Geofencing-Service
-    image: fakarni/geofencing-service:local
-    container_name: fakarni-geofencing
-    depends_on:
-      eureka-service:
-        condition: service_started
-      mysql:
-        condition: service_healthy
+    build:
+      context: ./backend/Geofencing-Service
+    container_name: fakarni_geofencing_service
     ports:
       - "9012:9012"
     environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_geofencing?createDatabaseIfNotExist=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-    restart: unless-stopped
-
-  dossier-medical-service:
-    build: ./backend/Dossier_Medical-service/Dossier_Medical-service
-    image: fakarni/dossier-medical:local
-    container_name: fakarni-dossier
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-geofencing:3306/db_geofencing?createDatabaseIfNotExist=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - SPRING_MAIL_HOST=smtp.gmail.com
+      - SPRING_MAIL_PORT=587
+      - SPRING_MAIL_USERNAME=${MAIL_USERNAME}
+      - SPRING_MAIL_PASSWORD=${MAIL_PASSWORD}
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_FROM_NUMBER=${TWILIO_FROM_NUMBER}
     depends_on:
-      eureka-service:
-        condition: service_started
-      mysql:
+      db-geofencing:
         condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - fakarni-net
+    restart: on-failure
+
+  activite-educative-service:
+    build:
+      context: ./backend/activite-educative-service
+    container_name: fakarni_activite_service
     ports:
-      - "8059:8059"
+      - "8084:8084"
     environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/dossier_medical_db?createDatabaseIfNotExist=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-    restart: unless-stopped
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    depends_on:
+      db-activite:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - fakarni-net
+    restart: on-failure
+
+  chat-service:
+    build:
+      context: ./backend/Chat_Service
+    container_name: fakarni_chat_service
+    ports:
+      - "8070:8070"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - SPRING_DATA_MONGODB_URI=mongodb://admin:admin@mongodb:27017/chat_db?authSource=admin
+    depends_on:
+      - mongodb
+      - eureka-server
+    networks:
+      - fakarni-net
+    restart: on-failure
 
   detection-maladie-service:
-    build: ./backend/Detection_Maladie-Service/Detection_Maladie-Service
-    image: fakarni/detection-maladie:local
-    container_name: fakarni-detection
-    depends_on:
-      eureka-service:
-        condition: service_started
-      mysql:
-        condition: service_healthy
+    build:
+      context: ./backend/Detection_Maladie-Service
+    container_name: fakarni_detection_service
     ports:
       - "8058:8058"
     environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/detection_maladie_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-    restart: unless-stopped
-
-  # --- Angular (SSR) : le serveur Node écoute sur 4000 par défaut (voir src/server.ts) ---
-  frontend:
-    build: ./frontend
-    image: fakarni/frontend:local
-    container_name: fakarni-frontend
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
     depends_on:
-      - gateway-service
+      db-detection:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - fakarni-net
+    restart: on-failure
+
+  dossier-medical-service:
+    build:
+      context: ./backend/Dossier_Medical-service
+    container_name: fakarni_dossier_service
     ports:
-      - "4000:4000"
+      - "8059:8059"
     environment:
-      PORT: "4000"
-    restart: unless-stopped
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    depends_on:
+      db-dossier:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - fakarni-net
+    restart: on-failure
+
+  event-service:
+    build:
+      context: ./backend/Event-Service
+    container_name: fakarni_event_service
+    ports:
+      - "8087:8087"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - MAILTRAP_USERNAME=${MAILTRAP_USERNAME}
+      - MAILTRAP_PASSWORD=${MAILTRAP_PASSWORD}
+    depends_on:
+      db-event:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - fakarni-net
+    restart: on-failure
+
+  group-service:
+    build:
+      context: ./backend/group
+    container_name: fakarni_group_service
+    ports:
+      - "8097:8097"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    depends_on:
+      db-group:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - fakarni-net
+    restart: on-failure
+
+  meeting-insights-service:
+    build:
+      context: ./backend/meeting-insights-service
+    container_name: fakarni_meeting_service
+    ports:
+      - "8096:8096"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    depends_on:
+      eureka-server:
+        condition: service_started
+    networks:
+      - fakarni-net
+    restart: on-failure
+
+  post-service:
+    build:
+      context: ./backend/Post-Service
+    container_name: fakarni_post_service
+    ports:
+      - "8069:8069"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    depends_on:
+      db-post:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - fakarni-net
+    restart: on-failure
+
+  session-service:
+    build:
+      context: ./backend/session-service
+    container_name: fakarni_session_service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    depends_on:
+      db-session:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - fakarni-net
+    restart: on-failure
+
+  suivi-engagement-service:
+    build:
+      context: ./backend/suivi-engagement-service
+    container_name: fakarni_suivi_service
+    ports:
+      - "8088:8088"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    depends_on:
+      db-suivi:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - fakarni-net
+    restart: on-failure
+
+  # ==========================================
+  # 4. SONARQUBE
+  # ==========================================
+  sonarqube:
+    image: sonarqube:10-community
+    container_name: fakarni_sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - SONAR_CE_JAVAOPTS=-Xmx512m
+      - SONAR_WEB_JAVAOPTS=-Xmx512m
+      - SONAR_SEARCH_JAVAOPTS=-Xmx512m
+    volumes:
+      - fakarni_sonar_data:/opt/sonarqube/data
+      - fakarni_sonar_logs:/opt/sonarqube/logs
+      - fakarni_sonar_extensions:/opt/sonarqube/extensions
+    networks:
+      - fakarni-net
+
+networks:
+  fakarni-net:
+    driver: bridge
 
 volumes:
-  mysql_data: {}
-  mongo_data: {}
+  fakarni_mongo_data:
+  fakarni_db_tracking_data:
+  fakarni_db_geofencing_data:
+  fakarni_db_activite_data:
+  fakarni_db_detection_data:
+  fakarni_db_dossier_data:
+  fakarni_db_event_data:
+  fakarni_db_group_data:
+  fakarni_db_post_data:
+  fakarni_db_session_data:
+  fakarni_db_suivi_data:
+  fakarni_sonar_data:
+  fakarni_sonar_logs:
+  fakarni_sonar_extensions:

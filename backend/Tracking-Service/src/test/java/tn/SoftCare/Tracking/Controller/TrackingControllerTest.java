@@ -1,11 +1,13 @@
 package tn.SoftCare.Tracking.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import tn.SoftCare.Tracking.Entity.Position;
@@ -25,7 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class TrackingControllerTest {
 
     private MockMvc mockMvc;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule());
 
     @Mock
     private TrackingService trackingService;
@@ -35,8 +38,19 @@ class TrackingControllerTest {
         MockitoAnnotations.openMocks(this);
         TrackingController controller = new TrackingController();
         org.springframework.test.util.ReflectionTestUtils.setField(controller, "service", trackingService);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+
+        MappingJackson2HttpMessageConverter converter =
+                new MappingJackson2HttpMessageConverter(objectMapper);
+
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(controller)
+                .setMessageConverters(converter)
+                .build();
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // POST /api/tracking/add
+    // ─────────────────────────────────────────────────────────────
 
     @Test
     void ajouterPosition_returnsSavedPosition() throws Exception {
@@ -50,8 +64,15 @@ class TrackingControllerTest {
                                 {"patientId":"p1","latitude":36.8,"longitude":10.2,"accuracy":5}
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.patientId").value("p1"));
+                .andExpect(jsonPath("$.patientId").value("p1"))
+                // ✅ AJOUTÉ : vérification des coordonnées
+                .andExpect(jsonPath("$.latitude").value(36.8))
+                .andExpect(jsonPath("$.longitude").value(10.2));
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // GET /api/tracking/last
+    // ─────────────────────────────────────────────────────────────
 
     @Test
     void getAllLastPositions_returnsList() throws Exception {
@@ -62,7 +83,38 @@ class TrackingControllerTest {
         mockMvc.perform(get("/api/tracking/last")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].patientId").value("p1"));
+                .andExpect(jsonPath("$[0].patientId").value("p1"))
+                // ✅ AJOUTÉ : vérification de la taille de la liste
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void getAllLastPositions_whenEmpty_returnsEmptyList() throws Exception {
+        // ✅ AJOUTÉ : cas où aucun patient n'a de position
+        when(trackingService.getAllLastPositions()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/tracking/last")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // GET /api/tracking/last/{patientId}
+    // ─────────────────────────────────────────────────────────────
+
+    // ✅ AJOUTÉ : cas où le patient existe
+    @Test
+    void getLastPosition_whenFound_returnsPosition() throws Exception {
+        Position pos = new Position(1L, "p1", 36.8, 10.2, LocalDateTime.now());
+        when(trackingService.getLastPosition(eq("p1"))).thenReturn(pos);
+
+        mockMvc.perform(get("/api/tracking/last/p1")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.patientId").value("p1"))
+                .andExpect(jsonPath("$.latitude").value(36.8))
+                .andExpect(jsonPath("$.longitude").value(10.2));
     }
 
     @Test
