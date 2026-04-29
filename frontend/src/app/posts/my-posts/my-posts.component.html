@@ -1,0 +1,58 @@
+<div class="my-posts-container">
+    <!-- Header -->
+    <div class="my-posts-header">
+        <div class="header-content">
+            <h1><i class="fa-solid fa-user-circle"></i> My Posts</h1>
+            <p>Manage your posts and track engagement</p>
+        </div>
+        <a routerLink="/posts/create" class="btn-create-post">
+            <i class="fa-solid fa-plus"></i> New Post
+        </a>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{ errorMessage }}
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>Loading your posts...</p>
+    </div>
+
+    <!-- Content (Hidden while loading) -->
+    <div *ngIf="!isLoading">
+        <!-- Published Posts Section -->
+        <div class="posts-section">
+            <h2>
+                <i class="fa-solid fa-check-circle"></i> My Posts ({{ myPosts.length }})
+            </h2>
+
+            <div class="posts-grid" *ngIf="myPosts.length > 0">
+                <article class="post-card" *ngFor="let post of myPosts">
+                    <div class="post-header">
+                        <div class="post-date">{{ formatDate(post.createdAt) }}</div>
+                        <button class="delete-btn" (click)="deletePost(post.id)" title="Delete post">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+
+                    <div class="post-content">
+                        <p class="post-text">{{ post.content }}</p>
+                    </div>
+
+                    <div class="post-image" *ngIf="post.imageUrl">
+                        <img [src]="post.imageUrl" [alt]="'Post image'" />
+                    </div>
+                </article>
+            </div>
+
+            <div class="empty-state" *ngIf="myPosts.length === 0">
+                <i class="fa-solid fa-inbox"></i>
+                <p>You haven't created any posts yet</p>
+            </div>
+        </div>
+    </div>
+</div>

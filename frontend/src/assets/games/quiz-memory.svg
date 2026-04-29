@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240">
+  <rect width="400" height="240" fill="#1565c0" rx="16"/>
+  <text x="200" y="100" text-anchor="middle" fill="#fff" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700">Quiz</text>
+  <text x="200" y="140" text-anchor="middle" fill="#bbdefb" font-family="Segoe UI,sans-serif" font-size="16">QCM &amp; m�moire</text>
+  <rect x="120" y="160" width="160" height="36" rx="8" fill="#fff" opacity="0.9"/>
+  <text x="200" y="184" text-anchor="middle" fill="#1565c0" font-family="Segoe UI,sans-serif" font-size="14" font-weight="600">Jouer</text>
+</svg>

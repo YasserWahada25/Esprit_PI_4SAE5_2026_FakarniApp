@@ -1,11 +1,25 @@
-# Étape 1 : Construction (Build) avec Java 21
+# ─── Stage 1 : Build ───────────────────────────────────────────────────────
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY . .
-# On ajoute le montage du cache Maven pour sauvegarder la progression du téléchargement !
-RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests -Dfile.encoding=UTF-8 -Dmaven.wagon.http.retryHandler.count=5 -Dhttp.keepAlive=false
-# Étape 2 : Lancement (Run) avec Java 21
-FROM eclipse-temurin:21-jdk-alpine
+
+# Cache des dépendances Maven
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Compilation
+COPY src ./src
+RUN mvn clean package -DskipTests -B
+
+# ─── Stage 2 : Runtime ─────────────────────────────────────────────────────
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
+
+# Sécurité : utilisateur non-root
+RUN addgroup -S softcare && adduser -S softcare -G softcare
+USER softcare
+
 COPY --from=build /app/target/*.jar app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+
+EXPOSE 9011
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

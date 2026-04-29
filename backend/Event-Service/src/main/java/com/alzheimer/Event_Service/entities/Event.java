@@ -1,4 +1,4 @@
-package com.alzheimer.Event_Service.entities;
+package com.alzheimer.event_service.entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -14,17 +14,32 @@ public class Event {
     @Column(nullable = false, length = 120)
     private String title;
 
+    @Column(length = 500)
+    private String description;
+
     @Column(nullable = false)
     private LocalDateTime startDateTime;
 
     @Column(length = 120)
     private String location;
 
+    @Column(length = 1000)
+    private String coverImageUrl;
+
     @Column(nullable = false)
     private boolean remindEnabled = false;
 
     @Column(nullable = false)
-    private Long userId; // ou patientId
+    private boolean remindSent = false;
+
+    @Column(nullable = true)
+    private Double lat;
+
+    @Column(nullable = true)
+    private Double lng;
+
+    @Column(nullable = false)
+    private Long userId; // le plannificateur d'evenement
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -41,14 +56,29 @@ public class Event {
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
     public LocalDateTime getStartDateTime() { return startDateTime; }
     public void setStartDateTime(LocalDateTime startDateTime) { this.startDateTime = startDateTime; }
 
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
 
+    public String getCoverImageUrl() { return coverImageUrl; }
+    public void setCoverImageUrl(String coverImageUrl) { this.coverImageUrl = coverImageUrl; }
+
     public boolean isRemindEnabled() { return remindEnabled; }
     public void setRemindEnabled(boolean remindEnabled) { this.remindEnabled = remindEnabled; }
+
+    public boolean isRemindSent() { return remindSent; }
+    public void setRemindSent(boolean remindSent) { this.remindSent = remindSent; }
+
+    public Double getLat() { return lat; }
+    public void setLat(Double lat) { this.lat = lat; }
+
+    public Double getLng() { return lng; }
+    public void setLng(Double lng) { this.lng = lng; }
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }

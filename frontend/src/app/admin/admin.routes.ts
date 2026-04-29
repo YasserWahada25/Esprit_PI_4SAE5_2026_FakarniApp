@@ -1,10 +1,13 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
+import { adminGuard } from '../auth/guards/admin.guard';
 
 export const ADMIN_ROUTES: Routes = [
     {
         path: '',
         component: MainLayoutComponent,
+        canActivate: [adminGuard],
+        canActivateChild: [adminGuard],
         children: [
             { path: '', redirectTo: 'users', pathMatch: 'full' },
             {

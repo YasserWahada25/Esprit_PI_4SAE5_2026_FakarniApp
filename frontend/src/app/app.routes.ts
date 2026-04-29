@@ -3,7 +3,11 @@ import { MainLayoutComponent } from './shared/components/main-layout.component';
 import { HomeComponent } from './home/home.component';
 import { SignInComponent } from './auth/sign-in.component';
 import { SignUpComponent } from './auth/sign-up.component';
+import { ForgotPasswordComponent } from './auth/forgot-password.component';
+import { ResetPasswordComponent } from './auth/reset-password.component';
 import { ProfileEditComponent } from './profile/profile-edit.component';
+import { authGuard } from './auth/guards/auth.guard';
+import { adminGuard } from './auth/guards/admin.guard';
 
 export const routes: Routes = [
     // Default redirect to Login
@@ -12,11 +16,14 @@ export const routes: Routes = [
     // Auth Routes (Standalone, No Header/Footer)
     { path: 'auth/signin', component: SignInComponent },
     { path: 'auth/signup', component: SignUpComponent },
+    { path: 'auth/forgot-password', component: ForgotPasswordComponent },
+    { path: 'auth/password-reset', component: ResetPasswordComponent },
 
     // Main Routes (Wrapped in MainLayout)
     {
         path: '',
         component: MainLayoutComponent,
+        canActivate: [authGuard],
         children: [
             { path: 'home', component: HomeComponent },
             { path: 'profile/edit', component: ProfileEditComponent },
@@ -39,6 +46,10 @@ export const routes: Routes = [
             {
                 path: 'medical',
                 loadChildren: () => import('./medical/medical.routes').then(m => m.MEDICAL_ROUTES)
+            },
+            {
+                path: 'posts',
+                loadChildren: () => import('./posts/posts.routes').then(m => m.POSTS_ROUTES)
             }
         ]
     },
@@ -46,6 +57,7 @@ export const routes: Routes = [
     // Admin/Back-Office Routes
     {
         path: 'admin',
+        canActivate: [authGuard, adminGuard],
         loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES)
     },
 

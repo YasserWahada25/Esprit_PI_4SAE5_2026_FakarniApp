@@ -136,9 +136,55 @@
     border: none;
 }
 
+/* Visuel aligné sur le bouton Facebook (pleine largeur, 30px) — les clics passent à la couche GSI. */
+.google-btn-overlay {
+    position: relative;
+    width: 100%;
+    min-height: 48px;
+}
+
+.google-btn-overlay .btn-google {
+    position: relative;
+    z-index: 0;
+    width: 100%;
+    box-sizing: border-box;
+    pointer-events: none;
+    background-color: #fff;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+    box-shadow: none;
+}
+
+.google-btn-overlay.is-loading .btn-google,
+.google-btn-overlay.is-loading .google-gsi-layer {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.google-btn-overlay:hover .btn-google {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.google-gsi-layer {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.02;
+    cursor: pointer;
+}
+
+.google-gsi-layer:empty {
+    min-height: 48px;
+}
+
 .btn-google {
-    background-color: #db4437;
-    color: white;
+    background-color: #fff;
+    color: #3c4043;
+    border: 1px solid #dadce0;
 }
 
 .btn-facebook {

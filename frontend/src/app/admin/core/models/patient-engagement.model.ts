@@ -1,6 +1,6 @@
 export interface PatientEngagement {
     id: number;
-    patientId: number;
+    patientId: string;
     patientName: string;
     activityId?: number;
     activityName?: string;

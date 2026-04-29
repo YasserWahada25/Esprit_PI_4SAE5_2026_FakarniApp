@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AlzheimerLayoutComponent } from './shared/alzheimer-layout.component';
+import { authGuard } from '../auth/guards/auth.guard';
 
 export const ALZHEIMER_ROUTES: Routes = [
     {
@@ -28,6 +29,10 @@ export const ALZHEIMER_ROUTES: Routes = [
                 loadComponent: () => import('./reports/reports-dashboard.component').then(m => m.ReportsDashboardComponent)
             },
             {
+                path: 'reservations',
+                loadComponent: () => import('./sessions/calendar-view.component').then(m => m.CalendarViewComponent)
+            },
+            {
                 path: 'admin',
                 loadComponent: () => import('./admin/admin-dashboard.component').then(m => m.AdminDashboardComponent)
             }
@@ -35,6 +40,7 @@ export const ALZHEIMER_ROUTES: Routes = [
     },
     {
         path: 'meeting/:id',
+        canActivate: [authGuard],
         loadComponent: () => import('./meeting/virtual-meeting.component').then(m => m.VirtualMeetingComponent)
     }
 ];

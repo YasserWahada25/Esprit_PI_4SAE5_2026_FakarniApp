@@ -16,9 +16,21 @@ const STORAGE_KEY = 'fakarni_user';
 const TOKEN_KEY = 'fakarni_token';
 const REFRESH_TOKEN_KEY = 'fakarni_refresh';
 
+export interface MessageResponse {
+  message: string;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
+}
+
+export interface GoogleLoginRequest {
+  credential: string;
+}
+
+export interface FacebookLoginRequest {
+  accessToken: string;
 }
 
 @Injectable({
@@ -69,6 +81,48 @@ export class AuthService {
     );
   }
 
+  loginWithGoogle(credential: string): Observable<AuthResponse> {
+    const body: GoogleLoginRequest = { credential };
+    return this.http.post<AuthResponse>(`${AUTH}/google`, body).pipe(
+      tap((res) => {
+        if (res?.accessToken) {
+          sessionStorage.setItem(TOKEN_KEY, res.accessToken);
+        }
+        if (res?.refreshToken) {
+          sessionStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
+        }
+        if (res?.user) {
+          this.storeUser(res.user);
+        }
+      })
+    );
+  }
+
+  loginWithFacebook(accessToken: string): Observable<AuthResponse> {
+    const body: FacebookLoginRequest = { accessToken };
+    return this.http.post<AuthResponse>(`${AUTH}/facebook`, body).pipe(
+      tap((res) => {
+        if (res?.accessToken) {
+          sessionStorage.setItem(TOKEN_KEY, res.accessToken);
+        }
+        if (res?.refreshToken) {
+          sessionStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
+        }
+        if (res?.user) {
+          this.storeUser(res.user);
+        }
+      })
+    );
+  }
+
+  forgotPassword(email: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${AUTH}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${AUTH}/reset-password`, { token, newPassword });
+  }
+
   /** Appelle POST /auth/logout puis efface tokens et user localement. */
   logout(): void {
     const refresh = this.getRefreshToken();
@@ -113,9 +167,11 @@ export class AuthService {
   getUserById(id: string): Observable<User> {
     return this.http.get<User>(`${API}/users/${id}`);
   }
-getPatients(): Observable<User[]> {
+
+  getPatients(): Observable<User[]> {
     return this.http.get<User[]>(`${API}/users/by-role/PATIENT_PROFILE`);
-}
+  }
+
   updateUser(id: string, body: UserUpdateRequest): Observable<User> {
     return this.http.put<User>(`${API}/users/${id}`, body).pipe(
       tap((updated) => {

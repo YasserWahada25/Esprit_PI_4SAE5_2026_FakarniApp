@@ -8,7 +8,7 @@
         margin-bottom: 20px;
 
         h2 {
-            color: #006400;
+            color: #580064;
             margin: 0;
         }
     }
@@ -30,6 +30,36 @@
         font-size: 0.85rem;
         color: #666;
         margin-top: 4px;
+    }
+
+    .event-cover-thumb {
+        width: 92px;
+        height: 58px;
+        border-radius: 10px;
+        object-fit: cover;
+        display: block;
+        border: 1px solid #e2e8f0;
+    }
+
+    .event-cover-placeholder {
+        width: 92px;
+        min-height: 58px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 6px;
+        font-size: 0.75rem;
+        color: #64748b;
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+    }
+
+    .location-text {
+        font-size: 0.8rem;
+        color: #888;
+        margin-top: 6px;
+        text-transform: capitalize;
     }
 
     .status-badge {

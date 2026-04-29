@@ -1,0 +1,26 @@
+<div class="location-picker-container">
+    <!-- Adresse sélectionnée -->
+    <div class="address-display" *ngIf="selectedAddress">
+        <mat-icon>location_on</mat-icon>
+        <span>{{ selectedAddress }}</span>
+    </div>
+    <div class="address-placeholder" *ngIf="!selectedAddress">
+        <mat-icon>touch_app</mat-icon>
+        <span>Cliquez sur la carte pour sélectionner un lieu</span>
+    </div>
+
+    <!-- Erreur geocoding -->
+    <div class="geocoding-error" *ngIf="geocodingError">
+        <mat-icon>warning</mat-icon>
+        <span>{{ geocodingError }}</span>
+    </div>
+
+    <!-- Conteneur de la carte Leaflet -->
+    <div id="location-picker-map" class="picker-map-container"></div>
+
+    <!-- Spinner pendant le geocoding -->
+    <div class="loading-overlay" *ngIf="isLoading">
+        <mat-spinner diameter="30"></mat-spinner>
+        <span>Récupération de l'adresse...</span>
+    </div>
+</div>

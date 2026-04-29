@@ -9,6 +9,119 @@
     }
 }
 
-::ng-deep .mat-mdc-dialog-container .mdc-dialog__surface {
+.location-block {
+    border: 1px solid #dbe6f5;
     border-radius: 12px;
+    padding: 12px;
+    background: #f8fbff;
+}
+
+.location-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    color: #1f2a44;
+}
+
+.location-map {
+    width: 100%;
+    height: 230px;
+    border-radius: 10px;
+    border: 1px solid #d6e3f7;
+    overflow: hidden;
+}
+
+.location-hint {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    color: #4d5f7a;
+}
+
+.location-grid {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.location-address {
+    grid-column: span 2;
+}
+
+.location-error {
+    margin-top: 8px;
+}
+
+::ng-deep .mat-mdc-dialog-container .mdc-dialog__surface {
+    border-radius: 16px !important;
+}
+
+::ng-deep .mat-mdc-dialog-title {
+    color: #2c2c54 !important;
+    font-weight: 700 !important;
+    font-size: 1.3rem !important;
+    padding-bottom: 8px !important;
+}
+
+.cancel-btn {
+    color: #888 !important;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, #5c6bc0, #7c4dff) !important;
+    color: white !important;
+    border-radius: 10px !important;
+    padding: 0 24px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.form-alert {
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.86rem;
+}
+
+.form-alert.error {
+    background: #ffefee;
+    border: 1px solid #ffd4d1;
+    color: #b42318;
+}
+
+.form-alert.info {
+    background: #eef6ff;
+    border: 1px solid #cfe3ff;
+    color: #114678;
+}
+
+::ng-deep .mat-mdc-form-field-icon-prefix {
+    color: #5c6bc0;
+    margin-right: 8px;
+}
+
+@media (max-width: 760px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+
+        .full-width {
+            grid-column: span 1;
+        }
+    }
+
+    .location-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .location-address {
+        grid-column: span 1;
+    }
+
+    .location-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
 }

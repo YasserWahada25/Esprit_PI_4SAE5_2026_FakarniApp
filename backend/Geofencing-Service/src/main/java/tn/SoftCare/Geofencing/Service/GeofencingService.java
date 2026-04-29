@@ -1,5 +1,6 @@
 package tn.SoftCare.Geofencing.Service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+@Slf4j
 @Service
 public class GeofencingService {
 
@@ -64,13 +66,12 @@ public class GeofencingService {
                     depassement = distance - zone.getRayon();
                     typeAlerte  = "SORTIE_ZONE_SAFE";
                 }
-            } else if ("DANGER".equals(zone.getType().name())) {
-                if (distance < zone.getRayon()) {
+            } else if ("DANGER".equals(zone.getType().name()) && distance < zone.getRayon()) {
                     enAlerte    = true;
                     depassement = zone.getRayon() - distance;
                     typeAlerte  = "ENTREE_ZONE_DANGER";
                 }
-            }
+
 
             if (enAlerte) {
                 alertService.createAlert(
@@ -80,11 +81,10 @@ public class GeofencingService {
                         typeAlerte
                 );
             } else {
-                System.out.println("✅ " + patientId
-                        + " en règle (" + Math.round(distance) + "m)");
+                log.info("✅ {} en règle ({}m)", patientId, Math.round(distance));
             }
 
-        }, () -> System.err.println("ℹ️ Aucune zone pour : " + patientId));
+        }, () -> log.error("ℹ️ Aucune zone pour : {}", patientId));
     }
 
     // ─── Détection Offline ────────────────────────────────────────
@@ -93,19 +93,17 @@ public class GeofencingService {
     public void checkOfflinePatients() {
         LocalDateTime now = LocalDateTime.now();
 
-        for (Zone zone : zoneRepository.findAll()) {
+        zoneRepository.findAll().forEach(zone -> {
             String patientId = zone.getPatientId();
-            if (patientId == null || patientId.isBlank()) continue;
-
+            if (patientId == null || patientId.isBlank()) return;
             try {
                 PositionDto pos = trackingClient.getLastPosition(patientId);
-                if (pos == null || pos.getTimestamp() == null) continue;
+                if (pos == null || pos.getTimestamp() == null) return;
 
                 long minutesSince = ChronoUnit.MINUTES.between(pos.getTimestamp(), now);
 
                 if (minutesSince >= OFFLINE_THRESHOLD_MINUTES) {
-                    System.out.println("📴 Offline : " + patientId
-                            + " (inactif depuis " + minutesSince + " min)");
+                    log.info("\uD83D\uDCF4 Offline : {} (inactif depuis {} min)", patientId, minutesSince);
 
                     alertService.createAlert(
                             patientId,
@@ -116,10 +114,9 @@ public class GeofencingService {
                 }
 
             } catch (Exception e) {
-                System.err.println("⚠️ Tracking injoignable pour "
-                        + patientId + " : " + e.getMessage());
+                log.error("⚠️ Tracking injoignable pour {} : {}", patientId, e.getMessage());
             }
-        }
+        });
     }
 
     // ─── Haversine ────────────────────────────────────────────────

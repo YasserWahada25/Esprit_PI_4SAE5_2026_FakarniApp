@@ -1,0 +1,211 @@
+.reactions {
+    display: flex;
+    gap: 8px;
+    padding: 12px 0;
+    flex-wrap: wrap;
+}
+
+.reaction-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 50px;
+    background: #f0f2f5;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9rem;
+    color: #65676b;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+}
+
+.reaction-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(160, 132, 220, 0.2), transparent);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.reaction-btn:hover::before {
+    width: 200px;
+    height: 200px;
+}
+
+.reaction-btn:hover:not(:disabled) {
+    background: #e4e6eb;
+    transform: scale(1.05);
+}
+
+.reaction-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.reaction-btn:active:not(:disabled) {
+    transform: translateY(-1px) scale(1);
+}
+
+/* Active States with Different Colors */
+.reaction-btn.active {
+    border-width: 2px;
+    font-weight: 700;
+    animation: reactionPop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes reactionPop {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2) rotate(5deg);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Like - Blue */
+.reaction-btn:nth-child(1).active {
+    background: #e7f3ff;
+    color: #1877f2;
+    box-shadow: 0 2px 8px rgba(24, 119, 242, 0.2);
+}
+
+.reaction-btn:nth-child(1).active:hover {
+    background: #d8ebff;
+}
+
+/* Heart - Red/Pink */
+.reaction-btn:nth-child(2).active {
+    background: #ffe8f0;
+    color: #f3425f;
+    box-shadow: 0 2px 8px rgba(243, 66, 95, 0.2);
+}
+
+.reaction-btn:nth-child(2).active:hover {
+    background: #ffd9e6;
+}
+
+/* Support - Green */
+.reaction-btn:nth-child(3).active {
+    background: #e8f5e9;
+    color: #4caf50;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+.reaction-btn:nth-child(3).active:hover {
+    background: #d4edd6;
+}
+
+/* Icon Animations */
+.reaction-btn i {
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.reaction-btn:hover i {
+    transform: scale(1.2) rotate(10deg);
+}
+
+.reaction-btn.active i {
+    animation: iconBounce 0.6s ease;
+}
+
+@keyframes iconBounce {
+    0%, 100% {
+        transform: scale(1) rotate(0deg);
+    }
+    25% {
+        transform: scale(1.3) rotate(-15deg);
+    }
+    50% {
+        transform: scale(1.1) rotate(10deg);
+    }
+    75% {
+        transform: scale(1.2) rotate(-5deg);
+    }
+}
+
+/* Count Badge */
+.reaction-btn span {
+    min-width: 24px;
+    text-align: center;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.reaction-btn.active span {
+    transform: scale(1.1);
+}
+
+/* Hover Effects for Icons */
+.reaction-btn:nth-child(1):hover i {
+    color: #2196F3;
+}
+
+.reaction-btn:nth-child(2):hover i {
+    color: #E91E63;
+}
+
+.reaction-btn:nth-child(3):hover i {
+    color: #4CAF50;
+}
+
+/* Ripple Effect on Click */
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+.reaction-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    background: rgba(160, 132, 220, 0.5);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+}
+
+.reaction-btn:active::after {
+    animation: ripple 0.6s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .reactions {
+        gap: 8px;
+        padding: 12px 16px;
+    }
+
+    .reaction-btn {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+    }
+
+    .reaction-btn i {
+        font-size: 1rem;
+    }
+}

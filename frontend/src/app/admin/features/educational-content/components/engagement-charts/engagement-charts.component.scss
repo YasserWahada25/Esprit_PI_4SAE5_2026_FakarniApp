@@ -11,7 +11,7 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
         h3 {
-            color: #006400;
+            color: #580064;
             margin-bottom: 20px;
             font-size: 1.1rem;
         }
@@ -59,6 +59,10 @@
 
             &.video {
                 background-color: #F44336;
+            }
+
+            &.content {
+                background-color: #00897b;
             }
         }
     }

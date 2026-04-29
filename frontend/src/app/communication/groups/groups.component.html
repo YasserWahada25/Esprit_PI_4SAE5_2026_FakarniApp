@@ -1,37 +1,332 @@
 <div class="groups-container">
-    <div class="section-header">
-        <h2><i class="fa-solid fa-users"></i> Thematic Groups</h2>
-        <button class="action-btn"><i class="fa-solid fa-plus"></i> Create Group</button>
+    <!-- Messages d'erreur -->
+    <div class="alert alert-error" *ngIf="error">
+        <i class="fa-solid fa-exclamation-circle"></i> {{ error }}
+        <button (click)="error = null" class="close-btn">&times;</button>
     </div>
 
-    <div class="groups-grid">
-        <div class="group-card" *ngFor="let group of groups">
+    <!-- Mes Groupes -->
+    <div class="section-header">
+        <h2><i class="fa-solid fa-users"></i> Mes Groupes</h2>
+        <button class="action-btn" (click)="openCreateModal()">
+            <i class="fa-solid fa-plus"></i> Créer un Groupe
+        </button>
+    </div>
+
+    <div class="groups-grid" *ngIf="myGroups.length > 0">
+        <div class="group-card my-group" *ngFor="let group of myGroups" (click)="viewGroupDetails(group.id)">
+            <div class="group-image" *ngIf="group.coverImageUrl" 
+                 [style.background-image]="'url(' + getImageUrl(group.coverImageUrl) + ')'"
+                 (error)="onImageError(group)">
+            </div>
+            
+            <!-- Fallback si pas d'image -->
+            <div class="group-image-placeholder" *ngIf="!group.coverImageUrl">
+                <i class="fa-solid fa-image"></i>
+                <span>Pas d'image</span>
+            </div>
+            
             <div class="card-header">
-                <h3>{{ group.name }}</h3>
-                <span class="members"><i class="fa-solid fa-user-group"></i> {{ group.members }}</span>
+                <div class="group-info">
+                    <h3>{{ group.name }}</h3>
+                    <span class="badge" [class.badge-public]="group.groupType === GroupType.PUBLIC" 
+                          [class.badge-private]="group.groupType === GroupType.PRIVATE">
+                        {{ group.groupType }}
+                    </span>
+                    <span class="badge badge-creator" *ngIf="isCreator(group)">
+                        <i class="fa-solid fa-crown"></i> Créateur
+                    </span>
+                </div>
+                <span class="members">
+                    <i class="fa-solid fa-user-group"></i> {{ group.memberCount }}
+                    <span *ngIf="group.maxMembers">/{{ group.maxMembers }}</span>
+                </span>
             </div>
             <p>{{ group.description }}</p>
-            <button class="join-btn">Join Group</button>
+            <div class="card-footer">
+                <button class="view-btn" (click)="viewGroupDetails(group.id); $event.stopPropagation()">
+                    <i class="fa-solid fa-eye"></i> Voir Détails
+                </button>
+                <button class="edit-btn" (click)="openEditModal(group); $event.stopPropagation()" 
+                        *ngIf="isCreator(group)">
+                    <i class="fa-solid fa-edit"></i> Modifier
+                </button>
+                <button class="leave-btn" (click)="leaveGroup(group.id); $event.stopPropagation()" 
+                        *ngIf="!isCreator(group)">
+                    <i class="fa-solid fa-sign-out-alt"></i> Quitter
+                </button>
+            </div>
         </div>
     </div>
 
+    <div class="empty-state" *ngIf="myGroups.length === 0 && !loading">
+        <i class="fa-solid fa-users-slash"></i>
+        <p>Vous n'êtes membre d'aucun groupe</p>
+        <button class="action-btn" (click)="openCreateModal()">Créer votre premier groupe</button>
+    </div>
+
+    <!-- Tous les Groupes -->
+    <div class="section-header" style="margin-top: 3rem;">
+        <h2><i class="fa-solid fa-globe"></i> Découvrir des Groupes</h2>
+    </div>
+
+    <div class="loading-spinner" *ngIf="loading">
+        <i class="fa-solid fa-spinner fa-spin"></i> Chargement...
+    </div>
+
+    <div class="groups-grid" *ngIf="!loading">
+        <div class="group-card" *ngFor="let group of groups" 
+             [class.disabled]="!group.isJoinable && !isMyGroup(group.id)">
+            <div class="group-image" *ngIf="group.coverImageUrl" 
+                 [style.background-image]="'url(' + getImageUrl(group.coverImageUrl) + ')'">
+            </div>
+            <div class="card-header">
+                <div class="group-info">
+                    <h3>{{ group.name }}</h3>
+                    <span class="badge" [class.badge-public]="group.groupType === GroupType.PUBLIC" 
+                          [class.badge-private]="group.groupType === GroupType.PRIVATE">
+                        {{ group.groupType }}
+                    </span>
+                </div>
+                <span class="members">
+                    <i class="fa-solid fa-user-group"></i> {{ group.memberCount }}
+                    <span *ngIf="group.maxMembers">/{{ group.maxMembers }}</span>
+                </span>
+            </div>
+            <p>{{ group.description }}</p>
+            <div class="card-footer">
+                <button class="join-btn" (click)="joinGroup(group.id)" 
+                        *ngIf="!isMyGroup(group.id) && group.isJoinable"
+                        [disabled]="group.maxMembers && group.memberCount >= group.maxMembers">
+                    <i class="fa-solid fa-user-plus"></i> 
+                    {{ group.maxMembers && group.memberCount >= group.maxMembers ? 'Complet' : 'Rejoindre' }}
+                </button>
+                <button class="view-btn" (click)="viewGroupDetails(group.id)" *ngIf="isMyGroup(group.id)">
+                    <i class="fa-solid fa-eye"></i> Voir Détails
+                </button>
+                <span class="status-text" *ngIf="!group.isJoinable && !isMyGroup(group.id)">
+                    <i class="fa-solid fa-lock"></i> Sur invitation uniquement
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Section -->
     <div class="support-section">
         <div class="section-header">
-            <h2><i class="fa-solid fa-headset"></i> Online Support</h2>
+            <h2><i class="fa-solid fa-headset"></i> Support en Ligne</h2>
         </div>
         <div class="support-options">
             <div class="support-card">
                 <i class="fa-solid fa-comments"></i>
-                <h3>Live Chat</h3>
-                <p>Talk to a support agent now.</p>
-                <button>Start Chat</button>
+                <h3>Chat en Direct</h3>
+                <p>Parlez à un agent de support maintenant.</p>
+                <button>Démarrer le Chat</button>
             </div>
             <div class="support-card">
                 <i class="fa-solid fa-ticket"></i>
-                <h3>Submit Ticket</h3>
-                <p>Send a detailed request via email.</p>
-                <button>Open Ticket</button>
+                <h3>Soumettre un Ticket</h3>
+                <p>Envoyez une demande détaillée par email.</p>
+                <button>Ouvrir un Ticket</button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Modal de création de groupe -->
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2><i class="fa-solid fa-users"></i> Créer un Nouveau Groupe</h2>
+            <button class="close-btn" (click)="closeCreateModal()">&times;</button>
+        </div>
+        
+        <form (ngSubmit)="createGroup()" class="group-form">
+            <div class="form-group">
+                <label for="name">Nom du groupe *</label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    [(ngModel)]="newGroup.name" 
+                    name="name"
+                    placeholder="Ex: Groupe de soutien Paris"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description *</label>
+                <textarea 
+                    id="description" 
+                    [(ngModel)]="newGroup.description" 
+                    name="description"
+                    rows="4"
+                    placeholder="Décrivez l'objectif et les activités du groupe..."
+                    required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Image du groupe</label>
+                <div class="image-upload-container">
+                    <div class="image-preview" *ngIf="imagePreview">
+                        <img [src]="imagePreview" alt="Aperçu">
+                        <button type="button" class="remove-image" (click)="removeImage()">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="upload-area" *ngIf="!imagePreview" (click)="fileInput.click()">
+                        <div *ngIf="!uploadingImage">
+                            <i class="fa-solid fa-cloud-upload-alt"></i>
+                            <p>Cliquez pour ajouter une image</p>
+                            <small>JPG, PNG, GIF (max 5MB)</small>
+                        </div>
+                        <div *ngIf="uploadingImage" class="uploading">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <p>Upload en cours...</p>
+                        </div>
+                    </div>
+                    <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="groupType">Type de groupe</label>
+                    <select id="groupType" [(ngModel)]="newGroup.groupType" name="groupType">
+                        <option [value]="GroupType.PUBLIC">Public</option>
+                        <option [value]="GroupType.PRIVATE">Privé</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="maxMembers">Limite de membres</label>
+                    <input 
+                        type="number" 
+                        id="maxMembers" 
+                        [(ngModel)]="newGroup.maxMembers" 
+                        name="maxMembers"
+                        min="1"
+                        placeholder="Illimité">
+                </div>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label>
+                    <input 
+                        type="checkbox" 
+                        [(ngModel)]="newGroup.isJoinable" 
+                        name="isJoinable">
+                    <span>Autoriser les membres à rejoindre librement</span>
+                </label>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" (click)="closeCreateModal()">
+                    Annuler
+                </button>
+                <button type="submit" class="btn-primary" [disabled]="loading || !isFormValid()">
+                    <i class="fa-solid fa-check"></i> 
+                    {{ loading ? 'Création...' : 'Créer le Groupe' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Moda
+l de modification de groupe -->
+<div class="modal-overlay" *ngIf="showEditModal" (click)="closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2><i class="fa-solid fa-edit"></i> Modifier le Groupe</h2>
+            <button class="close-btn" (click)="closeEditModal()">&times;</button>
+        </div>
+        
+        <form (ngSubmit)="updateGroup()" class="group-form">
+            <div class="form-group">
+                <label for="editName">Nom du groupe *</label>
+                <input 
+                    type="text" 
+                    id="editName" 
+                    [(ngModel)]="editGroup.name" 
+                    name="editName"
+                    placeholder="Ex: Groupe de soutien Paris"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="editDescription">Description *</label>
+                <textarea 
+                    id="editDescription" 
+                    [(ngModel)]="editGroup.description" 
+                    name="editDescription"
+                    rows="4"
+                    placeholder="Décrivez l'objectif et les activités du groupe..."
+                    required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Image du groupe</label>
+                <div class="image-upload-container">
+                    <div class="image-preview" *ngIf="imagePreview">
+                        <img [src]="imagePreview" alt="Aperçu">
+                        <button type="button" class="remove-image" (click)="removeImage()">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="upload-area" *ngIf="!imagePreview" (click)="editFileInput.click()">
+                        <div *ngIf="!uploadingImage">
+                            <i class="fa-solid fa-cloud-upload-alt"></i>
+                            <p>Cliquez pour ajouter une image</p>
+                            <small>JPG, PNG, GIF (max 5MB)</small>
+                        </div>
+                        <div *ngIf="uploadingImage" class="uploading">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <p>Upload en cours...</p>
+                        </div>
+                    </div>
+                    <input #editFileInput type="file" accept="image/*" (change)="onFileSelected($event, true)" style="display: none;">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editGroupType">Type de groupe</label>
+                    <select id="editGroupType" [(ngModel)]="editGroup.groupType" name="editGroupType">
+                        <option [value]="GroupType.PUBLIC">Public</option>
+                        <option [value]="GroupType.PRIVATE">Privé</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editMaxMembers">Limite de membres</label>
+                    <input 
+                        type="number" 
+                        id="editMaxMembers" 
+                        [(ngModel)]="editGroup.maxMembers" 
+                        name="editMaxMembers"
+                        min="1"
+                        placeholder="Illimité">
+                </div>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label>
+                    <input 
+                        type="checkbox" 
+                        [(ngModel)]="editGroup.isJoinable" 
+                        name="editIsJoinable">
+                    <span>Autoriser les membres à rejoindre librement</span>
+                </label>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" (click)="closeEditModal()">
+                    Annuler
+                </button>
+                <button type="submit" class="btn-primary" [disabled]="loading || !isFormValid()">
+                    <i class="fa-solid fa-save"></i> 
+                    {{ loading ? 'Modification...' : 'Modifier le Groupe' }}
+                </button>
+            </div>
+        </form>
     </div>
 </div>

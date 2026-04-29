@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -20,28 +20,34 @@ export class EngagementTrackingComponent implements OnInit {
     @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
 
-    constructor(private engagementService: EngagementService) {
+    constructor(private engagementService: EngagementService, private cdr: ChangeDetectorRef) {
         this.dataSource = new MatTableDataSource();
     }
 
     ngOnInit(): void {
-        this.loadEngagements();
-        this.loadStatistics();
-    }
-
-    loadEngagements(): void {
-        this.engagementService.getEngagements().subscribe(engagements => {
+        this.engagementService.engagements$.subscribe(engagements => {
             this.engagements = engagements;
             this.dataSource.data = engagements;
             this.dataSource.paginator = this.paginator;
             this.dataSource.sort = this.sort;
+            this.cdr.detectChanges();
         });
+
+        this.engagementService.statistics$.subscribe(stats => {
+            this.statistics = stats;
+            this.cdr.detectChanges();
+        });
+
+        this.engagementService.reloadEngagements().subscribe();
+        this.engagementService.reloadStatistics().subscribe();
+    }
+
+    loadEngagements(): void {
+        this.engagementService.reloadEngagements().subscribe();
     }
 
     loadStatistics(): void {
-        this.engagementService.getStatistics().subscribe(stats => {
-            this.statistics = stats;
-        });
+        this.engagementService.reloadStatistics().subscribe();
     }
 
     applyFilter(event: Event): void {

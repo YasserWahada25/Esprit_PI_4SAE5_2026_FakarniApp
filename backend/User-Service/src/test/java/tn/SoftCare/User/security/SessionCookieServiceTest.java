@@ -1,0 +1,13 @@
+package tn.SoftCare.User.security;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+class SessionCookieServiceTest {
+
+    @Test
+    void classShouldBeLoadable() {
+        assertNotNull(SessionCookieService.class);
+    }
+}

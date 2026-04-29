@@ -4,8 +4,9 @@ import { CommonModule } from '@angular/common';
 import { SessionEventRoutingModule } from './session-event-routing.module';
 import { SessionEventLayoutComponent } from './components/session-event-layout/session-event-layout.component';
 import { SessionListComponent } from './components/session-list/session-list.component';
-import { EventListComponent } from './components/event-list/event-list.component';
 import { SessionFormComponent } from './components/session-form/session-form.component';
+import { ReservationRequestsComponent } from './components/reservation-requests/reservation-requests.component';
+import { EventListComponent } from './components/event-list/event-list.component';
 import { EventFormComponent } from './components/event-form/event-form.component';
 
 // Material Imports
@@ -24,13 +25,16 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 @NgModule({
     declarations: [
         SessionEventLayoutComponent,
         SessionListComponent,
-        EventListComponent,
         SessionFormComponent,
+        ReservationRequestsComponent,
+        EventListComponent,
         EventFormComponent
     ],
     imports: [
@@ -51,7 +55,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         MatDatepickerModule,
         MatNativeDateModule,
         MatCardModule,
-        MatTooltipModule
+        MatTooltipModule,
+        MatProgressSpinnerModule,
+        MatSnackBarModule
     ]
 })
 export class SessionEventModule { }

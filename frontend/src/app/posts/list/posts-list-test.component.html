@@ -1,0 +1,26 @@
+<div style="padding: 20px;">
+    <h1>Posts Test Page</h1>
+    <p>Number of posts: {{ posts.length }}</p>
+    <p>Filtered posts: {{ filteredPosts.length }}</p>
+    
+    <div style="margin: 20px 0;">
+        <input type="text" placeholder="Search..." [(ngModel)]="searchQuery" />
+        <select [(ngModel)]="selectedCategory">
+            <option value="all">All</option>
+            <option value="lifestyle">Lifestyle</option>
+        </select>
+    </div>
+
+    <div *ngIf="filteredPosts.length > 0">
+        <h2>Posts:</h2>
+        <div *ngFor="let post of filteredPosts" style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+            <h3>{{ post.title }}</h3>
+            <p>{{ post.content }}</p>
+            <small>By {{ post.author }}</small>
+        </div>
+    </div>
+
+    <div *ngIf="filteredPosts.length === 0">
+        <p>No posts</p>
+    </div>
+</div>

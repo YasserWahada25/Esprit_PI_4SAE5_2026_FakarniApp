@@ -1,6 +1,6 @@
 <div class="activity-list-container">
     <!-- Navigation Tabs -->
-    <nav mat-tab-nav-bar class="nav-tabs">
+    <nav mat-tab-nav-bar class="nav-tabs" [tabPanel]="tabPanel">
         <a mat-tab-link routerLink="../activities" routerLinkActive #rla1="routerLinkActive" [active]="rla1.isActive">
             Activités Éducatives
         </a>
@@ -11,7 +11,7 @@
             Suivi d'Engagement
         </a>
     </nav>
-
+    <mat-tab-nav-panel #tabPanel>
     <div class="header">
         <h2>Gestion des Activités Éducatives</h2>
         <button mat-raised-button color="primary" (click)="openActivityDialog()">
@@ -26,7 +26,10 @@
         <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
 
-    <div class="table-container">
+    <p *ngIf="loadError" class="error-banner">{{ loadError }}</p>
+    <p *ngIf="loading" class="loading-hint">Chargement…</p>
+
+    <div class="table-container" [class.table-loading]="loading">
         <table mat-table [dataSource]="dataSource" matSort>
             <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom de l'Activité</th>
@@ -62,6 +65,14 @@
             <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef>Actions</th>
                 <td mat-cell *matCellDef="let row">
+                    <button
+                        mat-icon-button
+                        *ngIf="isGameActivity(row)"
+                        (click)="openQuestionsDialog(row)"
+                        matTooltip="Questions du jeu"
+                    >
+                        <mat-icon>quiz</mat-icon>
+                    </button>
                     <button mat-icon-button (click)="openActivityDialog(row)" matTooltip="Modifier">
                         <mat-icon>edit</mat-icon>
                     </button>
@@ -76,4 +87,5 @@
         </table>
         <mat-paginator [pageSizeOptions]="[10, 20, 50]" showFirstLastButtons></mat-paginator>
     </div>
+    </mat-tab-nav-panel>
 </div>

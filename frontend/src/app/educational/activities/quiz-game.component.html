@@ -1,0 +1,49 @@
+<div class="quiz-game" *ngIf="session && currentQuestion">
+    <div class="progress-wrap">
+        <div class="progress-bar" [style.width.%]="progress"></div>
+    </div>
+    <p class="kind" *ngIf="session.gameType === 'IMAGE_RECOGNITION'">Reconnaissance d’images</p>
+    <p class="kind muted" *ngIf="session.gameType === 'MEMORY_QUIZ'">Quiz</p>
+
+    <div class="question-card">
+        <p class="step">Question {{ questionIndex + 1 }} / {{ session.questions.length }}</p>
+        <h3>{{ currentQuestion.prompt }}</h3>
+        <div class="question-image-frame" *ngIf="questionSceneUrl">
+            <img
+                class="question-image"
+                [src]="questionSceneUrl"
+                alt=""
+                referrerpolicy="no-referrer"
+                loading="lazy"
+                (error)="onQuestionImageError($event)"
+            />
+        </div>
+
+        <div class="options-grid">
+            <button
+                type="button"
+                class="opt-tile"
+                *ngFor="let row of optionRows(currentQuestion)"
+                [class.selected]="isSelected(row.label)"
+                (click)="selectOption(row.label)"
+                [disabled]="quizBusy"
+            >
+                <img *ngIf="row.imageUrl" class="opt-img" [src]="row.imageUrl" alt="" referrerpolicy="no-referrer" />
+                <span class="opt-label">{{ row.label }}</span>
+            </button>
+        </div>
+
+        <button
+            type="button"
+            class="btn-validate-answer"
+            (click)="submitCurrent()"
+            [disabled]="quizBusy || selectedAnswer == null"
+        >
+            Valider la réponse
+        </button>
+        <p class="submit-hint" *ngIf="answerRequestPending">Envoi…</p>
+        <p class="submit-hint" *ngIf="finishRequestPending && !answerRequestPending">Finalisation…</p>
+    </div>
+
+    <button type="button" class="link-cancel" (click)="cancel()" [disabled]="quizBusy">Annuler</button>
+</div>

@@ -1,15 +1,25 @@
-# Étape 1 : Construction (Build)
+# ─── Stage 1 : Build ───────────────────────────────────────────────────────
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
+
+# Cache des dépendances Maven
 COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Compilation
 COPY src ./src
+RUN mvn clean package -DskipTests -B
 
-# Ajout du cache Maven et de la tolérance aux coupures réseau
-RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests -Dmaven.wagon.http.retryHandler.count=5 -Dhttp.keepAlive=false
-
-# Étape 2 : Exécution
-FROM eclipse-temurin:21-jdk-alpine
+# ─── Stage 2 : Runtime ─────────────────────────────────────────────────────
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
+
+# Sécurité : utilisateur non-root
+RUN addgroup -S softcare && adduser -S softcare -G softcare
+USER softcare
+
 COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8090
+
+EXPOSE 9012
+
 ENTRYPOINT ["java", "-jar", "app.jar"]

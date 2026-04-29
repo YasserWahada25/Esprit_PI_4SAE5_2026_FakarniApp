@@ -21,7 +21,7 @@
                     <label class="remember-me">
                         <input type="checkbox"> Remember Me
                     </label>
-                    <a href="#" class="forgot-pass">Forgot Password?</a>
+                    <a routerLink="/auth/forgot-password" class="forgot-pass">Forgot Password?</a>
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-block" [disabled]="loginForm.invalid || loading">
@@ -34,10 +34,23 @@
             </div>
 
             <div class="social-login">
-                <button class="btn btn-social btn-google"><i class="fa-brands fa-google"></i> Sign in with
-                    Google</button>
-                <button class="btn btn-social btn-facebook"><i class="fa-brands fa-facebook-f"></i> Sign in with
-                    Facebook</button>
+                @if (showGoogleLogin) {
+                    <div #googleOverlay class="google-btn-overlay" [class.is-loading]="loading">
+                        <div class="btn btn-social btn-google" aria-hidden="true">
+                            <i class="fa-brands fa-google" aria-hidden="true"></i>
+                            <span>Sign in with Google</span>
+                        </div>
+                        <div
+                            id="google-signin-button"
+                            class="google-gsi-layer"
+                            title="Sign in with Google"
+                            role="presentation"
+                        ></div>
+                    </div>
+                }
+                <button type="button" class="btn btn-social btn-facebook" (click)="onFacebookLogin()" [disabled]="loading">
+                    <i class="fa-brands fa-facebook-f"></i> Sign in with Facebook
+                </button>
             </div>
 
             <p class="auth-footer">

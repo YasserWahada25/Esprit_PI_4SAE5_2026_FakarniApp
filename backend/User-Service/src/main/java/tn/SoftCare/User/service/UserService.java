@@ -53,6 +53,12 @@ public class UserService {
                 .toList();
     }
 
+    public List<UserResponse> findByRole(Role role) {
+        return userRepository.findByRole(role).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public UserResponse findById(String id) {
 
         User u = userRepository.findById(id)

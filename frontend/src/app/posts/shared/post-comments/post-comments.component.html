@@ -1,0 +1,115 @@
+<div class="comments-section">
+    <div class="comments-header">
+        <i class="fa-solid fa-comments"></i>
+        <span>Comments ({{ totalComments() }})</span>
+    </div>
+    
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage()">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{ errorMessage() }}
+    </div>
+
+    <!-- Add Comment Form -->
+    <div class="add-comment">
+        <textarea 
+            [value]="newCommentContent()"
+            (input)="newCommentContent.set($any($event.target).value)"
+            placeholder="Add a comment..."
+            maxlength="1000">
+        </textarea>
+        <button 
+            (click)="addComment()"
+            [disabled]="!newCommentContent().trim()">
+            <i class="fa-solid fa-paper-plane"></i> Post Comment
+        </button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" *ngIf="isLoading()">
+        <i class="fa-solid fa-spinner fa-spin"></i> Loading comments...
+    </div>
+
+    <!-- Comments List -->
+    <div class="comments-list" *ngIf="!isLoading() && comments().length > 0">
+        <div *ngFor="let comment of comments()" class="comment">
+            <div class="comment-header">
+                <span class="user">
+                    <i class="fa-solid fa-user"></i> User {{ comment.userId }}
+                </span>
+                <span class="date">{{ formatDate(comment.createdAt) }}</span>
+            </div>
+            
+            <p class="comment-content">{{ comment.content }}</p>
+            
+            <div class="comment-actions">
+                <button (click)="startReply(comment)">
+                    <i class="fa-solid fa-reply"></i> Reply
+                </button>
+                <button 
+                    *ngIf="comment.userId === userId"
+                    (click)="deleteComment(comment.id)">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
+            </div>
+
+            <!-- Reply Form -->
+            <div *ngIf="replyingTo() === comment.id" class="reply-form">
+                <textarea 
+                    [value]="replyContent()"
+                    (input)="replyContent.set($any($event.target).value)"
+                    placeholder="Write your reply..."
+                    maxlength="1000">
+                </textarea>
+                <div class="reply-form-actions">
+                    <button 
+                        (click)="addReply(comment.id)"
+                        [disabled]="!replyContent().trim()">
+                        Reply
+                    </button>
+                    <button (click)="cancelReply()">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Replies -->
+            <div *ngIf="comment.replies && comment.replies.length > 0" class="replies">
+                <div *ngFor="let reply of comment.replies" class="reply">
+                    <div class="comment-header">
+                        <span class="user">
+                            <i class="fa-solid fa-user"></i> User {{ reply.userId }}
+                        </span>
+                        <span class="date">{{ formatDate(reply.createdAt) }}</span>
+                    </div>
+                    <p class="comment-content">{{ reply.content }}</p>
+                    <button 
+                        *ngIf="reply.userId === userId"
+                        (click)="deleteComment(reply.id)"
+                        class="comment-actions">
+                        <i class="fa-solid fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!isLoading() && comments().length === 0">
+        <i class="fa-solid fa-comment-slash"></i>
+        <p>No comments yet. Be the first to comment!</p>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages() > 1">
+        <button 
+            [disabled]="currentPage() === 0"
+            (click)="loadPage(currentPage() - 1)">
+            <i class="fa-solid fa-chevron-left"></i> Previous
+        </button>
+        <span>Page {{ currentPage() + 1 }} / {{ totalPages() }}</span>
+        <button 
+            [disabled]="currentPage() === totalPages() - 1"
+            (click)="loadPage(currentPage() + 1)">
+            Next <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+</div>

@@ -1,0 +1,49 @@
+.state-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 250px;
+    color: #666;
+    padding: 20px;
+    text-align: center;
+
+    p {
+        margin-top: 16px;
+        font-size: 1.1rem;
+    }
+}
+
+.error {
+    color: #f44336;
+}
+
+.map-wrapper {
+    height: auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.address-text {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.leaflet-map-container {
+    height: 400px;
+    width: 100%;
+    min-width: 500px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+
+    /* Leaflet fix for z-index inside Material Dialog */
+    z-index: 10;
+}
+
+::ng-deep .mat-mdc-dialog-content {
+    max-height: 80vh;
+}

@@ -1,0 +1,50 @@
+<div class="puzzle-game" *ngIf="!loading">
+    <div class="puzzle-header">
+        <h2>{{ activity.name || 'Puzzle' }}</h2>
+        <div class="stats">
+            <span>Coups : <strong>{{ moves }}</strong></span>
+            <button type="button" class="btn-link" (click)="resetGame()">Mélanger</button>
+        </div>
+    </div>
+
+    <p class="hint">Sélectionne une pièce en bas, puis clique une case de la grille pour la placer.</p>
+
+    <div class="play-zone">
+        <div class="board">
+            <button
+                type="button"
+                class="slot"
+                *ngFor="let slotPiece of board; let slot = index"
+                [class.selected]="isSelectedBoard(slot)"
+                [class.filled]="slotPiece != null"
+                [class.wrong]="isMisplaced(slot)"
+                (click)="selectBoard(slot)"
+                [attr.aria-label]="'Case ' + (slot + 1)"
+            >
+                <div *ngIf="slotPiece != null" class="piece" [ngStyle]="pieceStyle(slotPiece)"></div>
+                <span *ngIf="slotPiece == null" class="slot-index">{{ slot + 1 }}</span>
+            </button>
+        </div>
+
+        <div class="reference" *ngIf="imageUrl">
+            <p class="reference-title">Image complète (référence)</p>
+            <img [src]="imageUrl" alt="Image modèle du puzzle" />
+        </div>
+    </div>
+
+    <h3 class="tray-title">Pièces disponibles</h3>
+    <div class="tray">
+        <button
+            type="button"
+            class="tray-piece"
+            *ngFor="let pieceId of tray; let i = index"
+            [class.selected]="isSelectedTray(i)"
+            (click)="selectTray(i)"
+            [attr.aria-label]="'Pièce ' + (i + 1)"
+        >
+            <div class="piece" [ngStyle]="pieceStyle(pieceId)"></div>
+        </button>
+    </div>
+
+    <button type="button" class="btn-link quit" (click)="cancel()">Quitter</button>
+</div>
