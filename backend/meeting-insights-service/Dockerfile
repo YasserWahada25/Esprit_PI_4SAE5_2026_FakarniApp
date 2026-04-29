@@ -1,15 +1,15 @@
-FROM python:3.11-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
+# Build autonome : depuis le dossier du module
+#   docker build -t <image>:local .
+# .dockerignore recommandé : target/ , .git
+#
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
+COPY . .
+RUN mvn -B -e -q package -DskipTests -Dfile.encoding=UTF-8
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY app ./app
-
-EXPOSE 8086
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8086"]
+FROM eclipse-temurin:21-jre-jammy
+WORKDIR /app
+COPY --from=build /app/target/*.jar /app/app.jar
+ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -Dfile.encoding=UTF-8"
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

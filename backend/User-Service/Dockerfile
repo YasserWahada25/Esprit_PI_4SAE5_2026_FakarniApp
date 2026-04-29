@@ -1,11 +1,15 @@
-# Étape 1 : Construction (Build) avec Java 21
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+# Build autonome : depuis le dossier du module
+#   docker build -t <image>:local .
+# .dockerignore recommandé : target/ , .git
+#
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY . .
-RUN mvn clean package -DskipTests -Dfile.encoding=UTF-8
+RUN mvn -B -e -q package -DskipTests -Dfile.encoding=UTF-8
 
-# Étape 2 : Lancement (Run) avec Java 21
-FROM eclipse-temurin:21-jdk-alpine
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+COPY --from=build /app/target/*.jar /app/app.jar
+ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -Dfile.encoding=UTF-8"
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
