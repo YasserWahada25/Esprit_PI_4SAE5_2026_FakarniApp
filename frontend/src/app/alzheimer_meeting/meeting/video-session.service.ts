@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { Client, Message, StompSubscription } from '@stomp/stompjs';
+import { Client, type IFrame, Message, StompSubscription } from '@stomp/stompjs';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { AuthService } from '../../auth/services/auth.service';
 import { environment } from '../../../environments/environment';
@@ -181,7 +181,7 @@ export class VideoSessionService {
             this.connectedSubject.next(false);
         };
 
-        this.stompClient.onStompError = frame => {
+        this.stompClient.onStompError = (frame: IFrame) => {
             console.error('[WebRTC STOMP] Broker error:', frame.headers['message']);
         };
 

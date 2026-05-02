@@ -1,6 +1,6 @@
 import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Client, IMessage } from '@stomp/stompjs';
+import { Client, type IFrame, IMessage } from '@stomp/stompjs';
 import { Subject, Observable } from 'rxjs';
 import { MessageResponse } from '../models/message.model';
 
@@ -42,7 +42,7 @@ export class WebSocketService {
           
           this.client = new Client({
             webSocketFactory: () => socket,
-            debug: (str) => {
+            debug: (str: string) => {
               console.log('STOMP: ' + str);
             },
             reconnectDelay: 5000,
@@ -71,7 +71,7 @@ export class WebSocketService {
 
               resolve();
             },
-            onStompError: (frame) => {
+            onStompError: (frame: IFrame) => {
               console.error('❌ Erreur STOMP:', frame);
               console.error('Frame headers:', frame.headers);
               console.error('Frame body:', frame.body);
@@ -79,12 +79,12 @@ export class WebSocketService {
               const errorMsg = frame.headers?.['message'] || 'Unknown error';
               reject(new Error(`STOMP Error: ${errorMsg}`));
             },
-            onWebSocketError: (error) => {
+            onWebSocketError: (error: Event) => {
               console.error('❌ Erreur WebSocket:', error);
               this.connected = false;
               reject(new Error('WebSocket connection failed. Is the backend running?'));
             },
-            onWebSocketClose: (event) => {
+            onWebSocketClose: (event: CloseEvent) => {
               console.warn('⚠️ WebSocket fermé:', event);
               this.connected = false;
             }

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import { SignUpComponent } from './sign-up.component';
@@ -10,20 +10,21 @@ import { Role } from './models/sign-up.model';
 describe('SignUpComponent', () => {
   let component: SignUpComponent;
   let authServiceSpy: jasmine.SpyObj<AuthService>;
-  let routerSpy: jasmine.SpyObj<Router>;
+  let navigateSpy: jasmine.Spy;
 
   beforeEach(async () => {
     authServiceSpy = jasmine.createSpyObj<AuthService>('AuthService', ['register']);
-    routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
       imports: [SignUpComponent],
       providers: [
         provideZonelessChangeDetection(),
+        provideRouter([]),
         { provide: AuthService, useValue: authServiceSpy },
-        { provide: Router, useValue: routerSpy },
       ],
     }).compileComponents();
+
+    navigateSpy = spyOn(TestBed.inject(Router), 'navigate');
 
     component = TestBed.createComponent(SignUpComponent).componentInstance;
   });
@@ -57,7 +58,7 @@ describe('SignUpComponent', () => {
     component.onSubmit();
 
     expect(authServiceSpy.register).toHaveBeenCalled();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth/signin']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/auth/signin']);
   });
 
   it('should display specific message on 409 conflict', () => {

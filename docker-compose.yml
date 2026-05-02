@@ -160,23 +160,6 @@ services:
       timeout: 5s
       retries: 5
 
-  db-session:
-    image: mysql:8.0
-    container_name: fakarni_db_session
-    environment:
-      MYSQL_DATABASE: alzheimer_session_db
-      MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3318:3306"
-    volumes:
-      - fakarni_db_session_data:/var/lib/mysql
-    networks:
-      - fakarni-net
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   db-suivi:
     image: mysql:8.0
@@ -476,25 +459,6 @@ services:
       - fakarni-net
     restart: on-failure
 
-  session-service:
-    build:
-      context: ./backend/session-service
-    container_name: fakarni_session_service
-    ports:
-      - "8085:8085"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-    depends_on:
-      db-session:
-        condition: service_healthy
-      eureka-server:
-        condition: service_started
-    networks:
-      - fakarni-net
-    restart: on-failure
-
   suivi-engagement-service:
     build:
       context: ./backend/suivi-engagement-service
@@ -548,7 +512,6 @@ volumes:
   fakarni_db_event_data:
   fakarni_db_group_data:
   fakarni_db_post_data:
-  fakarni_db_session_data:
   fakarni_db_suivi_data:
   fakarni_sonar_data:
   fakarni_sonar_logs:

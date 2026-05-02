@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideZonelessChangeDetection } from '@angular/core';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AuthService } from './auth.service';
 import { Role, SignUpRequest } from '../models/sign-up.model';
@@ -22,7 +23,7 @@ describe('AuthService', () => {
     sessionStorage.clear();
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [AuthService],
+      providers: [provideZonelessChangeDetection(), AuthService],
     });
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -48,7 +49,7 @@ describe('AuthService', () => {
       expect(res.email).toBe('yasser@esprit.tn');
     });
 
-    const req = httpMock.expectOne('http://localhost:8090/api/users');
+    const req = httpMock.expectOne((r) => r.method === 'POST' && r.url.endsWith('/api/users'));
     expect(req.request.method).toBe('POST');
     req.flush(mockUser);
   });
@@ -64,7 +65,7 @@ describe('AuthService', () => {
       expect(res.user.id).toBe('u1');
     });
 
-    const req = httpMock.expectOne('http://localhost:8090/auth/login');
+    const req = httpMock.expectOne((r) => r.method === 'POST' && r.url.endsWith('/auth/login'));
     expect(req.request.method).toBe('POST');
     req.flush(response);
 
@@ -82,7 +83,7 @@ describe('AuthService', () => {
       },
     });
 
-    const req = httpMock.expectOne('http://localhost:8090/auth/login');
+    const req = httpMock.expectOne((r) => r.method === 'POST' && r.url.endsWith('/auth/login'));
     req.flush({ message: 'Invalid credentials' }, { status: 401, statusText: 'Unauthorized' });
 
     expect(service.getAccessToken()).toBeNull();
@@ -96,7 +97,7 @@ describe('AuthService', () => {
 
     service.logout();
 
-    const req = httpMock.expectOne('http://localhost:8090/auth/logout');
+    const req = httpMock.expectOne((r) => r.method === 'POST' && r.url.endsWith('/auth/logout'));
     expect(req.request.method).toBe('POST');
     req.flush('ok');
 

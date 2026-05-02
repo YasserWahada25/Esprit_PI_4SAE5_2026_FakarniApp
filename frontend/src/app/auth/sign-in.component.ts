@@ -3,7 +3,9 @@ import { isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { AuthService } from './services/auth.service';
+import { GoogleSignInService } from './services/google-sign-in.service';
 import { Role } from './models/sign-up.model';
 import { environment } from '../../environments/environment';
 
@@ -49,7 +51,7 @@ export class SignInComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly facebookAppId = environment.facebookAppId;
     private readonly isBrowser: boolean;
     private destroyed = false;
-    private googleIdentityInitialized = false;
+    private googleCredSub?: Subscription;
     private googleScriptEl: HTMLScriptElement | null = null;
     private facebookScriptEl: HTMLScriptElement | null = null;
     @ViewChild('googleOverlay', { read: ElementRef })
@@ -59,7 +61,8 @@ export class SignInComponent implements OnInit, AfterViewInit, OnDestroy {
         @Inject(PLATFORM_ID) platformId: object,
         private fb: FormBuilder,
         private router: Router,
-        private authService: AuthService
+        private authService: AuthService,
+        private googleSignIn: GoogleSignInService
     ) {
         this.isBrowser = isPlatformBrowser(platformId);
         this.loginForm = this.fb.group({
@@ -79,6 +82,26 @@ export class SignInComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!this.isBrowser || this.destroyed) {
             return;
         }
+        if (this.googleClientId) {
+            this.googleCredSub = this.googleSignIn.credentials$.subscribe((credential) => {
+                if (this.destroyed) {
+                    return;
+                }
+                this.errorMessage = null;
+                this.loading = true;
+                this.authService.loginWithGoogle(credential).subscribe({
+                    next: (res) => {
+                        this.loading = false;
+                        const target = res?.user?.role === Role.ADMIN ? '/admin' : '/home';
+                        this.router.navigate([target]);
+                    },
+                    error: (err: HttpErrorResponse) => {
+                        this.loading = false;
+                        this.errorMessage = err?.error?.message || 'Google login failed.';
+                    },
+                });
+            });
+        }
         setTimeout(() => {
             if (!this.destroyed) {
                 this.initGoogleSdk();
@@ -88,6 +111,7 @@ export class SignInComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.destroyed = true;
+        this.googleCredSub?.unsubscribe();
         if (!this.isBrowser) {
             return;
         }
@@ -192,31 +216,7 @@ export class SignInComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!window.google?.accounts?.id || !this.googleClientId) {
             return;
         }
-        if (!this.googleIdentityInitialized) {
-            window.google.accounts.id.initialize({
-                client_id: this.googleClientId,
-                callback: (response) => {
-                    const credential = response?.credential;
-                    if (!credential) {
-                        this.errorMessage = 'Google authentication failed.';
-                        return;
-                    }
-                    this.loading = true;
-                    this.authService.loginWithGoogle(credential).subscribe({
-                        next: (res) => {
-                            this.loading = false;
-                            const target = res?.user?.role === Role.ADMIN ? '/admin' : '/home';
-                            this.router.navigate([target]);
-                        },
-                        error: (err: HttpErrorResponse) => {
-                            this.loading = false;
-                            this.errorMessage = err?.error?.message || 'Google login failed.';
-                        }
-                    });
-                }
-            });
-            this.googleIdentityInitialized = true;
-        }
+        this.googleSignIn.ensureInitialized(this.googleClientId);
 
         const googleButtonContainer = document.getElementById('google-signin-button');
         if (!googleButtonContainer) {

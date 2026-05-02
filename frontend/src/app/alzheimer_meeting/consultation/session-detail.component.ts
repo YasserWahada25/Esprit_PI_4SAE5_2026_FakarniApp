@@ -19,7 +19,7 @@ import { AuthService } from '../../auth/services/auth.service';
       </button>
 
       <div class="detail-header">
-        <div class="type-badge" [ngClass]="'badge-' + (session.type?.toLowerCase() || 'general')">
+        <div class="type-badge" [ngClass]="'badge-' + (session.type.toLowerCase() || 'general')">
           {{ session.type || 'General' }}
         </div>
         <div class="title-block">

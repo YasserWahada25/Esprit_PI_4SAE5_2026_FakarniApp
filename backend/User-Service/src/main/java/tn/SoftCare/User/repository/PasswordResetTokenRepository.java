@@ -8,6 +8,8 @@ import java.util.Optional;
 public interface PasswordResetTokenRepository extends MongoRepository<PasswordResetToken, String> {
 
     Optional<PasswordResetToken> findByTokenHash(String tokenHash);
+    
+    Optional<PasswordResetToken> findByShortCodeAndEmail(String shortCode, String email);
 
     void deleteByUserId(String userId);
 

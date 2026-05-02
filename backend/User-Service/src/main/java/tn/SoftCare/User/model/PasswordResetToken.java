@@ -16,6 +16,9 @@ public class PasswordResetToken {
 
     // hash SHA-256 du token (on ne stocke jamais le token brut)
     private String tokenHash;
+    
+    // Code court à 6 chiffres pour l'utilisateur (ex: 123456)
+    private String shortCode;
 
     private Instant createdAt;
     private Instant expiresAt;
@@ -76,5 +79,13 @@ public class PasswordResetToken {
 
     public void setUsed(boolean used) {
         this.used = used;
+    }
+
+    public String getShortCode() {
+        return shortCode;
+    }
+
+    public void setShortCode(String shortCode) {
+        this.shortCode = shortCode;
     }
 }

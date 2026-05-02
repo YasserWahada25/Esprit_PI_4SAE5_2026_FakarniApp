@@ -3,12 +3,24 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { SignUpRequest } from '../models/sign-up.model';
 import { AuthResponse, User, UserUpdateRequest } from '../models/user.model';
+import { environment } from '../../../environments/environment';
 
-// IMPORTANT: Toujours utiliser la GATEWAY (8090), jamais Eureka (8761).
-// Eureka = registre des services (dashboard). L'API /api/users est sur la Gateway → User-Service.
-const API_BASE = 'http://localhost:8090';
-const API = `${API_BASE}/api`;
-const AUTH = `${API_BASE}/auth`;
+/**
+ * Dev : chaîne vide → /api … et /auth … passent par proxy.conf.json → Gateway 8090.
+ * Prod / bundle : même origine configurée dans environment ou URL explicite.
+ */
+function gatewayBase(): string {
+  const raw = (environment.apiBaseUrl || environment.apiUrl || '').trim();
+  const trimmed = raw.replace(/\/$/, '');
+  if (!environment.production) {
+    return trimmed;
+  }
+  return trimmed !== '' ? trimmed : 'http://localhost:8090';
+}
+
+const API_BASE = gatewayBase();
+const API = API_BASE !== '' ? `${API_BASE}/api` : '/api';
+const AUTH = API_BASE !== '' ? `${API_BASE}/auth` : '/auth';
 
 const STORAGE_KEY = 'fakarni_user';
 
@@ -119,8 +131,8 @@ export class AuthService {
     return this.http.post<MessageResponse>(`${AUTH}/forgot-password`, { email });
   }
 
-  resetPassword(token: string, newPassword: string): Observable<MessageResponse> {
-    return this.http.post<MessageResponse>(`${AUTH}/reset-password`, { token, newPassword });
+  resetPassword(email: string, code: string, newPassword: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${AUTH}/reset-password`, { email, code, newPassword });
   }
 
   /** Appelle POST /auth/logout puis efface tokens et user localement. */

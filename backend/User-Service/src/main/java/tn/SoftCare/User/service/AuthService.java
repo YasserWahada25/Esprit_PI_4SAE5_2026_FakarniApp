@@ -22,6 +22,8 @@ import tn.SoftCare.User.model.Session;
 import tn.SoftCare.User.model.User;
 import tn.SoftCare.User.repository.SessionRepository;
 import tn.SoftCare.User.repository.UserRepository;
+import tn.SoftCare.User.repository.PasswordResetTokenRepository;
+import tn.SoftCare.User.model.PasswordResetToken;
 import tn.SoftCare.User.security.JwtService;
 
 import java.net.URI;
@@ -52,6 +54,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final JavaMailSender mailSender;
     private final Environment environment;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Value("${app.frontend-url:http://localhost:4200}")
     private String frontendBaseUrl;
@@ -63,16 +66,16 @@ public class AuthService {
     @Value("${app.mail.mock-send:false}")
     private boolean mailMockSend;
 
-    @Value("${google.client-id}")
+    @Value("${google.client-id:}")
     private String googleClientId;
 
-    @Value("${facebook.app-id}")
+    @Value("${facebook.app-id:}")
     private String facebookAppId;
 
-    @Value("${facebook.app-secret}")
+    @Value("${facebook.app-secret:}")
     private String facebookAppSecret;
 
-    @Value("${facebook.graph-api-version}")
+    @Value("${facebook.graph-api-version:v21.0}")
     private String facebookGraphVersion;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -85,13 +88,15 @@ public class AuthService {
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
                        JavaMailSender mailSender,
-                       Environment environment) {
+                       Environment environment,
+                       PasswordResetTokenRepository passwordResetTokenRepository) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.mailSender = mailSender;
         this.environment = environment;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
     }
 
     public AuthResponse login(LoginRequest req, String userAgent, String ip) {
@@ -209,46 +214,115 @@ public class AuthService {
     public MessageResponse forgotPassword(ForgotPasswordRequest req) {
         String email = req.getEmail() != null ? req.getEmail().trim() : "";
         userRepository.findByEmail(email).ifPresent(user -> {
-            String token = jwtService.generatePasswordResetToken(user.getId());
-            String link = frontendBaseUrl + "/auth/password-reset?token="
-                    + URLEncoder.encode(token, StandardCharsets.UTF_8);
-            if (mailMockSend) {
-                log.info("app.mail.mock-send=true - reset link for {}: {}", user.getEmail(), link);
+            // Générer un code court à 6 chiffres
+            String shortCode = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
+            
+            // Créer le token en base de données
+            PasswordResetToken resetToken = new PasswordResetToken();
+            resetToken.setUserId(user.getId());
+            resetToken.setEmail(user.getEmail());
+            resetToken.setShortCode(shortCode);
+            resetToken.setCreatedAt(Instant.now());
+            resetToken.setExpiresAt(Instant.now().plusSeconds(3600)); // 1 heure
+            resetToken.setUsed(false);
+            
+            // Hash du code pour sécurité
+            try {
+                java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(shortCode.getBytes(StandardCharsets.UTF_8));
+                resetToken.setTokenHash(java.util.HexFormat.of().formatHex(hash));
+            } catch (Exception e) {
+                log.error("Erreur lors du hash du code", e);
                 return;
             }
+            
+            passwordResetTokenRepository.save(resetToken);
+            
+            String link = frontendBaseUrl + "/auth/password-reset";
+            
+            if (mailMockSend) {
+                log.info("app.mail.mock-send=true - Code de reset pour {}: {} - Lien: {}", 
+                    user.getEmail(), shortCode, link);
+                return;
+            }
+            
             try {
                 String from = resolveSmtpFromAddress();
                 if (!StringUtils.hasText(from)) {
                     log.warn(
-                            "spring.mail.username vide dans application.properties. Lien de reinitialisation pour {}: {}",
-                            user.getEmail(), link);
+                            "spring.mail.username vide dans application.properties. Code de reset pour {}: {} - Lien: {}",
+                            user.getEmail(), shortCode, link);
                     return;
                 }
+                
+                // Charger le template HTML
+                String htmlTemplate = loadEmailTemplate();
+                String htmlContent = htmlTemplate
+                    .replace("{{CODE}}", shortCode)
+                    .replace("{{RESET_LINK}}", link);
+                
                 MimeMessage mime = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(mime, false, StandardCharsets.UTF_8.name());
                 helper.setFrom(parseAddress(from));
                 helper.setTo(parseAddress(user.getEmail().trim()));
-                helper.setSubject("Réinitialisation du mot de passe");
-                helper.setText("Bonjour,\n\nOuvrez ce lien pour choisir un nouveau mot de passe (valable 1 heure) :\n"
-                        + link + "\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez ce message.", false);
+                helper.setSubject("Réinitialisation de votre mot de passe - Fakarni");
+                helper.setText(htmlContent, true); // true = HTML
                 mailSender.send(mime);
-                log.info("E-mail de reinitialisation envoye vers {}", user.getEmail());
+                log.info("E-mail de reinitialisation envoye vers {} avec code {}", user.getEmail(), shortCode);
             } catch (Exception e) {
                 log.warn(
-                        "E-mail reset impossible pour {} ({}). Lien de secours (copier pour test local): {}",
-                        user.getEmail(), e.getMessage(), link);
+                        "E-mail reset impossible pour {} ({}). Code de secours: {} - Lien: {}",
+                        user.getEmail(), e.getMessage(), shortCode, link);
             }
         });
         return new MessageResponse(
-                "Si un compte existe pour cet e-mail, un lien de réinitialisation a été envoyé.");
+                "Si un compte existe pour cet e-mail, un code de réinitialisation a été envoyé.");
+    }
+    
+    private String loadEmailTemplate() {
+        try {
+            return new String(
+                getClass().getResourceAsStream("/templates/password-reset-email.html").readAllBytes(),
+                StandardCharsets.UTF_8
+            );
+        } catch (Exception e) {
+            log.error("Impossible de charger le template email", e);
+            // Fallback simple
+            return "<html><body><h1>Code de réinitialisation: {{CODE}}</h1><p><a href=\"{{RESET_LINK}}\">Réinitialiser</a></p></body></html>";
+        }
     }
 
     public MessageResponse resetPassword(ResetPasswordRequest req) {
-        String userId = jwtService.parsePasswordResetTokenSubject(req.getToken());
-        User user = userRepository.findById(userId)
+        String email = req.getEmail().trim();
+        String code = req.getCode().trim();
+        
+        // Trouver le token par email et code
+        PasswordResetToken resetToken = passwordResetTokenRepository
+            .findByShortCodeAndEmail(code, email)
+            .orElseThrow(() -> new RuntimeException("Code invalide ou expiré"));
+        
+        // Vérifier l'expiration
+        if (resetToken.getExpiresAt().isBefore(Instant.now())) {
+            passwordResetTokenRepository.delete(resetToken);
+            throw new RuntimeException("Code expiré");
+        }
+        
+        // Vérifier si déjà utilisé
+        if (resetToken.isUsed()) {
+            throw new RuntimeException("Code déjà utilisé");
+        }
+        
+        // Mettre à jour le mot de passe
+        User user = userRepository.findById(resetToken.getUserId())
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
         user.setPassword(passwordEncoder.encode(req.getNewPassword()));
         userRepository.save(user);
+        
+        // Marquer le token comme utilisé
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
+        
+        log.info("Mot de passe réinitialisé pour {}", email);
         return new MessageResponse("Votre mot de passe a été mis à jour.");
     }
 

@@ -1,28 +1,37 @@
 import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { provideRouter, Router } from '@angular/router';
+import { EMPTY, of, throwError } from 'rxjs';
 import { SignInComponent } from './sign-in.component';
 import { AuthService } from './services/auth.service';
+import { GoogleSignInService } from './services/google-sign-in.service';
 import { Role } from './models/sign-up.model';
 
 describe('SignInComponent', () => {
   let component: SignInComponent;
   let authServiceSpy: jasmine.SpyObj<AuthService>;
-  let routerSpy: jasmine.SpyObj<Router>;
+  let navigateSpy: jasmine.Spy;
 
   beforeEach(async () => {
     authServiceSpy = jasmine.createSpyObj<AuthService>('AuthService', ['login']);
-    routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
       imports: [SignInComponent],
       providers: [
         provideZonelessChangeDetection(),
+        provideRouter([]),
         { provide: AuthService, useValue: authServiceSpy },
-        { provide: Router, useValue: routerSpy },
+        {
+          provide: GoogleSignInService,
+          useValue: {
+            ensureInitialized: (): void => {},
+            credentials$: EMPTY,
+          },
+        },
       ],
     }).compileComponents();
+
+    navigateSpy = spyOn(TestBed.inject(Router), 'navigate');
 
     component = TestBed.createComponent(SignInComponent).componentInstance;
   });
@@ -48,7 +57,7 @@ describe('SignInComponent', () => {
     component.onSubmit();
 
     expect(authServiceSpy.login).toHaveBeenCalled();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/home']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/home']);
     expect(component.errorMessage).toBeNull();
     expect(component.loading).toBeFalse();
   });
@@ -73,7 +82,7 @@ describe('SignInComponent', () => {
     component.loginForm.setValue({ email: 'admin@e.tn', password: 'Pwd123!' });
     component.onSubmit();
 
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/admin']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/admin']);
   });
 
   it('should show backend error message on failed login', () => {
@@ -86,6 +95,6 @@ describe('SignInComponent', () => {
 
     expect(component.errorMessage).toBe('Invalid credentials');
     expect(component.loading).toBeFalse();
-    expect(routerSpy.navigate).not.toHaveBeenCalled();
+    expect(navigateSpy).not.toHaveBeenCalled();
   });
 });

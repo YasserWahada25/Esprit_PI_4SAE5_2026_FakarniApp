@@ -30,7 +30,7 @@ interface Participant {
 
           <div class="live-feed" *ngIf="!p.isVideoOff && p.stream">
             <video
-              [appMediaStream]="p.stream ?? null"
+              [appMediaStream]="p.stream"
               autoplay
               playsinline
               [muted]="p.isLocal">
