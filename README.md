@@ -1,267 +1,443 @@
+# 🚀 Fakarni App - Plateforme Microservices
 
-# 🧠 Fakarni — Alzheimer Care Platform
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.2-green)](https://spring.io/projects/spring-boot)
+[![Angular](https://img.shields.io/badge/Angular-20.3-red)](https://angular.io/)
+[![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
 
-<div align="center">
+## 📋 Description
 
-![Angular](https://img.shields.io/badge/Angular-20-DD0031?style=for-the-badge&logo=angular&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-
-**A comprehensive microservices platform for Alzheimer's patient care, monitoring, and family support.**
-
-</div>
-
----
-
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Services](#services)
-- [API Endpoints](#api-endpoints)
-- [Project Structure](#project-structure)
-- [Contributing](#contributing)
+Fakarni est une plateforme complète de microservices développée avec Spring Boot et Angular, offrant des fonctionnalités de :
+- 👥 Gestion des utilisateurs
+- 📍 Suivi géolocalisation et geofencing
+- 💬 Chat en temps réel
+- 📚 Activités éducatives
+- 🏥 Dossiers médicaux
+- 📊 Détection de maladies
+- 📅 Gestion d'événements
+- 👨‍👩‍👧‍👦 Gestion de groupes
+- 📝 Publications et posts
+- 📈 Suivi d'engagement
 
 ---
 
-## 🔍 Overview
+## ⚡ Démarrage Ultra-Rapide
 
-**Fakarni** (فكرني — "Remind me" in Arabic) is a full-stack healthcare application designed to support Alzheimer's patients and their caregivers. It provides tools for medical monitoring, geofencing alerts, virtual consultations, educational content, and community communication — all in one platform.
+### En 1 Commande
+
+```bash
+fix-all-issues.bat
+```
+
+**C'est tout !** Attendez 10-15 minutes et ouvrez http://localhost:4200
 
 ---
 
-## ✨ Features
+## 📚 Documentation
 
-| Module | Description |
-|---|---|
-| 🏥 **Medical Monitoring** | Track patient records, MRI analysis, cognitive follow-ups |
-| 📍 **Geofencing** | Real-time GPS tracking, zone management, and exit alerts |
-| 🎓 **Educational Content** | Quizzes, cognitive games, video activities, and event scheduling |
-| 🎥 **Virtual Meetings** | Session scheduling, favorites, notifications, and meeting reports |
-| 💬 **Communication** | Messaging, thematic groups, community feed, and moderation |
-| 👥 **User Management** | Role-based access (Patient, Doctor, Caregiver, Admin) |
-| 📊 **Admin Dashboard** | Engagement charts, statistics, and full administrative control |
+### 🎯 Pour Commencer
+
+| Document | Description | Temps |
+|----------|-------------|-------|
+| **[GUIDE-VISUEL.txt](GUIDE-VISUEL.txt)** | Vue d'ensemble visuelle | 2 min |
+| **[COMMENCER-ICI.md](COMMENCER-ICI.md)** | Guide de démarrage rapide | 5 min |
+| **[INDEX.md](INDEX.md)** | Index complet de la documentation | 3 min |
+
+### 📖 Documentation Complète
+
+- **[README-DOCKER.md](README-DOCKER.md)** - Guide complet Docker
+- **[PROBLEMES-RESOLUS.md](PROBLEMES-RESOLUS.md)** - Solutions aux problèmes
+- **[RESUME-FINAL.md](RESUME-FINAL.md)** - Résumé des corrections
+- **[DOCKER-GUIDE-PHASE1.md](DOCKER-GUIDE-PHASE1.md)** - Guide détaillé Phase 1
+- **[JENKINS-CICD-GUIDE.md](JENKINS-CICD-GUIDE.md)** - Pipeline CI/CD
+- **[PHASE2-MONITORING-GUIDE.md](PHASE2-MONITORING-GUIDE.md)** - Monitoring
 
 ---
 
 ## 🏗️ Architecture
 
-Fakarni follows a **microservices architecture** with a Spring Cloud Gateway and Eureka service discovery.
-
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Angular Frontend                      │
-│                        (Port 4200)                           │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│                    Gateway Service                           │
-│                    (Port 8090)                               │
-└──────┬───────────────┬──────────────┬────────────┬──────────┘
-       │               │              │            │
-  ┌────▼────┐    ┌──────▼────┐  ┌────▼─────┐ ┌───▼──────────┐
-  │  User   │    │  Session  │  │  Event   │ │   Group /    │
-  │ Service │    │  Service  │  │  Service │ │  Post / etc. │
-  │  :8080  │    │  :8085    │  │  :8087   │ │              │
-  └─────────┘    └───────────┘  └──────────┘ └──────────────┘
-       │
-  ┌────▼────────────────────────────────┐
-  │         Eureka Discovery            │
-  │         (Port 8761)                 │
-  └─────────────────────────────────────┘
+│                    FRONTEND (Nginx)                         │
+│                   http://localhost:4200                     │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   API GATEWAY                               │
+│                   http://localhost:8090                     │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  EUREKA SERVER                              │
+│                   http://localhost:8762                     │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+         ┌───────────────┼───────────────┐
+         ▼               ▼               ▼
+    ┌────────┐     ┌────────┐     ┌────────┐
+    │14 Micro│     │MongoDB │     │MySQL   │
+    │services│     │        │     │        │
+    └────────┘     └────────┘     └────────┘
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technologies
+
+### Backend
+- **Spring Boot 4.0.2** - Framework principal
+- **Spring Cloud 2025.1.0** - Microservices
+- **Eureka** - Service Discovery
+- **Spring Cloud Gateway** - API Gateway
+- **MySQL 8.0** - Base de données relationnelle
+- **MongoDB** - Base de données NoSQL
+- **Java 21** - Langage de programmation
 
 ### Frontend
-- **Framework:** Angular 20 (Standalone Components + SSR)
-- **UI:** Angular Material, Font Awesome, Chart.js, Leaflet.js
-- **State:** RxJS, Angular Signals
-- **Styling:** SCSS, CSS
-
-### Backend (Microservices)
-- **Framework:** Spring Boot 3.x (Java 21)
-- **Service Discovery:** Spring Cloud Netflix Eureka
-- **API Gateway:** Spring Cloud Gateway
-- **Auth:** JWT (Access + Refresh tokens), BCrypt
-- **ORM:** Spring Data MongoDB, Spring Data JPA (Hibernate)
-
-### Databases
-- **MongoDB** — Users, Sessions (auth)
-- **MySQL** — Events, Posts, Groups, Session-service
+- **Angular 20.3** - Framework frontend
+- **Nginx** - Serveur web
+- **TypeScript** - Langage de programmation
+- **RxJS** - Programmation réactive
 
 ### DevOps
-- **Containerization:** Docker, Docker Compose
-- **Build:** Maven (backend), Angular CLI (frontend)
+- **Docker** - Conteneurisation
+- **Docker Compose** - Orchestration
+- **Jenkins** - CI/CD (Phase 2)
+- **Prometheus** - Monitoring (Phase 2)
+- **Grafana** - Visualisation (Phase 2)
 
 ---
 
-## 🚀 Getting Started
+## 🌐 Services et Ports
 
-### Prerequisites
-- Java 21+
-- Node.js 20+
-- Docker & Docker Compose
-- Maven 3.9+
+| Service | Port | URL |
+|---------|------|-----|
+| Frontend | 4200 | http://localhost:4200 |
+| API Gateway | 8090 | http://localhost:8090 |
+| Eureka | 8762 | http://localhost:8762 |
+| User Service | 8081 | http://localhost:8081 |
+| Tracking Service | 9011 | http://localhost:9011 |
+| Geofencing Service | 9012 | http://localhost:9012 |
+| Activité Service | 8084 | http://localhost:8084 |
+| Chat Service | 8070 | http://localhost:8070 |
+| Detection Service | 8058 | http://localhost:8058 |
+| Dossier Medical | 8059 | http://localhost:8059 |
+| Event Service | 8087 | http://localhost:8087 |
+| Group Service | 8097 | http://localhost:8097 |
+| Meeting Service | 8096 | http://localhost:8096 |
+| Post Service | 8069 | http://localhost:8069 |
+| Suivi Engagement | 8088 | http://localhost:8088 |
+| PhpMyAdmin | 8086 | http://localhost:8086 |
+| MongoDB | 27018 | mongodb://localhost:27018 |
 
-### Option 1 — Docker Compose (Recommended)
+---
+
+## 📦 Prérequis
+
+- **Docker Desktop** (version 20.10+)
+- **Java 21**
+- **Node.js 20+**
+- **Maven 3.8+**
+- **8 GB RAM minimum** pour Docker
+
+### Vérification
 
 ```bash
-# Clone the repository
-git clone https://github.com/YasserWahada25/Fakarni_App.git
+docker --version
+java -version
+node --version
+mvn --version
+```
+
+---
+
+## 🚀 Installation
+
+### Méthode 1 : Automatique (Recommandée)
+
+```bash
+# Clone le projet
+git clone <repository-url>
 cd Fakarni_App
 
-# Start all services
-docker-compose up --build
+# Lancer l'installation complète
+fix-all-issues.bat
 ```
 
-Access the app at **http://localhost:4200**
+### Méthode 2 : Manuelle
 
-### Option 2 — Manual Setup
-
-**1. Start databases:**
 ```bash
-docker-compose up mongodb mongo-express
-```
+# 1. Arrêter Docker
+docker compose down -v
 
-**2. Start backend services (in order):**
-```bash
-# 1. Eureka Service Discovery
-cd backend/Eureka-Service && mvn spring-boot:run
+# 2. Build Maven
+cd backend/Detection_Maladie-Service
+mvn clean install -DskipTests
+cd ../..
 
-# 2. Gateway
-cd backend/Gateway-Service && mvn spring-boot:run
+cd backend/Dossier_Medical-service
+mvn clean install -DskipTests
+cd ../..
 
-# 3. User Service
-cd backend/User-Service && mvn spring-boot:run
-
-# 4. Other services (Event, Session, Group, Post...)
-cd backend/Event-Service && mvn spring-boot:run
-```
-
-**3. Start frontend:**
-```bash
+# 3. Build Frontend
 cd frontend
 npm install
-ng serve
+npm run build -- --configuration=production
+cd ..
+
+# 4. Build et Démarrer Docker
+docker compose build --no-cache
+docker compose up -d
 ```
 
 ---
 
-## 📦 Services
+## 🎮 Utilisation
 
-| Service | Port | Database | Description |
-|---|---|---|---|
-| Eureka-Service | 8761 | — | Service registry & discovery |
-| Gateway-Service | 8090 | — | API Gateway (routing) |
-| User-Service | 8080 | MongoDB | Auth, users, JWT sessions |
-| session-service | 8085 | MySQL | Virtual sessions & participants |
-| Event-Service | 8087 | MySQL | Calendar events management |
-| Post-Service | 8069 | MySQL | Community posts/feed |
-| Group-Service | 8097 | MySQL | Thematic groups |
-| meeting-insights-service | 8086 | — | Meeting analytics & insights |
-| Frontend | 4200 | — | Angular SSR application |
-| MongoDB | 27017 | — | NoSQL database |
-| Mongo Express | 8081 | — | MongoDB web UI |
+### Démarrage Quotidien
 
----
-
-## 🔌 API Endpoints
-
-### Auth (`/auth`)
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/auth/login` | Login, returns JWT tokens |
-| POST | `/auth/refresh` | Refresh access token |
-| POST | `/auth/logout` | Invalidate refresh token |
-
-### Users (`/api/users`)
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/users` | Create user |
-| GET | `/api/users` | List all users |
-| GET | `/api/users/{id}` | Get user by ID |
-| PUT | `/api/users/{id}` | Update user |
-| DELETE | `/api/users/{id}` | Delete user |
-
-### Events (`/api/events`)
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/events` | Create event |
-| GET | `/api/events` | List all events |
-| GET | `/api/events/{id}` | Get event by ID |
-| GET | `/api/events/user/{userId}` | Events by user |
-| PUT | `/api/events/{id}` | Update event |
-| DELETE | `/api/events/{id}` | Delete event |
-
-### Groups (`/api/groups`) & Posts (`/api/posts`)
-Standard CRUD — `POST`, `GET /{id}`, `GET`, `PUT /{id}`, `DELETE /{id}`
-
----
-
-## 📁 Project Structure
-
+```bash
+quick-start.bat
 ```
-Fakarni_App/
-├── frontend/                   # Angular 20 SSR application
-│   └── src/app/
-│       ├── admin/              # Admin dashboard (users, sessions, geolocation...)
-│       ├── auth/               # Sign in / Sign up
-│       ├── medical/            # Patient records, detection, follow-up
-│       ├── educational/        # Activities, events, progress tracking
-│       ├── alzheimer_meeting/  # Virtual consultations, calendar, reports
-│       ├── geofencing/         # Live tracking, alerts, supervision
-│       └── communication/      # Messaging, groups, moderation
-│
-├── backend/
-│   ├── Eureka-Service/         # Service discovery
-│   ├── Gateway-Service/        # API Gateway (port 8090)
-│   ├── User-Service/           # Auth + User management (MongoDB)
-│   ├── session-service/        # Virtual sessions (MySQL)
-│   ├── Event-Service/          # Events calendar (MySQL)
-│   ├── Post-Service/           # Community posts (MySQL)
-│   ├── group/                  # Thematic groups (MySQL)
-│   └── meeting-insights-service/ # Meeting analytics
-│
-└── docker-compose.yml          # Full stack orchestration
+
+### Vérifier l'État
+
+```bash
+check-status.bat
+```
+
+### Voir les Logs
+
+```bash
+# Tous les services
+docker compose logs -f
+
+# Service spécifique
+docker compose logs -f frontend
+```
+
+### Arrêter
+
+```bash
+docker compose down
+```
+
+### Nettoyage Complet
+
+```bash
+clean-all.bat
 ```
 
 ---
 
-## 👤 User Roles
+## 🔧 Scripts Disponibles
 
-| Role | Description |
-|---|---|
-| `PATIENT_PROFILE` | Alzheimer patient — access to activities, tracking, meetings |
-| `DOCTOR_PROFILE` | Medical professional — records, reports, consultations |
-| `CARE_OWNER` | Caregiver/family — monitoring, geofencing, communication |
-| `ADMIN` | Full platform access and moderation |
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes: `git commit -m 'feat: add my feature'`
-4. Push to the branch: `git push origin feature/my-feature`
-5. Open a Pull Request
+| Script | Description | Durée |
+|--------|-------------|-------|
+| `fix-all-issues.bat` | Correction et build complet | 10-15 min |
+| `quick-start.bat` | Démarrage rapide | 1-2 min |
+| `check-status.bat` | Vérification de l'état | 10 sec |
+| `clean-all.bat` | Nettoyage complet | 2-3 min |
 
 ---
 
-## 📄 License
+## 🐛 Dépannage
 
-This project is licensed for academic and research purposes.
+### Frontend ne démarre pas
+
+```bash
+docker compose logs -f frontend
+docker compose build --no-cache frontend
+docker compose up -d frontend
+```
+
+### Services ne se connectent pas
+
+```bash
+# Vérifier Eureka
+curl http://localhost:8762
+
+# Redémarrer
+docker compose restart
+
+# Attendre 2-3 minutes
+```
+
+### Base de données non accessible
+
+```bash
+# Vérifier l'état
+docker compose ps
+
+# Redémarrer les DB
+docker compose restart db-tracking db-geofencing
+```
+
+**Plus de solutions :** Voir [PROBLEMES-RESOLUS.md](PROBLEMES-RESOLUS.md)
 
 ---
 
-<div align="center">
-Made with ❤️ for Alzheimer's patients and their families.
-</div>
+## 📊 Monitoring
+
+### Logs en Temps Réel
+
+```bash
+docker compose logs -f
+```
+
+### Statistiques
+
+```bash
+docker stats
+```
+
+### Eureka Dashboard
+
+Ouvrez http://localhost:8762 pour voir tous les services enregistrés.
+
+---
+
+## 🔐 Configuration
+
+### Variables d'Environnement
+
+Créez un fichier `.env` à la racine :
+
+```env
+# Email
+MAIL_USERNAME_USER=your-email@gmail.com
+MAIL_PASSWORD_USER=your-app-password
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your-client-id
+
+# Facebook OAuth
+FACEBOOK_APP_ID=your-app-id
+FACEBOOK_APP_SECRET=your-app-secret
+
+# Twilio
+TWILIO_ACCOUNT_SID=your-account-sid
+TWILIO_AUTH_TOKEN=your-auth-token
+TWILIO_FROM_NUMBER=your-phone-number
+
+# Mailtrap
+MAILTRAP_USERNAME=your-username
+MAILTRAP_PASSWORD=your-password
+```
+
+**⚠️ Important :** Ne jamais commiter le fichier `.env` !
+
+---
+
+## 🧪 Tests
+
+### Tests Unitaires
+
+```bash
+# Backend
+cd backend/Detection_Maladie-Service
+mvn test
+
+# Frontend
+cd frontend
+npm test
+```
+
+### Tests d'Intégration
+
+```bash
+# Démarrer l'environnement de test
+docker compose -f docker-compose.test.yml up -d
+
+# Exécuter les tests
+npm run test:e2e
+```
+
+---
+
+## 📈 Roadmap
+
+### Phase 1 : Dockerisation ✅
+- [x] Corriger les erreurs
+- [x] Dockeriser tous les services
+- [x] Créer les scripts d'automatisation
+- [x] Documenter le projet
+
+### Phase 2 : CI/CD ⏳
+- [ ] Installer Jenkins
+- [ ] Créer les pipelines
+- [ ] Automatiser les tests
+- [ ] Automatiser les déploiements
+
+### Phase 3 : Monitoring ⏳
+- [ ] Ajouter Prometheus
+- [ ] Configurer Grafana
+- [ ] Créer les dashboards
+- [ ] Mettre en place les alertes
+
+### Phase 4 : Production ⏳
+- [ ] Sécuriser avec HTTPS
+- [ ] Configurer les secrets
+- [ ] Optimiser les performances
+- [ ] Migrer vers Kubernetes
+
+---
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues ! Veuillez suivre ces étapes :
+
+1. Fork le projet
+2. Créer une branche (`git checkout -b feature/AmazingFeature`)
+3. Commit les changements (`git commit -m 'Add AmazingFeature'`)
+4. Push vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrir une Pull Request
+
+---
+
+## 📝 License
+
+Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+
+---
+
+## 👥 Équipe
+
+- **Développement Backend** - Spring Boot Microservices
+- **Développement Frontend** - Angular
+- **DevOps** - Docker, CI/CD
+
+---
+
+## 📞 Support
+
+- **Documentation :** [INDEX.md](INDEX.md)
+- **Issues :** [GitHub Issues](https://github.com/your-repo/issues)
+- **Email :** support@fakarni.com
+
+---
+
+## 🙏 Remerciements
+
+- Spring Boot Team
+- Angular Team
+- Docker Team
+- Communauté Open Source
+
+---
+
+## 📚 Ressources
+
+- [Documentation Complète](INDEX.md)
+- [Guide de Démarrage](COMMENCER-ICI.md)
+- [Guide Docker](README-DOCKER.md)
+- [Résolution de Problèmes](PROBLEMES-RESOLUS.md)
+
+---
+
+**Fait avec ❤️ par l'équipe Fakarni**
+
+**Version :** 1.0.0  
+**Dernière mise à jour :** Mai 2026

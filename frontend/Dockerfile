@@ -1,24 +1,34 @@
-# Build : depuis le dossier frontend/  →  docker build -t fakarni-frontend:local .
-# L’appli Angular (projet careTemplate) est servie en SSR (Node) sur le port 4000 par défaut.
-#
-# syntax=docker/dockerfile:1.4
+# Stage 1: Build
 FROM node:20-bookworm-slim AS build
 WORKDIR /app
+
+# Copy package files
 COPY package.json package-lock.json* ./
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+# Install dependencies
+RUN npm ci || npm install
+
+# Copy source code
 COPY . .
+
+# Build Angular app
 ENV NODE_OPTIONS=--max-old-space-size=8192
 RUN npm run build -- --configuration=production
 
-FROM node:20-bookworm-slim
-WORKDIR /app
-ENV NODE_ENV=production
-ENV PORT=4000
-COPY --from=build /app/dist/careTemplate ./
-COPY --from=build /app/package.json ./
-COPY --from=build /app/package-lock.json* ./
-RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi \
-  && chown -R node:node /app
-USER node
-EXPOSE 4000
-CMD ["node", "server/server.mjs"]
+# Stage 2: Runtime with Nginx
+FROM nginx:alpine
+WORKDIR /usr/share/nginx/html
+
+# Remove default nginx static assets
+RUN rm -rf ./*
+
+# Copy built application (browser files only)
+COPY --from=build /app/dist/careTemplate/browser ./
+
+# Copy custom nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

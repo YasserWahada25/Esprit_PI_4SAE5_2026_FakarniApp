@@ -88,8 +88,15 @@ export class SupervisionDashboardComponent implements OnInit, OnDestroy, AfterVi
 
     async ngAfterViewInit(): Promise<void> {
         if (!this.isBrowser || !this.isPatient) return;
-        this.L = await import('leaflet');
-        setTimeout(() => this.initMap(), 300);
+        try {
+            // Import Leaflet dynamically
+            const leafletModule = await import('leaflet');
+            // Handle both default and named exports
+            this.L = (leafletModule as any).default || leafletModule;
+            setTimeout(() => this.initMap(), 300);
+        } catch (error) {
+            console.error('Failed to load Leaflet:', error);
+        }
     }
 
     ngOnDestroy(): void {

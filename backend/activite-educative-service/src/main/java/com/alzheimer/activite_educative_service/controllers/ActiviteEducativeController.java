@@ -157,4 +157,3 @@ public class ActiviteEducativeController {
         service.deleteActivity(id);
     }
 }
-

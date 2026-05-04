@@ -2,6 +2,8 @@ package tn.SoftCare.Geofencing.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import tn.SoftCare.Geofencing.Client.UserClient;
+import tn.SoftCare.Geofencing.dto.UserDto;
 import tn.SoftCare.Geofencing.Entity.Zone;
 import tn.SoftCare.Geofencing.Service.GeofencingService;
 import java.util.List;
@@ -12,6 +14,7 @@ import java.util.Map;
 public class GeofencingController {
 
     @Autowired private GeofencingService geofencingService;
+    @Autowired private UserClient userClient;
 
     // ── CRUD Zones ────────────────────────────────────────────────
 
@@ -47,6 +50,20 @@ public class GeofencingController {
     @DeleteMapping("/zone/{id}")
     public void delete(@PathVariable Long id) {
         geofencingService.deleteZone(id);
+    }
+
+    // ── User Selection for Zone Tracking ──────────────────────────
+
+    /** Get all users for selection */
+    @GetMapping("/users")
+    public List<UserDto> getAllUsers() {
+        return userClient.getAllUsers();
+    }
+
+    /** Get users by role (PATIENT or CAREGIVER) */
+    @GetMapping("/users/by-role")
+    public List<UserDto> getUsersByRole(@RequestParam String role) {
+        return userClient.getUsersByRole(role);
     }
 
     // ── Analyse GPS (appelé par Tracking-Service via Feign) ───────

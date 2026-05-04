@@ -42,17 +42,23 @@ export class LocationPickerComponent implements OnInit, AfterViewInit, OnDestroy
     ngOnInit(): void { }
 
     async ngAfterViewInit(): Promise<void> {
-        // Dynamically import Leaflet to keep it out of the main bundle
-        this.L = await import('leaflet');
-        this.initMap();
+        try {
+            // Dynamically import Leaflet to keep it out of the main bundle
+            const leafletModule = await import('leaflet');
+            // Handle both default and named exports
+            this.L = (leafletModule as any).default || leafletModule;
+            this.initMap();
 
-        // Defer invalidateSize so the map calculates correct dimensions
-        // after the Angular Material dialog's open animation completes (~300ms)
-        setTimeout(() => {
-            if (this.map) {
-                this.map.invalidateSize();
-            }
-        }, 350);
+            // Defer invalidateSize so the map calculates correct dimensions
+            // after the Angular Material dialog's open animation completes (~300ms)
+            setTimeout(() => {
+                if (this.map) {
+                    this.map.invalidateSize();
+                }
+            }, 350);
+        } catch (error) {
+            console.error('Failed to load Leaflet:', error);
+        }
     }
 
     private initMap(): void {

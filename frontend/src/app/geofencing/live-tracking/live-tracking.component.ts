@@ -81,16 +81,23 @@ export class LiveTrackingComponent implements AfterViewInit, OnDestroy {
     async ngAfterViewInit(): Promise<void> {
         if (!isPlatformBrowser(this.platformId)) return;
 
-        this.L = await import('leaflet');
+        try {
+            // Import Leaflet dynamically
+            const leafletModule = await import('leaflet');
+            // Handle both default and named exports
+            this.L = (leafletModule as any).default || leafletModule;
 
-        // Wait for DOM to render based on role
-        setTimeout(() => {
-            this.initMap();
-            this.mapReady = true;
+            // Wait for DOM to render based on role
+            setTimeout(() => {
+                this.initMap();
+                this.mapReady = true;
 
-            if (this.isPatient)  this.initPatientView();
-            if (this.isSoignant) this.initSoignantView();
-        }, 150);
+                if (this.isPatient)  this.initPatientView();
+                if (this.isSoignant) this.initSoignantView();
+            }, 150);
+        } catch (error) {
+            console.error('Failed to load Leaflet:', error);
+        }
     }
 
     ngOnDestroy(): void {

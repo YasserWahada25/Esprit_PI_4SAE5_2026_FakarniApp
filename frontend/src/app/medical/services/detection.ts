@@ -52,43 +52,43 @@ export interface UpdateDescriptionRequest {
 @Injectable({ providedIn: 'root' })
 export class DetectionService {
 
-  private readonly API_URL    = 'http://localhost:8058';
-  private readonly DOSSIER_URL = 'http://localhost:8059';
-  private readonly USER_URL    = 'http://localhost:8090'; // ← port de ton User service
+  // Use gateway for all API calls (proxied through Angular proxy.conf.json)
+  private readonly API_URL    = '/api/detection';
+  private readonly DOSSIER_URL = '/api/dossiers';
+  private readonly USER_URL    = '/api/users';
 
   constructor(private http: HttpClient) {}
 
   // ── Patients ──────────────────────────────────────────
   getAllPatients(): Observable<PatientUser[]> {
-    return this.http.get<PatientUser[]>(`${this.USER_URL}/api/users`);
+    return this.http.get<PatientUser[]>(`${this.USER_URL}/patients`);
   }
 
   // ── MRI Analysis ─────────────────────────────────────
-  // ✅ patientId reste string, plus de Number()
-analyserIRM(imageFile: File, patientId: string): Observable<AnalyseIRMResponse> {
-  const formData = new FormData();
-  formData.append('image', imageFile);
-  return this.http.post<AnalyseIRMResponse>(
-    `${this.API_URL}/api/detection/analyser?patientId=${patientId}`,
-    formData
-  );
-}
+  analyserIRM(imageFile: File, patientId: string): Observable<AnalyseIRMResponse> {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    return this.http.post<AnalyseIRMResponse>(
+      `${this.API_URL}/analyser?patientId=${patientId}`,
+      formData
+    );
+  }
 
-getDossierByPatientId(patientId: string): Observable<DossierMedicalResponse> {
-  return this.http.get<DossierMedicalResponse>(
-    `${this.DOSSIER_URL}/api/dossiers/patient/${patientId}`
-  );
-}
+  getDossierByPatientId(patientId: string): Observable<DossierMedicalResponse> {
+    return this.http.get<DossierMedicalResponse>(
+      `${this.DOSSIER_URL}/patient/${patientId}`
+    );
+  }
   updateAnalyseDescription(request: UpdateDescriptionRequest): Observable<DossierMedicalResponse> {
     return this.http.put<DossierMedicalResponse>(
-      `${this.DOSSIER_URL}/api/dossiers/analyse/update-description`,
+      `${this.DOSSIER_URL}/analyse/update-description`,
       request
     );
   }
 
   deleteAnalyse(analyseId: number): Observable<DossierMedicalResponse> {
     return this.http.delete<DossierMedicalResponse>(
-      `${this.DOSSIER_URL}/api/dossiers/analyse/${analyseId}`
+      `${this.DOSSIER_URL}/analyse/${analyseId}`
     );
   }
 }

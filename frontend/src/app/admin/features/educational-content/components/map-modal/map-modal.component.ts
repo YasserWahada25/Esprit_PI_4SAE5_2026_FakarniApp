@@ -49,9 +49,18 @@ export class MapModalComponent implements OnInit, AfterViewInit {
                 // On attend que la modale ait FINI son animation d'ouverture avant d'injecter la carte
                 if (isPlatformBrowser(this.platformId)) {
                     this.dialogRef.afterOpened().subscribe(async () => {
-                        this.L = await import('leaflet');
-                        // Small extra tick for the DOM to paint the #event-map div
-                        setTimeout(() => this.initMap(res.lat, res.lng), 50);
+                        try {
+                            // Import Leaflet dynamically
+                            const leafletModule = await import('leaflet');
+                            // Handle both default and named exports
+                            this.L = (leafletModule as any).default || leafletModule;
+                            // Small extra tick for the DOM to paint the #event-map div
+                            setTimeout(() => this.initMap(res.lat, res.lng), 50);
+                        } catch (error) {
+                            console.error('Failed to load Leaflet:', error);
+                            this.error = 'Erreur lors du chargement de la carte.';
+                            this.cdr.detectChanges();
+                        }
                     });
                 }
             },
