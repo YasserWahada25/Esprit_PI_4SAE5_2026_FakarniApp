@@ -30,8 +30,7 @@
 **/*.pyo
 **/*.pyd
 .Python
-# ML model files (too large for git, use Git LFS or external storage)
-detection-alzheimer/**/alzheimer_final_v3/
+# ML model files now tracked with Git LFS
 
 # ── OS ─────────────────────────────────────────────────
 .DS_Store
