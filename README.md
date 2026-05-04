@@ -1,443 +1,387 @@
-# 🚀 Fakarni App - Plateforme Microservices
+# 🧠 Fakarni App - Alzheimer Care Platform
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.2-green)](https://spring.io/projects/spring-boot)
 [![Angular](https://img.shields.io/badge/Angular-20.3-red)](https://angular.io/)
-[![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
+[![Python](https://img.shields.io/badge/Python-3.11-yellow)](https://www.python.org/)
 
-## 📋 Description
+## 📋 Overview
 
-Fakarni est une plateforme complète de microservices développée avec Spring Boot et Angular, offrant des fonctionnalités de :
-- 👥 Gestion des utilisateurs
-- 📍 Suivi géolocalisation et geofencing
-- 💬 Chat en temps réel
-- 📚 Activités éducatives
-- 🏥 Dossiers médicaux
-- 📊 Détection de maladies
-- 📅 Gestion d'événements
-- 👨‍👩‍👧‍👦 Gestion de groupes
-- 📝 Publications et posts
-- 📈 Suivi d'engagement
+Fakarni is a comprehensive microservices-based platform designed to support Alzheimer's patients and their caregivers. The platform combines modern web technologies with AI-powered disease detection to provide a complete care management solution.
 
 ---
 
-## ⚡ Démarrage Ultra-Rapide
+## ✨ Key Features
 
-### En 1 Commande
+### 👥 User Management
+- User registration and authentication
+- Role-based access control (Patients, Caregivers, Medical Staff)
+- Profile management with medical history
+- OAuth integration (Google, Facebook)
 
-```bash
-fix-all-issues.bat
-```
+### 📍 Location Tracking & Geofencing
+- Real-time GPS tracking for patients
+- Customizable geofence zones
+- Instant alerts when patients leave safe zones
+- Location history and analytics
 
-**C'est tout !** Attendez 10-15 minutes et ouvrez http://localhost:4200
+### 🏥 Medical Records Management
+- Digital medical records storage
+- Medication tracking and reminders
+- Appointment scheduling
+- Medical document uploads
 
----
+### 🧠 AI-Powered Disease Detection
+- MRI scan analysis using deep learning
+- Alzheimer's disease detection and classification
+- Risk assessment and progression tracking
+- TensorFlow-based neural network model
 
-## 📚 Documentation
+### 📚 Educational Activities
+- Cognitive training exercises
+- Memory games and puzzles
+- Progress tracking and analytics
+- Personalized activity recommendations
 
-### 🎯 Pour Commencer
+### 💬 Real-Time Communication
+- WebSocket-based chat system
+- Group messaging for families and caregivers
+- Emergency broadcast notifications
+- Message history and attachments
 
-| Document | Description | Temps |
-|----------|-------------|-------|
-| **[GUIDE-VISUEL.txt](GUIDE-VISUEL.txt)** | Vue d'ensemble visuelle | 2 min |
-| **[COMMENCER-ICI.md](COMMENCER-ICI.md)** | Guide de démarrage rapide | 5 min |
-| **[INDEX.md](INDEX.md)** | Index complet de la documentation | 3 min |
+### 📅 Event & Meeting Management
+- Calendar integration
+- Appointment scheduling
+- Reminder notifications
+- Group meeting coordination
 
-### 📖 Documentation Complète
+### 👨‍👩‍👧‍👦 Family & Caregiver Groups
+- Create and manage care groups
+- Share updates and information
+- Coordinate care activities
+- Role assignment and permissions
 
-- **[README-DOCKER.md](README-DOCKER.md)** - Guide complet Docker
-- **[PROBLEMES-RESOLUS.md](PROBLEMES-RESOLUS.md)** - Solutions aux problèmes
-- **[RESUME-FINAL.md](RESUME-FINAL.md)** - Résumé des corrections
-- **[DOCKER-GUIDE-PHASE1.md](DOCKER-GUIDE-PHASE1.md)** - Guide détaillé Phase 1
-- **[JENKINS-CICD-GUIDE.md](JENKINS-CICD-GUIDE.md)** - Pipeline CI/CD
-- **[PHASE2-MONITORING-GUIDE.md](PHASE2-MONITORING-GUIDE.md)** - Monitoring
+### 📝 Social Features
+- News feed and posts
+- Photo and video sharing
+- Comments and reactions
+- Activity engagement tracking
+
+### 📊 Analytics & Reporting
+- Patient engagement metrics
+- Activity completion rates
+- Health trend analysis
+- Customizable reports
 
 ---
 
 ## 🏗️ Architecture
 
+### Microservices Architecture
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    FRONTEND (Nginx)                         │
+│                    FRONTEND (Angular + Nginx)               │
 │                   http://localhost:4200                     │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   API GATEWAY                               │
+│              API GATEWAY (Spring Cloud Gateway)             │
 │                   http://localhost:8090                     │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                  EUREKA SERVER                              │
+│           SERVICE DISCOVERY (Eureka Server)                 │
 │                   http://localhost:8762                     │
 └────────────────────────┬────────────────────────────────────┘
                          │
-         ┌───────────────┼───────────────┐
-         ▼               ▼               ▼
-    ┌────────┐     ┌────────┐     ┌────────┐
-    │14 Micro│     │MongoDB │     │MySQL   │
-    │services│     │        │     │        │
-    └────────┘     └────────┘     └────────┘
+         ┌───────────────┼───────────────┬──────────────┐
+         ▼               ▼               ▼              ▼
+    ┌────────┐     ┌─────────┐    ┌─────────┐   ┌──────────┐
+    │ Spring │     │ Python  │    │ MongoDB │   │  MySQL   │
+    │Services│     │   AI    │    │         │   │          │
+    │  (14)  │     │ Service │    └─────────┘   └──────────┘
+    └────────┘     └─────────┘
 ```
+
+### Services
+
+| Service | Technology | Port | Database |
+|---------|-----------|------|----------|
+| **User Service** | Spring Boot | 8081 | MySQL |
+| **Tracking Service** | Spring Boot | 9011 | MySQL |
+| **Geofencing Service** | Spring Boot | 9012 | MySQL |
+| **Activity Service** | Spring Boot | 8084 | MySQL |
+| **Chat Service** | Spring Boot | 8070 | MongoDB |
+| **Detection Service** | Python/Flask | 8058 | - |
+| **Medical Records** | Spring Boot | 8059 | MySQL |
+| **Event Service** | Spring Boot | 8087 | MySQL |
+| **Group Service** | Spring Boot | 8097 | MySQL |
+| **Meeting Service** | Spring Boot | 8096 | MySQL |
+| **Post Service** | Spring Boot | 8069 | MySQL |
+| **Engagement Service** | Spring Boot | 8088 | MySQL |
 
 ---
 
-## 🛠️ Technologies
+## 🛠️ Technology Stack
 
 ### Backend
-- **Spring Boot 4.0.2** - Framework principal
-- **Spring Cloud 2025.1.0** - Microservices
-- **Eureka** - Service Discovery
-- **Spring Cloud Gateway** - API Gateway
-- **MySQL 8.0** - Base de données relationnelle
-- **MongoDB** - Base de données NoSQL
-- **Java 21** - Langage de programmation
+- **Spring Boot 4.0.2** - Core framework
+- **Spring Cloud 2025.1.0** - Microservices infrastructure
+- **Spring Cloud Gateway** - API routing and filtering
+- **Eureka** - Service discovery and registration
+- **Spring Data JPA** - Database abstraction
+- **Spring Security** - Authentication and authorization
+- **WebSocket** - Real-time communication
+- **Java 21** - Programming language
+
+### AI/ML
+- **Python 3.11** - ML service runtime
+- **Flask** - REST API framework
+- **TensorFlow 2.x** - Deep learning framework
+- **Keras** - Neural network API
+- **NumPy & Pandas** - Data processing
+- **OpenCV** - Image processing
 
 ### Frontend
-- **Angular 20.3** - Framework frontend
-- **Nginx** - Serveur web
-- **TypeScript** - Langage de programmation
-- **RxJS** - Programmation réactive
+- **Angular 20.3** - SPA framework
+- **TypeScript** - Type-safe JavaScript
+- **RxJS** - Reactive programming
+- **Angular Material** - UI components
+- **Nginx** - Web server and reverse proxy
+
+### Databases
+- **MySQL 8.0** - Relational data storage
+- **MongoDB** - Document storage for chat
 
 ### DevOps
-- **Docker** - Conteneurisation
-- **Docker Compose** - Orchestration
-- **Jenkins** - CI/CD (Phase 2)
-- **Prometheus** - Monitoring (Phase 2)
-- **Grafana** - Visualisation (Phase 2)
+- **Docker** - Containerization
+- **Docker Compose** - Multi-container orchestration
+- **Git LFS** - Large file storage for ML models
 
 ---
 
-## 🌐 Services et Ports
+## 🚀 Quick Start
 
-| Service | Port | URL |
-|---------|------|-----|
-| Frontend | 4200 | http://localhost:4200 |
-| API Gateway | 8090 | http://localhost:8090 |
-| Eureka | 8762 | http://localhost:8762 |
-| User Service | 8081 | http://localhost:8081 |
-| Tracking Service | 9011 | http://localhost:9011 |
-| Geofencing Service | 9012 | http://localhost:9012 |
-| Activité Service | 8084 | http://localhost:8084 |
-| Chat Service | 8070 | http://localhost:8070 |
-| Detection Service | 8058 | http://localhost:8058 |
-| Dossier Medical | 8059 | http://localhost:8059 |
-| Event Service | 8087 | http://localhost:8087 |
-| Group Service | 8097 | http://localhost:8097 |
-| Meeting Service | 8096 | http://localhost:8096 |
-| Post Service | 8069 | http://localhost:8069 |
-| Suivi Engagement | 8088 | http://localhost:8088 |
-| PhpMyAdmin | 8086 | http://localhost:8086 |
-| MongoDB | 27018 | mongodb://localhost:27018 |
+### Prerequisites
 
----
+- **Docker Desktop** (20.10+)
+- **8 GB RAM minimum**
+- **20 GB free disk space**
 
-## 📦 Prérequis
+### Installation
 
-- **Docker Desktop** (version 20.10+)
-- **Java 21**
-- **Node.js 20+**
-- **Maven 3.8+**
-- **8 GB RAM minimum** pour Docker
-
-### Vérification
-
+1. **Clone the repository**
 ```bash
-docker --version
-java -version
-node --version
-mvn --version
+git clone https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git
+cd Esprit_PI_4SAE5_2026_FakarniApp
 ```
 
----
-
-## 🚀 Installation
-
-### Méthode 1 : Automatique (Recommandée)
-
+2. **Configure environment variables**
 ```bash
-# Clone le projet
-git clone <repository-url>
-cd Fakarni_App
-
-# Lancer l'installation complète
-fix-all-issues.bat
+cp .env.example .env
+# Edit .env with your credentials
 ```
 
-### Méthode 2 : Manuelle
-
+3. **Start the application**
 ```bash
-# 1. Arrêter Docker
-docker compose down -v
-
-# 2. Build Maven
-cd backend/Detection_Maladie-Service
-mvn clean install -DskipTests
-cd ../..
-
-cd backend/Dossier_Medical-service
-mvn clean install -DskipTests
-cd ../..
-
-# 3. Build Frontend
-cd frontend
-npm install
-npm run build -- --configuration=production
-cd ..
-
-# 4. Build et Démarrer Docker
-docker compose build --no-cache
 docker compose up -d
 ```
 
----
+4. **Wait for services to start** (2-3 minutes)
 
-## 🎮 Utilisation
+5. **Access the application**
+- Frontend: http://localhost:4200
+- API Gateway: http://localhost:8090
+- Eureka Dashboard: http://localhost:8762
 
-### Démarrage Quotidien
-
-```bash
-quick-start.bat
-```
-
-### Vérifier l'État
-
-```bash
-check-status.bat
-```
-
-### Voir les Logs
-
-```bash
-# Tous les services
-docker compose logs -f
-
-# Service spécifique
-docker compose logs -f frontend
-```
-
-### Arrêter
+### Stopping the Application
 
 ```bash
 docker compose down
 ```
 
-### Nettoyage Complet
-
-```bash
-clean-all.bat
-```
-
 ---
 
-## 🔧 Scripts Disponibles
+## 🔧 Configuration
 
-| Script | Description | Durée |
-|--------|-------------|-------|
-| `fix-all-issues.bat` | Correction et build complet | 10-15 min |
-| `quick-start.bat` | Démarrage rapide | 1-2 min |
-| `check-status.bat` | Vérification de l'état | 10 sec |
-| `clean-all.bat` | Nettoyage complet | 2-3 min |
+### Environment Variables
 
----
-
-## 🐛 Dépannage
-
-### Frontend ne démarre pas
-
-```bash
-docker compose logs -f frontend
-docker compose build --no-cache frontend
-docker compose up -d frontend
-```
-
-### Services ne se connectent pas
-
-```bash
-# Vérifier Eureka
-curl http://localhost:8762
-
-# Redémarrer
-docker compose restart
-
-# Attendre 2-3 minutes
-```
-
-### Base de données non accessible
-
-```bash
-# Vérifier l'état
-docker compose ps
-
-# Redémarrer les DB
-docker compose restart db-tracking db-geofencing
-```
-
-**Plus de solutions :** Voir [PROBLEMES-RESOLUS.md](PROBLEMES-RESOLUS.md)
-
----
-
-## 📊 Monitoring
-
-### Logs en Temps Réel
-
-```bash
-docker compose logs -f
-```
-
-### Statistiques
-
-```bash
-docker stats
-```
-
-### Eureka Dashboard
-
-Ouvrez http://localhost:8762 pour voir tous les services enregistrés.
-
----
-
-## 🔐 Configuration
-
-### Variables d'Environnement
-
-Créez un fichier `.env` à la racine :
+Create a `.env` file in the root directory:
 
 ```env
-# Email
+# Email Configuration
 MAIL_USERNAME_USER=your-email@gmail.com
 MAIL_PASSWORD_USER=your-app-password
 
-# Google OAuth
-GOOGLE_CLIENT_ID=your-client-id
+# OAuth - Google
+GOOGLE_CLIENT_ID=your-google-client-id
 
-# Facebook OAuth
-FACEBOOK_APP_ID=your-app-id
-FACEBOOK_APP_SECRET=your-app-secret
+# OAuth - Facebook
+FACEBOOK_APP_ID=your-facebook-app-id
+FACEBOOK_APP_SECRET=your-facebook-app-secret
 
-# Twilio
-TWILIO_ACCOUNT_SID=your-account-sid
-TWILIO_AUTH_TOKEN=your-auth-token
-TWILIO_FROM_NUMBER=your-phone-number
+# Twilio SMS
+TWILIO_ACCOUNT_SID=your-twilio-sid
+TWILIO_AUTH_TOKEN=your-twilio-token
+TWILIO_FROM_NUMBER=your-twilio-number
 
-# Mailtrap
-MAILTRAP_USERNAME=your-username
-MAILTRAP_PASSWORD=your-password
+# Mailtrap (Development)
+MAILTRAP_USERNAME=your-mailtrap-username
+MAILTRAP_PASSWORD=your-mailtrap-password
 ```
-
-**⚠️ Important :** Ne jamais commiter le fichier `.env` !
 
 ---
 
-## 🧪 Tests
+## 📊 API Documentation
 
-### Tests Unitaires
+### API Gateway Endpoints
+
+All requests go through the API Gateway at `http://localhost:8090`
+
+#### User Service
+- `POST /api/users/register` - Register new user
+- `POST /api/users/login` - User authentication
+- `GET /api/users/profile` - Get user profile
+- `PUT /api/users/profile` - Update profile
+
+#### Tracking Service
+- `POST /api/tracking/location` - Update location
+- `GET /api/tracking/history/{userId}` - Get location history
+- `GET /api/tracking/current/{userId}` - Get current location
+
+#### Geofencing Service
+- `POST /api/geofence/zones` - Create geofence zone
+- `GET /api/geofence/zones/{userId}` - Get user zones
+- `POST /api/geofence/check` - Check if location is in zone
+
+#### Detection Service
+- `POST /api/detection/analyze` - Analyze MRI scan
+- `GET /api/detection/results/{id}` - Get analysis results
+
+#### Activity Service
+- `GET /api/activities` - List activities
+- `POST /api/activities/{id}/complete` - Mark activity complete
+- `GET /api/activities/progress/{userId}` - Get user progress
+
+---
+
+## 🧪 Testing
+
+### Health Checks
 
 ```bash
-# Backend
-cd backend/Detection_Maladie-Service
-mvn test
+# Check all services
+curl http://localhost:8090/actuator/health
 
-# Frontend
-cd frontend
-npm test
+# Check specific service
+curl http://localhost:8081/actuator/health
 ```
 
-### Tests d'Intégration
+### AI Detection Service Test
 
 ```bash
-# Démarrer l'environnement de test
-docker compose -f docker-compose.test.yml up -d
-
-# Exécuter les tests
-npm run test:e2e
+cd detection-alzheimer/detection-alzheimer
+python test_api.py
 ```
 
 ---
 
-## 📈 Roadmap
+## 📱 Mobile Support
 
-### Phase 1 : Dockerisation ✅
-- [x] Corriger les erreurs
-- [x] Dockeriser tous les services
-- [x] Créer les scripts d'automatisation
-- [x] Documenter le projet
-
-### Phase 2 : CI/CD ⏳
-- [ ] Installer Jenkins
-- [ ] Créer les pipelines
-- [ ] Automatiser les tests
-- [ ] Automatiser les déploiements
-
-### Phase 3 : Monitoring ⏳
-- [ ] Ajouter Prometheus
-- [ ] Configurer Grafana
-- [ ] Créer les dashboards
-- [ ] Mettre en place les alertes
-
-### Phase 4 : Production ⏳
-- [ ] Sécuriser avec HTTPS
-- [ ] Configurer les secrets
-- [ ] Optimiser les performances
-- [ ] Migrer vers Kubernetes
+The Angular frontend is responsive and works on:
+- Desktop browsers (Chrome, Firefox, Safari, Edge)
+- Tablets (iPad, Android tablets)
+- Mobile devices (iOS, Android)
 
 ---
 
-## 🤝 Contribution
+## 🔐 Security Features
 
-Les contributions sont les bienvenues ! Veuillez suivre ces étapes :
+- JWT-based authentication
+- Role-based access control (RBAC)
+- OAuth 2.0 integration
+- CORS configuration
+- SQL injection prevention
+- XSS protection
+- HTTPS ready (production)
 
-1. Fork le projet
-2. Créer une branche (`git checkout -b feature/AmazingFeature`)
-3. Commit les changements (`git commit -m 'Add AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
+---
+
+## 📈 Monitoring
+
+### Service Health
+
+Access Eureka Dashboard: http://localhost:8762
+
+### Database Management
+
+- **MySQL**: http://localhost:8086 (PhpMyAdmin)
+  - Username: `root`
+  - Password: `root`
+
+- **MongoDB**: `mongodb://localhost:27018`
+
+### Logs
+
+```bash
+# View all logs
+docker compose logs -f
+
+# View specific service
+docker compose logs -f user-service
+
+# View last 100 lines
+docker compose logs --tail=100 frontend
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
 ## 📝 License
 
-Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
-## 👥 Équipe
+## 👥 Team
 
-- **Développement Backend** - Spring Boot Microservices
-- **Développement Frontend** - Angular
-- **DevOps** - Docker, CI/CD
+Developed by the Esprit PI 4SAE5 2026 team
 
 ---
 
 ## 📞 Support
 
-- **Documentation :** [INDEX.md](INDEX.md)
-- **Issues :** [GitHub Issues](https://github.com/your-repo/issues)
-- **Email :** support@fakarni.com
+For issues and questions:
+- Open an issue on GitHub
+- Contact: support@fakarni.com
 
 ---
 
-## 🙏 Remerciements
+## 🙏 Acknowledgments
 
-- Spring Boot Team
-- Angular Team
-- Docker Team
-- Communauté Open Source
-
----
-
-## 📚 Ressources
-
-- [Documentation Complète](INDEX.md)
-- [Guide de Démarrage](COMMENCER-ICI.md)
-- [Guide Docker](README-DOCKER.md)
-- [Résolution de Problèmes](PROBLEMES-RESOLUS.md)
+- Spring Boot and Spring Cloud teams
+- Angular team
+- TensorFlow and Keras communities
+- Docker team
+- Open source community
 
 ---
 
-**Fait avec ❤️ par l'équipe Fakarni**
+**Made with ❤️ for Alzheimer's care**
 
-**Version :** 1.0.0  
-**Dernière mise à jour :** Mai 2026
+**Version:** 1.0.0  
+**Last Updated:** May 2026
