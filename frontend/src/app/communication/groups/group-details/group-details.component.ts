@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GroupService } from '../services/group.service';
@@ -18,7 +18,7 @@ export class GroupDetailsComponent implements OnInit {
   members: GroupMember[] = [];
   loading = false;
   error: string | null = null;
-  currentUserId = '1'; // TODO: Récupérer depuis le service d'authentification
+  currentUserId = ''; // ID de l'utilisateur connecté
   groupId: number = 0; // ID du groupe actuel
   
   MemberRole = MemberRole;
@@ -26,10 +26,23 @@ export class GroupDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private groupService: GroupService
+    private groupService: GroupService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    // Récupérer l'ID de l'utilisateur connecté depuis le token JWT
+    const token = sessionStorage.getItem('fakarni_token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        this.currentUserId = payload.sub; // L'ID MongoDB est dans le champ 'sub'
+        console.log('✅ Group Details - Current user ID:', this.currentUserId);
+      } catch (e) {
+        console.error('❌ Error parsing token:', e);
+      }
+    }
+    
     const groupId = Number(this.route.snapshot.paramMap.get('id'));
     if (groupId) {
       this.groupId = groupId;
@@ -56,6 +69,7 @@ export class GroupDetailsComponent implements OnInit {
         this.group = group;
         this.members = group.members || [];
         this.loading = false;
+        this.cdr.detectChanges(); // Force Angular to update the view
       },
       error: (err) => {
         console.error('❌ Erreur de chargement:', err);
@@ -63,7 +77,11 @@ export class GroupDetailsComponent implements OnInit {
         if (err.name === 'TimeoutError') {
           this.error = 'Le serveur met trop de temps à répondre. Vérifiez que le backend est démarré.';
         } else if (err.status === 404) {
-          this.error = 'Groupe introuvable';
+          this.error = 'Groupe introuvable. Ce groupe n\'existe pas ou a été supprimé.';
+          // Rediriger vers la liste après 3 secondes
+          setTimeout(() => {
+            this.router.navigate(['/communication/groups']);
+          }, 3000);
         } else if (err.status === 503) {
           this.error = 'Service non disponible. Vérifiez que le Group Service est démarré sur le port 8097.';
         } else if (err.status === 0) {
@@ -73,6 +91,7 @@ export class GroupDetailsComponent implements OnInit {
         }
         
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }

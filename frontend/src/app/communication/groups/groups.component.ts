@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GroupService } from './services/group.service';
 import { UploadService } from './services/upload.service';
 import { Group, GroupType, MemberRole } from './models/group.model';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
 @Component({
@@ -56,7 +56,8 @@ export class GroupsComponent implements OnInit {
     constructor(
         private groupService: GroupService,
         private uploadService: UploadService,
-        private router: Router
+        private router: Router,
+        private cdr: ChangeDetectorRef
     ) {}
 
     ngOnInit(): void {
@@ -84,15 +85,20 @@ export class GroupsComponent implements OnInit {
             allGroups: this.groupService.getAllGroups(false),
             myGroups: this.groupService.getUserGroups(this.currentUserId)
         }).pipe(
-            finalize(() => this.loading = false)
+            finalize(() => {
+                this.loading = false;
+                this.cdr.detectChanges(); // Force Angular to update the view
+            })
         ).subscribe({
             next: (result) => {
                 this.groups = result.allGroups;
                 this.myGroups = result.myGroups;
+                this.cdr.detectChanges(); // Force Angular to update the view
             },
             error: (err) => {
                 this.error = 'Erreur lors du chargement des groupes';
                 console.error(err);
+                this.cdr.detectChanges();
             }
         });
     }
@@ -283,6 +289,9 @@ export class GroupsComponent implements OnInit {
         this.groups.unshift(group);
         this.myGroups.unshift(group);
         
+        // Force Angular to detect changes
+        this.cdr.detectChanges();
+        
         // Fermer le modal
         this.closeCreateModal();
         
@@ -300,13 +309,6 @@ export class GroupsComponent implements OnInit {
         setTimeout(() => {
             successMessage.remove();
         }, 3000);
-        
-        // Redirection vers la page des groupes (refresh)
-        setTimeout(() => {
-            this.router.navigate(['/communication/groups']).then(() => {
-                window.location.reload();
-            });
-        }, 1000);
     }
 
     updateGroup(): void {
@@ -371,6 +373,9 @@ export class GroupsComponent implements OnInit {
                     this.myGroups[myIndex] = updatedGroup;
                 }
                 
+                // Force Angular to detect changes
+                this.cdr.detectChanges();
+                
                 this.closeEditModal();
                 
                 // Message de succès temporaire
@@ -386,13 +391,6 @@ export class GroupsComponent implements OnInit {
                 setTimeout(() => {
                     successMessage.remove();
                 }, 3000);
-                
-                // Redirection avec refresh
-                setTimeout(() => {
-                    this.router.navigate(['/communication/groups']).then(() => {
-                        window.location.reload();
-                    });
-                }, 1000);
             },
             error: (err) => {
                 console.error('❌ Erreur modification:', err);
@@ -414,6 +412,7 @@ export class GroupsComponent implements OnInit {
                     // Incrémenter le compteur de membres
                     group.memberCount++;
                 }
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 this.error = 'Erreur lors de l\'adhésion au groupe';
@@ -433,6 +432,7 @@ export class GroupsComponent implements OnInit {
                     if (group) {
                         group.memberCount--;
                     }
+                    this.cdr.detectChanges();
                 },
                 error: (err) => {
                     this.error = 'Erreur lors de la sortie du groupe';

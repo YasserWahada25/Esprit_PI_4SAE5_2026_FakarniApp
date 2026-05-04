@@ -32,6 +32,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/groups/**").permitAll()  // Allow public access to groups
+                .requestMatchers("/api/upload/**").permitAll()  // Allow public access to upload
+                .requestMatchers("/uploads/**").permitAll()  // Allow public access to uploaded files
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

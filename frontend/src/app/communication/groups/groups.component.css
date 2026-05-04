@@ -816,17 +816,23 @@ t Section */
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
-/* Image de groupe */
-.group-image {
+/* Image de groupe - Container */
+.group-image-container {
     height: 120px;
-    background-size: cover;
-    background-position: center;
     border-radius: 12px 12px 0 0;
     margin: -20px -20px 15px -20px;
     position: relative;
+    overflow: hidden;
 }
 
-.group-image::after {
+.group-image-container img.group-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.group-image-container::after {
     content: '';
     position: absolute;
     bottom: 0;
@@ -834,7 +840,7 @@ t Section */
     right: 0;
     height: 50%;
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.3));
-    border-radius: 0 0 0 0;
+    pointer-events: none;
 }
 
 /* Upload d'image */

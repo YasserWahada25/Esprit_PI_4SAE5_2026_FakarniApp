@@ -52,6 +52,8 @@ public class GatewayServiceApplication {
 				.route("session_ws", r ->
 						r.path("/ws/**")
 								.uri(sessionUri))
+				.route("group-uploads", r -> r.path("/uploads/groups/**")
+						.uri(groupUri))
 				.route("activite-uploads", r -> r.path("/uploads/**")
 						.uri(activiteTarget))
 				.route("activite-game-sessions-flat", r -> r.path("/api/game-sessions", "/api/game-sessions/**")
@@ -71,7 +73,7 @@ public class GatewayServiceApplication {
 						r.path("/api/posts/**")
 								.uri(postUri))
 				.route("Group-Service", r ->
-						r.path("/api/groups/**")
+						r.path("/api/groups/**", "/api/upload/**")
 								.uri(groupUri))
 				.route("Chat-Service-Messages", r ->
 						r.path("/api/messages/**")

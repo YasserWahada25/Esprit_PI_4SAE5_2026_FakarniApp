@@ -15,9 +15,13 @@
 
     <div class="groups-grid" *ngIf="myGroups.length > 0">
         <div class="group-card my-group" *ngFor="let group of myGroups" (click)="viewGroupDetails(group.id)">
-            <div class="group-image" *ngIf="group.coverImageUrl" 
-                 [style.background-image]="'url(' + getImageUrl(group.coverImageUrl) + ')'"
-                 (error)="onImageError(group)">
+            <!-- Image du groupe -->
+            <div class="group-image-container" *ngIf="group.coverImageUrl">
+                <img [src]="getImageUrl(group.coverImageUrl)" 
+                     [alt]="group.name"
+                     class="group-image"
+                     (error)="onImageError(group)"
+                     loading="lazy">
             </div>
             
             <!-- Fallback si pas d'image -->
@@ -77,9 +81,21 @@
     <div class="groups-grid" *ngIf="!loading">
         <div class="group-card" *ngFor="let group of groups" 
              [class.disabled]="!group.isJoinable && !isMyGroup(group.id)">
-            <div class="group-image" *ngIf="group.coverImageUrl" 
-                 [style.background-image]="'url(' + getImageUrl(group.coverImageUrl) + ')'">
+            <!-- Image du groupe -->
+            <div class="group-image-container" *ngIf="group.coverImageUrl">
+                <img [src]="getImageUrl(group.coverImageUrl)" 
+                     [alt]="group.name"
+                     class="group-image"
+                     (error)="onImageError(group)"
+                     loading="lazy">
             </div>
+            
+            <!-- Fallback si pas d'image -->
+            <div class="group-image-placeholder" *ngIf="!group.coverImageUrl">
+                <i class="fa-solid fa-image"></i>
+                <span>Pas d'image</span>
+            </div>
+            
             <div class="card-header">
                 <div class="group-info">
                     <h3>{{ group.name }}</h3>
