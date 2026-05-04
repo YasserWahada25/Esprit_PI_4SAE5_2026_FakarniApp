@@ -179,6 +179,24 @@ services:
       timeout: 5s
       retries: 5
 
+  db-session:
+    image: mysql:8.0
+    container_name: fakarni_db_session
+    environment:
+      MYSQL_DATABASE: alzheimer_session_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3318:3306"
+    volumes:
+      - fakarni_db_session_data:/var/lib/mysql
+    networks:
+      - fakarni-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: fakarni_phpmyadmin
@@ -190,6 +208,38 @@ services:
     depends_on:
       - db-tracking
       - db-geofencing
+    networks:
+      - fakarni-net
+
+  # Mongo Express - MongoDB Web UI
+  mongo-express:
+    image: mongo-express:latest
+    container_name: fakarni_mongo_express
+    restart: always
+    ports:
+      - "8091:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      - mongodb
+    networks:
+      - fakarni-net
+
+  # Adminer - Alternative MySQL/MariaDB Web UI (lighter than PHPMyAdmin)
+  adminer:
+    image: adminer:latest
+    container_name: fakarni_adminer
+    restart: always
+    ports:
+      - "8092:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db-session
+    depends_on:
+      - db-session
     networks:
       - fakarni-net
 
@@ -318,6 +368,9 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    volumes:
+      # Mount local uploads directory so images are accessible
+      - ./backend/activite-educative-service/uploads:/app/uploads
     depends_on:
       db-activite:
         condition: service_healthy
@@ -341,6 +394,25 @@ services:
     depends_on:
       - mongodb
       - eureka-server
+    networks:
+      - fakarni-net
+    restart: on-failure
+
+  session-service:
+    build:
+      context: ./backend/session-service
+    container_name: fakarni_session_service
+    ports:
+      - "8071:8071"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    depends_on:
+      db-session:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
     networks:
       - fakarni-net
     restart: on-failure
@@ -479,7 +551,23 @@ services:
     restart: on-failure
 
   # ==========================================
-  # 4. SONARQUBE
+  # 4. FRONTEND ANGULAR
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fakarni_frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - fakarni-net
+    restart: on-failure
+
+  # ==========================================
+  # 5. SONARQUBE (PHASE 2)
   # ==========================================
   sonarqube:
     image: sonarqube:10-community
@@ -497,6 +585,8 @@ services:
       - fakarni_sonar_extensions:/opt/sonarqube/extensions
     networks:
       - fakarni-net
+    profiles:
+      - monitoring
 
 networks:
   fakarni-net:
@@ -512,7 +602,9 @@ volumes:
   fakarni_db_event_data:
   fakarni_db_group_data:
   fakarni_db_post_data:
+  fakarni_db_session_data:
   fakarni_db_suivi_data:
   fakarni_sonar_data:
   fakarni_sonar_logs:
   fakarni_sonar_extensions:
+  # fakarni_activite_uploads: # Removed - using bind mount instead
