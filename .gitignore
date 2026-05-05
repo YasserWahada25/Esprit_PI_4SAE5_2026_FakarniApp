@@ -19,6 +19,8 @@
 # ── Credentials — NE JAMAIS COMMITTER ─────────────────
 .env
 *.env
+SONARQUBE_TOKENS.txt
+*.ps1
 
 # ── Logs ───────────────────────────────────────────────
 **/*.log
