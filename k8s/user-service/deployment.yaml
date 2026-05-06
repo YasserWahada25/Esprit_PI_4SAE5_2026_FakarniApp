@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: fakarni
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: didou2505/fakarni-user-service:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: fakarni-config
+                  key: EUREKA_URL
+            - name: SPRING_DATA_MONGODB_URI
+              value: "mongodb://admin:admin@mongodb:27017/rayen?authSource=admin"
+            - name: MAIL_USERNAME_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fakarni-secrets
+                  key: MAIL_USERNAME_USER
+            - name: MAIL_PASSWORD_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fakarni-secrets
+                  key: MAIL_PASSWORD_USER
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: fakarni-secrets
+                  key: GOOGLE_CLIENT_ID
+            - name: FACEBOOK_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: fakarni-secrets
+                  key: FACEBOOK_APP_ID
+            - name: FACEBOOK_APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: fakarni-secrets
+                  key: FACEBOOK_APP_SECRET
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: fakarni
+spec:
+  selector:
+    app: user-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+  type: ClusterIP

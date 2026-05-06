@@ -1,0 +1,48 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: detection-alzheimer
+  namespace: fakarni
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: detection-alzheimer
+  template:
+    metadata:
+      labels:
+        app: detection-alzheimer
+    spec:
+      containers:
+        - name: detection-alzheimer
+          image: didou2505/fakarni-detection-alzheimer:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: fakarni-config
+                  key: EUREKA_URL
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: detection-alzheimer
+  namespace: fakarni
+spec:
+  selector:
+    app: detection-alzheimer
+  ports:
+    - port: 5000
+      targetPort: 5000
+  type: ClusterIP

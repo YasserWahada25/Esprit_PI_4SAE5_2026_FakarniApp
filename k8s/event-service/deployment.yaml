@@ -1,0 +1,57 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-service
+  namespace: fakarni
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-service
+  template:
+    metadata:
+      labels:
+        app: event-service
+    spec:
+      containers:
+        - name: event-service
+          image: didou2505/fakarni-event-service:latest
+          ports:
+            - containerPort: 8087
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: fakarni-config
+                  key: EUREKA_URL
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://db-event:3306/EventFakerni?createDatabaseIfNotExist=true&serverTimezone=UTC"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fakarni-secrets
+                  key: MYSQL_ROOT_PASSWORD
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-service
+  namespace: fakarni
+spec:
+  selector:
+    app: event-service
+  ports:
+    - port: 8087
+      targetPort: 8087
+  type: ClusterIP

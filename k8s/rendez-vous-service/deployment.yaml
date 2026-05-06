@@ -1,0 +1,50 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rendez-vous-service
+  namespace: fakarni
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rendez-vous-service
+  template:
+    metadata:
+      labels:
+        app: rendez-vous-service
+    spec:
+      containers:
+        - name: rendez-vous-service
+          image: didou2505/fakarni-rendez-vous-service:latest
+          ports:
+            - containerPort: 8089
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: fakarni-config
+                  key: EUREKA_URL
+            - name: SPRING_DATA_MONGODB_URI
+              value: "mongodb://admin:admin@mongodb:27017/rendez-vous?authSource=admin"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rendez-vous-service
+  namespace: fakarni
+spec:
+  selector:
+    app: rendez-vous-service
+  ports:
+    - port: 8089
+      targetPort: 8089
+  type: ClusterIP

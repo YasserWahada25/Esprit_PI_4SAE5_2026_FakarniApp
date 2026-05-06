@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        SERVICE_NAME    = 'session-service'
-        DOCKER_IMAGE    = 'didou2505/fakarni-session-service'
+        SERVICE_NAME    = 'frontend'
+        DOCKER_IMAGE    = 'didou2505/fakarni-frontend'
         K8S_NAMESPACE   = 'fakarni'
-        K8S_MANIFEST    = 'k8s/session-service/deployment.yaml'
+        K8S_MANIFEST    = 'k8s/frontend/deployment.yaml'
     }
 
     parameters {

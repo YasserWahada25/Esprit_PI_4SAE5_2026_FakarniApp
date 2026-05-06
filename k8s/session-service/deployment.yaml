@@ -1,0 +1,57 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: session-service
+  namespace: fakarni
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: session-service
+  template:
+    metadata:
+      labels:
+        app: session-service
+    spec:
+      containers:
+        - name: session-service
+          image: didou2505/fakarni-session-service:latest
+          ports:
+            - containerPort: 8071
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: fakarni-config
+                  key: EUREKA_URL
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://db-session:3306/alzheimer_session_db?createDatabaseIfNotExist=true&serverTimezone=UTC"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fakarni-secrets
+                  key: MYSQL_ROOT_PASSWORD
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: session-service
+  namespace: fakarni
+spec:
+  selector:
+    app: session-service
+  ports:
+    - port: 8071
+      targetPort: 8071
+  type: ClusterIP

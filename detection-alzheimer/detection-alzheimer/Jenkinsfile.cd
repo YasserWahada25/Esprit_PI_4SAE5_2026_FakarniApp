@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        SERVICE_NAME    = 'session-service'
-        DOCKER_IMAGE    = 'didou2505/fakarni-session-service'
+        SERVICE_NAME    = 'detection-alzheimer'
+        DOCKER_IMAGE    = 'didou2505/fakarni-detection-alzheimer'
         K8S_NAMESPACE   = 'fakarni'
-        K8S_MANIFEST    = 'k8s/session-service/deployment.yaml'
+        K8S_MANIFEST    = 'k8s/detection-alzheimer/deployment.yaml'
     }
 
     parameters {

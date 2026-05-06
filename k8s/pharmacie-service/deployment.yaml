@@ -1,0 +1,50 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pharmacie-service
+  namespace: fakarni
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pharmacie-service
+  template:
+    metadata:
+      labels:
+        app: pharmacie-service
+    spec:
+      containers:
+        - name: pharmacie-service
+          image: didou2505/fakarni-pharmacie-service:latest
+          ports:
+            - containerPort: 8088
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: fakarni-config
+                  key: EUREKA_URL
+            - name: SPRING_DATA_MONGODB_URI
+              value: "mongodb://admin:admin@mongodb:27017/pharmacie?authSource=admin"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pharmacie-service
+  namespace: fakarni
+spec:
+  selector:
+    app: pharmacie-service
+  ports:
+    - port: 8088
+      targetPort: 8088
+  type: ClusterIP
