@@ -40,6 +40,12 @@ pipeline {
                             error("❌ Cannot connect to Kubernetes cluster. Please check your kubeconfig credential.")
                         }
                         
+                        // Create namespace if it doesn't exist
+                        sh """
+                            kubectl get namespace ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG || \
+                            kubectl create namespace ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG
+                        """
+                        
                         // Apply deployment
                         sh """
                             kubectl apply -f ${K8S_MANIFEST} --kubeconfig=\$KUBECONFIG
