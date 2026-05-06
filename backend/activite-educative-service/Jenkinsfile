@@ -1,0 +1,153 @@
+pipeline {
+    agent any
+    
+    tools {
+        maven 'Maven 3.9'
+        jdk 'JDK 21'
+    }
+    
+    environment {
+        SERVICE_NAME = 'Activite-Educative-Service'
+        SERVICE_PATH = 'backend/activite-educative-service'
+        DOCKER_IMAGE = 'nohamedrayen/fakarni-activite-educative-service'
+        DOCKER_REGISTRY = 'https://registry.hub.docker.com'
+        SONAR_PROJECT_KEY = 'activite-educative-service'
+        GIT_REPO = 'https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git'
+        GIT_BRANCH = 'main'
+    }
+    
+    stages {
+        stage('📥 Checkout') {
+            steps {
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo "🔄 Cloning repository..."
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                git branch: "${GIT_BRANCH}",
+                    credentialsId: 'github-credentials',
+                    url: "${GIT_REPO}"
+                echo "✅ Repository cloned"
+            }
+        }
+        
+        stage('🔨 Build') {
+            steps {
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo "🔨 Building ${SERVICE_NAME}..."
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                dir("${SERVICE_PATH}") {
+                    sh 'mvn clean compile -DskipTests'
+                }
+                echo "✅ Build completed"
+            }
+        }
+        
+        stage('🧪 Test') {
+            steps {
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo "🧪 Running tests with JaCoCo..."
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                dir("${SERVICE_PATH}") {
+                    sh 'mvn test'
+                }
+            }
+            post {
+                always {
+                    dir("${SERVICE_PATH}") {
+                        junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                        jacoco execPattern: '**/target/jacoco.exec',
+                               classPattern: '**/target/classes',
+                               sourcePattern: '**/src/main/java'
+                    }
+                }
+            }
+        }
+        
+        stage('📊 SonarQube') {
+            steps {
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo "📊 Running SonarQube analysis..."
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                dir("${SERVICE_PATH}") {
+                    withSonarQubeEnv('SonarQube') {
+                        sh '''
+                            mvn sonar:sonar \
+                                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                                -Dsonar.projectName='${SERVICE_NAME}' \
+                                -Dsonar.java.binaries=target/classes \
+                                -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                        '''
+                    }
+                }
+                echo "✅ SonarQube completed"
+            }
+        }
+        
+        stage('📦 Package') {
+            steps {
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo "📦 Packaging JAR..."
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                dir("${SERVICE_PATH}") {
+                    sh 'mvn package -DskipTests'
+                }
+                echo "✅ JAR created"
+            }
+        }
+        
+        stage('🐳 Docker Build') {
+            steps {
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo "🐳 Building Docker image..."
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                dir("${SERVICE_PATH}") {
+                    script {
+                        sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} ."
+                        sh "docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest"
+                        echo "✅ Image built: ${DOCKER_IMAGE}:${BUILD_NUMBER}"
+                    }
+                }
+            }
+        }
+        
+        stage('📤 Docker Push') {
+            steps {
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo "📤 Pushing to Docker Hub..."
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                script {
+                    docker.withRegistry("${DOCKER_REGISTRY}", 'dockerhub-credentials') {
+                        sh "docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}"
+                        sh "docker push ${DOCKER_IMAGE}:latest"
+                    }
+                }
+                echo "✅ Image pushed"
+            }
+        }
+        
+        stage('🚀 Trigger CD') {
+            steps {
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo "🚀 Triggering CD Pipeline..."
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                build job: 'activite-educative-service-CD', 
+                      parameters: [
+                          string(name: 'IMAGE_TAG', value: "${BUILD_NUMBER}")
+                      ],
+                      wait: false
+                echo "✅ CD triggered"
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo "✅ CI PIPELINE SUCCESS - Build #${BUILD_NUMBER}"
+        }
+        failure {
+            echo "❌ CI PIPELINE FAILED"
+        }
+        always {
+            cleanWs()
+        }
+    }
+}
