@@ -12,8 +12,18 @@ public class GatewayRoutesConfig {
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
                 // ═══════════════════════════════════════════════════════════
-                //  UPLOADS - Route ALL uploads to activite-educative-service
+                //  AUTH ROUTES → user-service
                 // ═══════════════════════════════════════════════════════════
+                .route("api-auth", r -> r
+                        .path("/auth/**")
+                        .uri("lb://USER-SERVICE"))
+
+                // ═══════════════════════════════════════════════════════════
+                //  USER PROFILE ROUTES → user-service
+                // ═══════════════════════════════════════════════════════════
+                .route("api-user-profile", r -> r
+                        .path("/api/profile/**")
+                        .uri("lb://USER-SERVICE"))
                 .route("uploads-all", r -> r
                         .path("/uploads/**")
                         .uri("lb://activite-educative-service"))
@@ -66,11 +76,18 @@ public class GatewayRoutesConfig {
                         .uri("lb://geofencing-service"))
                 
                 // ═══════════════════════════════════════════════════════════
-                //  USERS (for detection service to get patients)
+                //  USERS (user management → user-service)
                 // ═══════════════════════════════════════════════════════════
                 .route("api-users", r -> r
                         .path("/api/users/**")
-                        .uri("lb://session-service"))
+                        .uri("lb://USER-SERVICE"))
+
+                // ═══════════════════════════════════════════════════════════
+                //  SESSIONS (session management → session-service)
+                // ═══════════════════════════════════════════════════════════
+                .route("api-sessions", r -> r
+                        .path("/api/sessions/**")
+                        .uri("lb://SESSION-SERVICE"))
                 
                 // ═══════════════════════════════════════════════════════════
                 //  CHAT

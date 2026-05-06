@@ -1,4 +1,4 @@
-﻿apiVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: chat-service
@@ -13,6 +13,10 @@ spec:
       labels:
         app: chat-service
     spec:
+      initContainers:
+        - name: wait-for-eureka
+          image: busybox:1.35
+          command: ['sh', '-c', 'until wget -qO- http://eureka-server:8761/actuator/health 2>/dev/null | grep -q UP; do echo waiting for eureka; sleep 5; done; echo eureka is ready']
       containers:
         - name: chat-service
           image: didou2505/fakarni-chat-service:latest
@@ -21,6 +25,8 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "docker"
+            - name: JAVA_OPTS
+              value: "-Xms64m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=60.0"
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               valueFrom:
                 configMapKeyRef:
@@ -30,7 +36,7 @@ spec:
               value: "mongodb://admin:admin@mongodb:27017/chat?authSource=admin"
           resources:
             requests:
-              memory: "256Mi"
+              memory: "128Mi"
               cpu: "100m"
             limits:
               memory: "512Mi"
@@ -48,3 +54,8 @@ spec:
     - port: 8070
       targetPort: 8070
   type: ClusterIP
+
+
+
+
+

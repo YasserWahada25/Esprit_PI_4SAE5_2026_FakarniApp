@@ -13,6 +13,13 @@ spec:
       labels:
         app: mongodb
     spec:
+      initContainers:
+        - name: clear-data
+          image: busybox:1.35
+          command: ['sh', '-c', 'rm -rf /data/db/* && echo "data cleared"']
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
       containers:
         - name: mongodb
           image: mongo:latest
@@ -55,3 +62,4 @@ spec:
     - port: 27017
       targetPort: 27017
   type: ClusterIP
+

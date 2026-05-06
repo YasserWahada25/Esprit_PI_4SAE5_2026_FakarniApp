@@ -1,4 +1,4 @@
-﻿apiVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: detection-alzheimer
@@ -13,26 +13,22 @@ spec:
       labels:
         app: detection-alzheimer
     spec:
+      initContainers:
+        - name: wait-for-eureka
+          image: busybox:1.35
+          command: ['sh', '-c', 'until wget -qO- http://eureka-server:8761/actuator/health 2>/dev/null | grep -q UP; do echo waiting for eureka; sleep 5; done; echo eureka is ready']
       containers:
         - name: detection-alzheimer
           image: didou2505/fakarni-detection-alzheimer:latest
           ports:
             - containerPort: 5000
-          env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: "docker"
-            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-              valueFrom:
-                configMapKeyRef:
-                  name: fakarni-config
-                  key: EUREKA_URL
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
+              memory: "1Gi"
+              cpu: "250m"
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: "1536Mi"
+              cpu: "1000m"
 ---
 apiVersion: v1
 kind: Service
@@ -46,3 +42,5 @@ spec:
     - port: 5000
       targetPort: 5000
   type: ClusterIP
+
+

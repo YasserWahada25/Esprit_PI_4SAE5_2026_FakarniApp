@@ -35,7 +35,7 @@ pipeline {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
                         kubectl apply -f ${K8S_MANIFEST} --kubeconfig=\$KUBECONFIG
-                        kubectl rollout status deployment/${SERVICE_NAME} -n ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG --timeout=120s
+                        kubectl rollout status deployment/${SERVICE_NAME} -n ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG --timeout=300s
                     """
                 }
             }

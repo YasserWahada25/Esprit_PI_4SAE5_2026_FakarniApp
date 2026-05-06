@@ -108,7 +108,7 @@ pipeline {
     environment {
         SERVICE_NAME = 'user-service'
         SERVICE_PATH = 'backend/User-Service'
-        DOCKER_IMAGE = "nohamedrayen/${SERVICE_NAME}"
+        DOCKER_IMAGE = "didou2505/${SERVICE_NAME}"
         SONAR_PROJECT_KEY = "mediconnect-${SERVICE_NAME}"
         GIT_REPO = 'https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git'
     }
@@ -246,7 +246,7 @@ pipeline {
     
     environment {
         SERVICE_NAME = 'user-service'
-        DOCKER_IMAGE = "nohamedrayen/${SERVICE_NAME}"
+        DOCKER_IMAGE = "didou2505/${SERVICE_NAME}"
     }
     
     stages {
@@ -307,7 +307,7 @@ pipeline {
     environment {
         SERVICE_NAME = 'detection-alzheimer'
         SERVICE_PATH = 'detection-alzheimer'
-        DOCKER_IMAGE = "nohamedrayen/${SERVICE_NAME}"
+        DOCKER_IMAGE = "didou2505/${SERVICE_NAME}"
         GIT_REPO = 'https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git'
     }
     
@@ -392,7 +392,7 @@ pipeline {
     environment {
         SERVICE_NAME = 'frontend'
         SERVICE_PATH = 'frontend'
-        DOCKER_IMAGE = "nohamedrayen/${SERVICE_NAME}"
+        DOCKER_IMAGE = "didou2505/${SERVICE_NAME}"
         GIT_REPO = 'https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git'
     }
     

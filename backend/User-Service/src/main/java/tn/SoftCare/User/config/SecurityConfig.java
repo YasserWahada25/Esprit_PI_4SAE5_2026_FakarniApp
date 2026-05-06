@@ -78,10 +78,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
 
-                        // Health
+                        // Health & Monitoring
                         .requestMatchers(
                                 "/actuator/health",
-                                "/actuator/health/**"
+                                "/actuator/health/**",
+                                "/actuator/prometheus",
+                                "/actuator/metrics",
+                                "/actuator/info"
                         ).permitAll()
 
                         .anyRequest().authenticated()

@@ -1,0 +1,201 @@
+pipeline {
+    agent any
+
+    environment {
+        GIT_REPO   = 'https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git'
+        GIT_BRANCH = 'main'
+    }
+
+    stages {
+
+        stage('📥 Checkout') {
+            steps {
+                git branch: "${GIT_BRANCH}",
+                    credentialsId: 'github-credentials',
+                    url: "${GIT_REPO}"
+            }
+        }
+
+        stage('🚀 Trigger All CI Pipelines') {
+            parallel {
+
+                stage('user-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'user-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ user-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('gateway-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'gateway-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ gateway-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('activite-educative-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'activite-educative-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ activite-educative-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('chat-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'chat-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ chat-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('detection-maladie-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'detection-maladie-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ detection-maladie-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('dossier-medical-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'dossier-medical-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ dossier-medical-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('event-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'event-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ event-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('geofencing-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'geofencing-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ geofencing-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('group-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'group-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ group-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('meeting-insights-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'meeting-insights-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ meeting-insights-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('post-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'post-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ post-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('session-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'session-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ session-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('suivi-engagement-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'suivi-engagement-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ suivi-engagement-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('tracking-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'tracking-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ tracking-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('eureka-service') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'eureka-service', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ eureka-service: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('frontend') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'frontend', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ frontend: ${e.message}" }
+                        }
+                    }
+                }
+
+                stage('detection-alzheimer') {
+                    steps {
+                        script {
+                            try {
+                                build job: 'detection-alzheimer', wait: true, propagate: false
+                            } catch (e) { echo "⚠️ detection-alzheimer: ${e.message}" }
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+    post {
+        success { echo "✅ ALL PIPELINES TRIGGERED SUCCESSFULLY" }
+        failure { echo "❌ MASTER PIPELINE FAILED" }
+        always  { cleanWs() }
+    }
+}

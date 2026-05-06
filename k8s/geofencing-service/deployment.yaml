@@ -13,6 +13,13 @@ spec:
       labels:
         app: geofencing-service
     spec:
+      initContainers:
+        - name: wait-for-eureka
+          image: busybox:1.35
+          command: ['sh', '-c', 'until wget -qO- http://eureka-server:8761/actuator/health 2>/dev/null | grep -q UP; do echo waiting for eureka; sleep 5; done; echo eureka is ready']
+        - name: wait-for-mysql
+          image: busybox:1.35
+          command: ['sh', '-c', 'until nc -z mysql 3306; do echo waiting for mysql; sleep 5; done; echo mysql is ready']
       containers:
         - name: geofencing-service
           image: didou2505/fakarni-geofencing-service:latest
@@ -21,6 +28,8 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "docker"
+            - name: JAVA_OPTS
+              value: "-Xms64m -Xmx192m -XX:+UseContainerSupport -XX:MaxRAMPercentage=60.0"
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               valueFrom:
                 configMapKeyRef:
@@ -62,7 +71,7 @@ spec:
                   key: TWILIO_FROM_NUMBER
           resources:
             requests:
-              memory: "256Mi"
+              memory: "128Mi"
               cpu: "100m"
             limits:
               memory: "512Mi"
@@ -80,3 +89,10 @@ spec:
     - port: 9012
       targetPort: 9012
   type: ClusterIP
+
+
+
+
+
+
+

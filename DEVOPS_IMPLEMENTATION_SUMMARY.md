@@ -123,7 +123,7 @@ Fakarni_App/
    ↓
 5. SonarQube Analysis → Quality Gate
    ↓
-6. Docker Build → Push to Docker Hub (nohamedrayen/service-name)
+6. Docker Build → Push to Docker Hub (didou2505/service-name)
    ↓
 7. Trigger Pipeline CD
    ↓
@@ -148,7 +148,7 @@ pipeline {
     environment {
         SERVICE_NAME = 'user-service'
         SERVICE_PATH = 'backend/User-Service'
-        DOCKER_IMAGE = "nohamedrayen/${SERVICE_NAME}"
+        DOCKER_IMAGE = "didou2505/${SERVICE_NAME}"
         GIT_REPO = 'https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git'
     }
     stages {
@@ -172,7 +172,7 @@ pipeline {
     agent any
     environment {
         SERVICE_NAME = 'user-service'
-        DOCKER_IMAGE = "nohamedrayen/${SERVICE_NAME}"
+        DOCKER_IMAGE = "didou2505/${SERVICE_NAME}"
     }
     stages {
         stage('Pull Latest Image') { ... }
@@ -253,7 +253,7 @@ git push origin main
 - **CI/CD**: Jenkins 2.555.1
 - **Quality**: SonarQube 10-community
 - **Containers**: Docker + Docker Compose
-- **Registry**: Docker Hub (nohamedrayen)
+- **Registry**: Docker Hub (didou2505)
 - **VCS**: GitHub
 
 ---

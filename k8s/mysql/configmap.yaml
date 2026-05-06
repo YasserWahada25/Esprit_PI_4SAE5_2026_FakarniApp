@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-scripts
+  namespace: fakarni
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS activite_educative_db;
+    CREATE DATABASE IF NOT EXISTS detection_maladie_db;
+    CREATE DATABASE IF NOT EXISTS dossier_medical_db;
+    CREATE DATABASE IF NOT EXISTS EventFakerni;
+    CREATE DATABASE IF NOT EXISTS geofencing_db;
+    CREATE DATABASE IF NOT EXISTS group_db;
+    CREATE DATABASE IF NOT EXISTS post_service_db;
+    CREATE DATABASE IF NOT EXISTS alzheimer_session_db;
+    CREATE DATABASE IF NOT EXISTS suivi_engagement_db;
+    CREATE DATABASE IF NOT EXISTS tracking_db;
