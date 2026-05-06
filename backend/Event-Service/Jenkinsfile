@@ -1,51 +1,40 @@
-pipeline {
+﻿pipeline {
     agent any
-    
+
     tools {
         maven 'Maven-3.9'
         jdk 'JDK-21'
     }
-    
+
     environment {
-        SERVICE_NAME = 'Event-Service'
-        SERVICE_PATH = 'backend/Event-Service'
-        DOCKER_IMAGE = 'didou2505/fakarni-event-service'
-        DOCKER_REGISTRY = 'https://registry.hub.docker.com'
-        SONAR_PROJECT_KEY = 'event-service'
-        GIT_REPO = 'https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git'
-        GIT_BRANCH = 'main'
+        SERVICE_NAME    = 'event-service'
+        SERVICE_PATH    = 'backend/Event-Service'
+        DOCKER_IMAGE    = 'didou2505/fakarni-event-service'
+        SONAR_KEY       = 'event-service'
+        GIT_REPO        = 'https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git'
+        GIT_BRANCH      = 'main'
     }
-    
+
     stages {
+
         stage('📥 Checkout') {
             steps {
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                echo "🔄 Cloning repository..."
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 git branch: "${GIT_BRANCH}",
                     credentialsId: 'github-credentials',
                     url: "${GIT_REPO}"
-                echo "✅ Repository cloned"
             }
         }
-        
+
         stage('🔨 Build') {
             steps {
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                echo "🔨 Building ${SERVICE_NAME}..."
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 dir("${SERVICE_PATH}") {
                     sh 'mvn clean compile -DskipTests'
                 }
-                echo "✅ Build completed"
             }
         }
-        
+
         stage('🧪 Test') {
             steps {
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                echo "🧪 Running tests with JaCoCo..."
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 dir("${SERVICE_PATH}") {
                     sh 'mvn test'
                 }
@@ -61,93 +50,77 @@ pipeline {
                 }
             }
         }
-        
+
         stage('📊 SonarQube') {
             steps {
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                echo "📊 Running SonarQube analysis..."
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 dir("${SERVICE_PATH}") {
                     withSonarQubeEnv('SonarQube') {
-                        sh '''
+                        sh """
                             mvn sonar:sonar \
-                                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                                -Dsonar.projectName='${SERVICE_NAME}' \
+                                -Dsonar.projectKey=${SONAR_KEY} \
+                                -Dsonar.projectName=${SERVICE_NAME} \
                                 -Dsonar.java.binaries=target/classes \
                                 -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                        '''
+                        """
                     }
                 }
-                echo "✅ SonarQube completed"
             }
         }
-        
+
         stage('📦 Package') {
             steps {
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                echo "📦 Packaging JAR..."
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 dir("${SERVICE_PATH}") {
                     sh 'mvn package -DskipTests'
                 }
-                echo "✅ JAR created"
             }
         }
-        
+
         stage('🐳 Docker Build') {
             steps {
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                echo "🐳 Building Docker image..."
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 dir("${SERVICE_PATH}") {
-                    script {
-                        sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} ."
-                        sh "docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest"
-                        echo "✅ Image built: ${DOCKER_IMAGE}:${BUILD_NUMBER}"
-                    }
+                    sh """
+                        docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} .
+                        docker tag  ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest
+                    """
                 }
             }
         }
-        
+
         stage('📤 Docker Push') {
             steps {
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                echo "📤 Pushing to Docker Hub..."
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                script {
-                    docker.withRegistry("${DOCKER_REGISTRY}", 'dockerhub-credentials') {
-                        sh "docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}"
-                        sh "docker push ${DOCKER_IMAGE}:latest"
-                    }
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_TOKEN'
+                )]) {
+                    sh """
+                        echo "\$DOCKER_TOKEN" | docker login -u "\$DOCKER_USER" --password-stdin
+                        docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                        docker push ${DOCKER_IMAGE}:latest
+                        docker logout
+                    """
                 }
-                echo "✅ Image pushed"
             }
         }
-        
+
         stage('🚀 Trigger CD') {
             steps {
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                echo "🚀 Triggering CD Pipeline..."
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                build job: 'event-service-CD', 
-                      parameters: [
-                          string(name: 'IMAGE_TAG', value: "${BUILD_NUMBER}")
-                      ],
-                      wait: false
-                echo "✅ CD triggered"
+                script {
+                    try {
+                        build job: "${SERVICE_NAME}-CD",
+                              parameters: [string(name: 'IMAGE_TAG', value: "${BUILD_NUMBER}")],
+                              wait: false
+                    } catch (Exception e) {
+                        echo "⚠️ CD job '${SERVICE_NAME}-CD' not found yet — skipping."
+                    }
+                }
             }
         }
     }
-    
+
     post {
-        success {
-            echo "✅ CI PIPELINE SUCCESS - Build #${BUILD_NUMBER}"
-        }
-        failure {
-            echo "❌ CI PIPELINE FAILED"
-        }
-        always {
-            cleanWs()
-        }
+        success { echo "✅ CI SUCCESS — ${SERVICE_NAME}:${BUILD_NUMBER}" }
+        failure { echo "❌ CI FAILED  — ${SERVICE_NAME}:${BUILD_NUMBER}" }
+        always  { cleanWs() }
     }
 }
