@@ -9,7 +9,7 @@ pipeline {
         SERVICE_NAME = 'Geofencing-Service'
         CONTAINER_NAME = 'fakarni_geofencing_service'
         SERVICE_PORT = '9012'
-        DOCKER_IMAGE = 'nohamedrayen/fakarni-geofencing-service'
+        DOCKER_IMAGE = 'didou2505/fakarni-geofencing-service'
         DOCKER_NETWORK = 'fakarni-net'
         SPRING_PROFILE = 'docker'
         EUREKA_URL = 'http://eureka-server:8761/eureka/'

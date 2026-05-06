@@ -9,7 +9,7 @@ pipeline {
         SERVICE_NAME = 'Tracking-Service'
         CONTAINER_NAME = 'fakarni_tracking_service'
         SERVICE_PORT = '9011'
-        DOCKER_IMAGE = 'nohamedrayen/fakarni-tracking-service'
+        DOCKER_IMAGE = 'didou2505/fakarni-tracking-service'
         DOCKER_NETWORK = 'fakarni-net'
         SPRING_PROFILE = 'docker'
         EUREKA_URL = 'http://eureka-server:8761/eureka/'

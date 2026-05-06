@@ -9,7 +9,7 @@ pipeline {
         SERVICE_NAME = 'Paiement-Service'
         CONTAINER_NAME = 'fakarni_paiement_service'
         SERVICE_PORT = '8087'
-        DOCKER_IMAGE = 'nohamedrayen/fakarni-paiement-service'
+        DOCKER_IMAGE = 'didou2505/fakarni-paiement-service'
         DOCKER_NETWORK = 'fakarni-net'
         SPRING_PROFILE = 'docker'
         EUREKA_URL = 'http://eureka-server:8761/eureka/'

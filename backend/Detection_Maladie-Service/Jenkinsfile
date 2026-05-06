@@ -9,7 +9,7 @@ pipeline {
     environment {
         SERVICE_NAME = 'Detection-Maladie-Service'
         SERVICE_PATH = 'backend/Detection_Maladie-Service'
-        DOCKER_IMAGE = 'nohamedrayen/fakarni-detection-maladie-service'
+        DOCKER_IMAGE = 'didou2505/fakarni-detection-maladie-service'
         DOCKER_REGISTRY = 'https://registry.hub.docker.com'
         SONAR_PROJECT_KEY = 'detection-maladie-service'
         GIT_REPO = 'https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git'

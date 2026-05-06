@@ -9,7 +9,7 @@ pipeline {
         SERVICE_NAME = 'Activite-Educative-Service'
         CONTAINER_NAME = 'fakarni_activite_educative_service'
         SERVICE_PORT = '8092'
-        DOCKER_IMAGE = 'nohamedrayen/fakarni-activite-educative-service'
+        DOCKER_IMAGE = 'didou2505/fakarni-activite-educative-service'
         DOCKER_NETWORK = 'fakarni-net'
         SPRING_PROFILE = 'docker'
         EUREKA_URL = 'http://eureka-server:8761/eureka/'

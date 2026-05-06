@@ -9,7 +9,7 @@ pipeline {
         SERVICE_NAME = 'Event-Service'
         CONTAINER_NAME = 'fakarni_event_service'
         SERVICE_PORT = '8086'
-        DOCKER_IMAGE = 'nohamedrayen/fakarni-event-service'
+        DOCKER_IMAGE = 'didou2505/fakarni-event-service'
         DOCKER_NETWORK = 'fakarni-net'
         SPRING_PROFILE = 'docker'
         EUREKA_URL = 'http://eureka-server:8761/eureka/'
