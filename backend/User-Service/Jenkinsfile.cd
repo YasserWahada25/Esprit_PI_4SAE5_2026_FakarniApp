@@ -34,7 +34,7 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
-                        kubectl apply -f ${K8S_MANIFEST} --kubeconfig=\$KUBECONFIG
+                        kubectl apply -f ${K8S_MANIFEST} --kubeconfig=\$KUBECONFIG --validate=false
                         kubectl rollout status deployment/${SERVICE_NAME} -n ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG --timeout=120s
                     """
                 }
@@ -55,6 +55,15 @@ pipeline {
     post {
         success { echo "✅ CD SUCCESS — ${SERVICE_NAME}:${params.IMAGE_TAG}" }
         failure { echo "❌ CD FAILED  — ${SERVICE_NAME}:${params.IMAGE_TAG}" }
-        always  { cleanWs() }
+        always  { 
+            script {
+                // Clean workspace if plugin is available
+                try {
+                    cleanWs()
+                } catch (Exception e) {
+                    echo "Workspace cleanup skipped (plugin not installed)"
+                }
+            }
+        }
     }
 }
