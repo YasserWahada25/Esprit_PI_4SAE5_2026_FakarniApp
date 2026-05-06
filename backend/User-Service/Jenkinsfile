@@ -10,7 +10,6 @@ pipeline {
         SERVICE_NAME = 'User-Service'
         SERVICE_PATH = 'backend/User-Service'
         DOCKER_IMAGE = 'didou2505/fakarni-user-service'
-        DOCKER_REGISTRY = 'https://registry.hub.docker.com'
         SONAR_PROJECT_KEY = 'user-service'
         GIT_REPO = 'https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git'
         GIT_BRANCH = 'main'
@@ -114,30 +113,17 @@ pipeline {
                 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 echo "📤 Pushing to Docker Hub..."
                 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                script {
-                    // Test Docker Hub connectivity
-                    sh 'curl -I https://hub.docker.com/ || echo "Warning: Cannot reach Docker Hub"'
-                    
-                    docker.withRegistry("${DOCKER_REGISTRY}", 'dockerhub-credentials') {
-                        echo "Pushing build number: ${BUILD_NUMBER}"
-                        retry(3) {
-                            timeout(time: 10, unit: 'MINUTES') {
-                                sh """
-                                    echo "Attempting to push ${DOCKER_IMAGE}:${BUILD_NUMBER}"
-                                    docker push ${DOCKER_IMAGE}:${BUILD_NUMBER} || exit 1
-                                """
-                            }
-                        }
-                        echo "Pushing latest tag"
-                        retry(3) {
-                            timeout(time: 10, unit: 'MINUTES') {
-                                sh """
-                                    echo "Attempting to push ${DOCKER_IMAGE}:latest"
-                                    docker push ${DOCKER_IMAGE}:latest || exit 1
-                                """
-                            }
-                        }
-                    }
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_TOKEN'
+                )]) {
+                    sh """
+                        echo "\$DOCKER_TOKEN" | docker login -u "\$DOCKER_USER" --password-stdin
+                        docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                        docker push ${DOCKER_IMAGE}:latest
+                        docker logout
+                    """
                 }
                 echo "✅ Image pushed"
             }
