@@ -115,9 +115,28 @@ pipeline {
                 echo "📤 Pushing to Docker Hub..."
                 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 script {
+                    // Test Docker Hub connectivity
+                    sh 'curl -I https://hub.docker.com/ || echo "Warning: Cannot reach Docker Hub"'
+                    
                     docker.withRegistry("${DOCKER_REGISTRY}", 'dockerhub-credentials') {
-                        sh "docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}"
-                        sh "docker push ${DOCKER_IMAGE}:latest"
+                        echo "Pushing build number: ${BUILD_NUMBER}"
+                        retry(3) {
+                            timeout(time: 10, unit: 'MINUTES') {
+                                sh """
+                                    echo "Attempting to push ${DOCKER_IMAGE}:${BUILD_NUMBER}"
+                                    docker push ${DOCKER_IMAGE}:${BUILD_NUMBER} || exit 1
+                                """
+                            }
+                        }
+                        echo "Pushing latest tag"
+                        retry(3) {
+                            timeout(time: 10, unit: 'MINUTES') {
+                                sh """
+                                    echo "Attempting to push ${DOCKER_IMAGE}:latest"
+                                    docker push ${DOCKER_IMAGE}:latest || exit 1
+                                """
+                            }
+                        }
                     }
                 }
                 echo "✅ Image pushed"
