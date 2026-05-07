@@ -1,10 +1,10 @@
 ﻿pipeline {
     agent any
     environment {
-        SERVICE_NAME    = 'event-service'
-        DOCKER_IMAGE    = 'didou2505/fakarni-event-service'
+        SERVICE_NAME    = 'video-service'
+        DOCKER_IMAGE    = 'didou2505/fakarni-video-service'
         K8S_NAMESPACE   = 'fakarni'
-        K8S_MANIFEST    = 'k8s/event-service/deployment.yaml'
+        K8S_MANIFEST    = 'k8s/video-service/deployment.yaml'
     }
     parameters {
         string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Docker image tag to deploy')
