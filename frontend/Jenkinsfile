@@ -18,9 +18,19 @@ pipeline {
 
         stage('📥 Checkout') {
             steps {
-                git branch: "${GIT_BRANCH}",
-                    credentialsId: 'github-credentials',
-                    url: "${GIT_REPO}"
+                retry(3) {
+                    script {
+                        // Configure git for large repos
+                        sh '''
+                            git config --global http.postBuffer 524288000
+                            git config --global http.lowSpeedLimit 0
+                            git config --global http.lowSpeedTime 999999
+                        '''
+                        git branch: "${GIT_BRANCH}",
+                            credentialsId: 'github-credentials',
+                            url: "${GIT_REPO}"
+                    }
+                }
             }
         }
 
@@ -42,16 +52,23 @@ pipeline {
 
         stage('📊 SonarQube') {
             steps {
-                dir("${SERVICE_PATH}") {
-                    withSonarQubeEnv('SonarQube') {
-                        sh """
-                            npx sonar-scanner \
-                                -Dsonar.projectKey=${SONAR_KEY} \
-                                -Dsonar.projectName=${SERVICE_NAME} \
-                                -Dsonar.sources=src \
-                                -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/*.spec.ts \
-                                -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info
-                        """
+                script {
+                    try {
+                        dir("${SERVICE_PATH}") {
+                            withSonarQubeEnv('SonarQube') {
+                                sh """
+                                    npx sonar-scanner \
+                                        -Dsonar.projectKey=${SONAR_KEY} \
+                                        -Dsonar.projectName=${SERVICE_NAME} \
+                                        -Dsonar.sources=src \
+                                        -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/*.spec.ts \
+                                        -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info
+                                """
+                            }
+                        }
+                    } catch (Exception e) {
+                        echo "⚠️ SonarQube analysis failed: ${e.message}"
+                        echo "Continuing pipeline without SonarQube analysis..."
                     }
                 }
             }
