@@ -35,7 +35,7 @@ pipeline {
                             kubectl apply -f k8s/secrets.yaml --kubeconfig=\$KUBECONFIG || echo "Secrets exist"
                             kubectl apply -f ${K8S_MANIFEST} --kubeconfig=\$KUBECONFIG
                         """
-                        def rolloutStatus = sh(script: "kubectl rollout status deployment/${SERVICE_NAME} -n ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG --timeout=120s", returnStatus: true)
+                        def rolloutStatus = sh(script: "kubectl rollout status deployment/${SERVICE_NAME} -n ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG --timeout=300s", returnStatus: true)
                         if (rolloutStatus != 0) {
                             echo "⚠️ Rollout failed."
                             sh """

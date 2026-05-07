@@ -47,7 +47,7 @@ pipeline {
                         """
                         
                         def rolloutStatus = sh(
-                            script: "kubectl rollout status deployment/${SERVICE_NAME} -n ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG --timeout=120s",
+                            script: "kubectl rollout status deployment/${SERVICE_NAME} -n ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG --timeout=300s",
                             returnStatus: true
                         )
                         
