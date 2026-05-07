@@ -33,10 +33,25 @@ pipeline {
         stage('🚀 Deploy to Kubernetes') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh """
-                        kubectl apply -f ${K8S_MANIFEST} --kubeconfig=\$KUBECONFIG
-                        kubectl rollout status deployment/${SERVICE_NAME} -n ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG --timeout=120s
-                    """
+                    script {
+                        def kubectlTest = sh(script: "kubectl cluster-info --kubeconfig=\$KUBECONFIG", returnStatus: true)
+                        if (kubectlTest != 0) { error("❌ Cannot connect to Kubernetes cluster.") }
+                        
+                        sh """
+                            kubectl get namespace ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG || kubectl create namespace ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG
+                            kubectl apply -f ${K8S_MANIFEST} --kubeconfig=\$KUBECONFIG
+                        """
+                        
+                        def rolloutStatus = sh(script: "kubectl rollout status deployment/${SERVICE_NAME} -n ${K8S_NAMESPACE} --kubeconfig=\$KUBECONFIG --timeout=120s", returnStatus: true)
+                        if (rolloutStatus != 0) {
+                            echo "⚠️ Rollout failed."
+                            sh """
+                                kubectl get pods -n ${K8S_NAMESPACE} -l app=${SERVICE_NAME} --kubeconfig=\$KUBECONFIG
+                                kubectl logs -n ${K8S_NAMESPACE} -l app=${SERVICE_NAME} --tail=50 --kubeconfig=\$KUBECONFIG || echo "No logs"
+                            """
+                            error("Deployment failed.")
+                        }
+                    }
                 }
             }
         }
@@ -55,6 +70,6 @@ pipeline {
     post {
         success { echo "✅ CD SUCCESS — ${SERVICE_NAME}:${params.IMAGE_TAG}" }
         failure { echo "❌ CD FAILED  — ${SERVICE_NAME}:${params.IMAGE_TAG}" }
-        always  { cleanWs() }
+        always  { deleteDir() }
     }
 }
