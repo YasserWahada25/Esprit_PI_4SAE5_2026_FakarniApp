@@ -17,6 +17,10 @@ spec:
         - name: wait-for-eureka
           image: busybox:1.35
           command: ['sh', '-c', 'until wget -qO- http://eureka-server:8761/actuator/health 2>/dev/null | grep -q UP; do echo waiting for eureka; sleep 5; done; echo eureka is ready']
+          # Add timeout to prevent infinite waiting
+          env:
+            - name: TIMEOUT
+              value: "60"
       containers:
         - name: user-service
           image: didou2505/fakarni-user-service:latest
