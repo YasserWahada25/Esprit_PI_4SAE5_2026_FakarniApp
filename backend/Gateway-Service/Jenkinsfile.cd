@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SERVICE_NAME    = 'gateway-service'
+        SERVICE_NAME    = 'api-gateway'
         DOCKER_IMAGE    = 'didou2505/fakarni-gateway-service'
         K8S_NAMESPACE   = 'fakarni'
         K8S_MANIFEST    = 'k8s/gateway/deployment.yaml'
