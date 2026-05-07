@@ -1,4 +1,4 @@
-﻿pipeline {
+pipeline {
     agent any
     environment {
         SERVICE_NAME    = 'dossier-medical-service'
@@ -10,25 +10,25 @@
         string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Docker image tag to deploy')
     }
     stages {
-        stage('ðŸ“¥ Checkout') {
+        stage('📥 Checkout') {
             steps {
                 git branch: 'main', credentialsId: 'github-credentials',
                     url: 'https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git'
             }
         }
-        stage('ðŸ”„ Update Image Tag') {
+        stage('🔄 Update Image Tag') {
             steps {
-                sh ""
+                sh """
                     sed -i 's|${DOCKER_IMAGE}:.*|${DOCKER_IMAGE}:${params.IMAGE_TAG}|g' ${K8S_MANIFEST}
-                ""
+                """
             }
         }
-        stage('ðŸš€ Deploy to Kubernetes') {
+        stage('🚀 Deploy to Kubernetes') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     script {
                         def kubectlTest = sh(script: "kubectl cluster-info --kubeconfig=$KUBECONFIG", returnStatus: true)
-                        if (kubectlTest != 0) { error("âŒ Cannot connect to Kubernetes cluster.") }
+                        if (kubectlTest != 0) { error("❌ Cannot connect to Kubernetes cluster.") }
                         sh ""
                             kubectl get namespace ${K8S_NAMESPACE} --kubeconfig=$KUBECONFIG || kubectl create namespace ${K8S_NAMESPACE} --kubeconfig=$KUBECONFIG
                             kubectl apply -f k8s/configmap.yaml --kubeconfig=$KUBECONFIG || echo "ConfigMap exists"
@@ -37,7 +37,7 @@
                         ""
                         def rolloutStatus = sh(script: "kubectl rollout status deployment/${SERVICE_NAME} -n ${K8S_NAMESPACE} --kubeconfig=$KUBECONFIG --timeout=300s", returnStatus: true)
                         if (rolloutStatus != 0) {
-                            echo "âš ï¸ Rollout failed."
+                            echo "⚠️ Rollout failed."
                             sh ""
                                 kubectl get pods -n ${K8S_NAMESPACE} -l app=${SERVICE_NAME} --kubeconfig=$KUBECONFIG
                                 kubectl logs -n ${K8S_NAMESPACE} -l app=${SERVICE_NAME} --tail=50 --kubeconfig=$KUBECONFIG || echo "No logs"
@@ -48,7 +48,7 @@
                 }
             }
         }
-        stage('âœ… Verify') {
+        stage('✅ Verify') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh "kubectl get pods -n ${K8S_NAMESPACE} -l app=${SERVICE_NAME} --kubeconfig=$KUBECONFIG"
@@ -57,8 +57,8 @@
         }
     }
     post {
-        success { echo "âœ… CD SUCCESS â€” ${SERVICE_NAME}:${params.IMAGE_TAG}" }
-        failure { echo "âŒ CD FAILED  â€” ${SERVICE_NAME}:${params.IMAGE_TAG}" }
+        success { echo "✅ CD SUCCESS — ${SERVICE_NAME}:${params.IMAGE_TAG}" }
+        failure { echo "❌ CD FAILED  — ${SERVICE_NAME}:${params.IMAGE_TAG}" }
         always  { deleteDir() }
     }
 }
