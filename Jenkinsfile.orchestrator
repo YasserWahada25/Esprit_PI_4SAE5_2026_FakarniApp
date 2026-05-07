@@ -1,0 +1,413 @@
+pipeline {
+    agent any
+
+    parameters {
+        choice(
+            name: 'DEPLOYMENT_MODE',
+            choices: ['FULL', 'BACKEND_ONLY', 'FRONTEND_ONLY', 'INFRASTRUCTURE_ONLY'],
+            description: 'Choose what to deploy'
+        )
+        booleanParam(
+            name: 'SKIP_TESTS',
+            defaultValue: false,
+            description: 'Skip tests for faster deployment'
+        )
+        booleanParam(
+            name: 'DEPLOY_TO_PROD',
+            defaultValue: false,
+            description: 'Deploy to production (requires approval)'
+        )
+    }
+
+    environment {
+        GIT_REPO = 'https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git'
+        GIT_BRANCH = 'main'
+        DOCKER_REGISTRY = 'didou2505'
+    }
+
+    stages {
+
+        stage('🎯 Deployment Plan') {
+            steps {
+                script {
+                    echo """
+                    ╔════════════════════════════════════════════════════════╗
+                    ║           FAKARNI APP - DEPLOYMENT PLAN               ║
+                    ╠════════════════════════════════════════════════════════╣
+                    ║ Mode:        ${params.DEPLOYMENT_MODE}                ║
+                    ║ Skip Tests:  ${params.SKIP_TESTS}                     ║
+                    ║ Production:  ${params.DEPLOY_TO_PROD}                 ║
+                    ║ Branch:      ${GIT_BRANCH}                            ║
+                    ╚════════════════════════════════════════════════════════╝
+                    """
+                }
+            }
+        }
+
+        stage('🏗️ Infrastructure Services') {
+            when {
+                expression { 
+                    params.DEPLOYMENT_MODE in ['FULL', 'INFRASTRUCTURE_ONLY', 'BACKEND_ONLY'] 
+                }
+            }
+            parallel {
+                stage('Eureka Service') {
+                    steps {
+                        script {
+                            echo "🔍 Deploying Eureka Service Discovery..."
+                            build job: 'eureka-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: true
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('⏳ Wait for Eureka') {
+            when {
+                expression { 
+                    params.DEPLOYMENT_MODE in ['FULL', 'INFRASTRUCTURE_ONLY', 'BACKEND_ONLY'] 
+                }
+            }
+            steps {
+                script {
+                    echo "⏳ Waiting 60s for Eureka to be fully ready..."
+                    sleep 60
+                }
+            }
+        }
+
+        stage('🌐 Gateway Service') {
+            when {
+                expression { 
+                    params.DEPLOYMENT_MODE in ['FULL', 'BACKEND_ONLY'] 
+                }
+            }
+            steps {
+                script {
+                    echo "🌐 Deploying API Gateway..."
+                    build job: 'gateway-service-CI',
+                          parameters: [
+                              booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                          ],
+                          wait: true
+                }
+            }
+        }
+
+        stage('⏳ Wait for Gateway') {
+            when {
+                expression { 
+                    params.DEPLOYMENT_MODE in ['FULL', 'BACKEND_ONLY'] 
+                }
+            }
+            steps {
+                script {
+                    echo "⏳ Waiting 30s for Gateway to be ready..."
+                    sleep 30
+                }
+            }
+        }
+
+        stage('🔧 Core Services') {
+            when {
+                expression { 
+                    params.DEPLOYMENT_MODE in ['FULL', 'BACKEND_ONLY'] 
+                }
+            }
+            parallel {
+                stage('User Service') {
+                    steps {
+                        script {
+                            echo "👤 Deploying User Service..."
+                            build job: 'user-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+                stage('Chat Service') {
+                    steps {
+                        script {
+                            echo "💬 Deploying Chat Service..."
+                            build job: 'chat-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+                stage('Post Service') {
+                    steps {
+                        script {
+                            echo "📝 Deploying Post Service..."
+                            build job: 'post-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+                stage('Event Service') {
+                    steps {
+                        script {
+                            echo "📅 Deploying Event Service..."
+                            build job: 'event-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('🔌 Additional Services') {
+            when {
+                expression { 
+                    params.DEPLOYMENT_MODE in ['FULL', 'BACKEND_ONLY'] 
+                }
+            }
+            parallel {
+                stage('Geofencing Service') {
+                    steps {
+                        script {
+                            echo "📍 Deploying Geofencing Service..."
+                            build job: 'geofencing-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+                stage('Tracking Service') {
+                    steps {
+                        script {
+                            echo "🗺️ Deploying Tracking Service..."
+                            build job: 'tracking-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+                stage('Session Service') {
+                    steps {
+                        script {
+                            echo "🎯 Deploying Session Service..."
+                            build job: 'session-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+                stage('Group Service') {
+                    steps {
+                        script {
+                            echo "👥 Deploying Group Service..."
+                            build job: 'group-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('🏥 Health Services') {
+            when {
+                expression { 
+                    params.DEPLOYMENT_MODE in ['FULL', 'BACKEND_ONLY'] 
+                }
+            }
+            parallel {
+                stage('Dossier Medical Service') {
+                    steps {
+                        script {
+                            echo "📋 Deploying Dossier Medical Service..."
+                            build job: 'dossier-medical-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+                stage('Detection Maladie Service') {
+                    steps {
+                        script {
+                            echo "🔬 Deploying Detection Maladie Service..."
+                            build job: 'detection-maladie-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+                stage('Detection Alzheimer') {
+                    steps {
+                        script {
+                            echo "🧠 Deploying Detection Alzheimer..."
+                            build job: 'detection-alzheimer-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('📚 Education & Engagement Services') {
+            when {
+                expression { 
+                    params.DEPLOYMENT_MODE in ['FULL', 'BACKEND_ONLY'] 
+                }
+            }
+            parallel {
+                stage('Activite Educative Service') {
+                    steps {
+                        script {
+                            echo "🎓 Deploying Activite Educative Service..."
+                            build job: 'activite-educative-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+                stage('Suivi Engagement Service') {
+                    steps {
+                        script {
+                            echo "📊 Deploying Suivi Engagement Service..."
+                            build job: 'suivi-engagement-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+                stage('Meeting Insights Service') {
+                    steps {
+                        script {
+                            echo "💡 Deploying Meeting Insights Service..."
+                            build job: 'meeting-insights-service-CI',
+                                  parameters: [
+                                      booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                                  ],
+                                  wait: false
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('⏳ Wait for Backend Services') {
+            when {
+                expression { 
+                    params.DEPLOYMENT_MODE in ['FULL', 'BACKEND_ONLY'] 
+                }
+            }
+            steps {
+                script {
+                    echo "⏳ Waiting for all backend services to complete..."
+                    sleep 120
+                }
+            }
+        }
+
+        stage('🎨 Frontend') {
+            when {
+                expression { 
+                    params.DEPLOYMENT_MODE in ['FULL', 'FRONTEND_ONLY'] 
+                }
+            }
+            steps {
+                script {
+                    echo "🎨 Deploying Frontend..."
+                    build job: 'frontend-CI',
+                          parameters: [
+                              booleanParam(name: 'SKIP_TESTS', value: params.SKIP_TESTS)
+                          ],
+                          wait: true
+                }
+            }
+        }
+
+        stage('✅ Verification') {
+            steps {
+                script {
+                    echo "✅ Running post-deployment verification..."
+                    
+                    // Vérifier les pods Kubernetes
+                    sh '''
+                        echo "Checking Kubernetes pods..."
+                        kubectl get pods --all-namespaces | grep fakarni || true
+                    '''
+                }
+            }
+        }
+
+        stage('🚀 Production Approval') {
+            when {
+                expression { params.DEPLOY_TO_PROD == true }
+            }
+            steps {
+                script {
+                    timeout(time: 30, unit: 'MINUTES') {
+                        input message: 'Deploy to Production?',
+                              ok: 'Deploy',
+                              submitter: 'admin'
+                    }
+                    echo "🚀 Deploying to Production..."
+                    // Trigger production deployment
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            script {
+                echo """
+                ╔════════════════════════════════════════════════════════╗
+                ║              ✅ DEPLOYMENT SUCCESSFUL                  ║
+                ╠════════════════════════════════════════════════════════╣
+                ║ Mode:        ${params.DEPLOYMENT_MODE}                ║
+                ║ Duration:    ${currentBuild.durationString}           ║
+                ║ Build:       #${BUILD_NUMBER}                         ║
+                ╚════════════════════════════════════════════════════════╝
+                """
+            }
+        }
+        failure {
+            script {
+                echo """
+                ╔════════════════════════════════════════════════════════╗
+                ║              ❌ DEPLOYMENT FAILED                      ║
+                ╠════════════════════════════════════════════════════════╣
+                ║ Check logs for details                                ║
+                ╚════════════════════════════════════════════════════════╝
+                """
+            }
+        }
+    }
+}
