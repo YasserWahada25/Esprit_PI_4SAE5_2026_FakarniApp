@@ -21,7 +21,10 @@ pipeline {
             steps {
                 git branch: "${GIT_BRANCH}",
                     credentialsId: 'github-credentials',
-                    url: "${GIT_REPO}"
+                    url: "${GIT_REPO}",
+                    changelog: false,
+                    poll: false,
+                    depth: 1
             }
         }
 
