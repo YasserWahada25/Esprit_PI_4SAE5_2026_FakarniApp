@@ -19,12 +19,18 @@ pipeline {
 
         stage('📥 Checkout') {
             steps {
-                git branch: "${GIT_BRANCH}",
-                    credentialsId: 'github-credentials',
-                    url: "${GIT_REPO}",
-                    changelog: false,
-                    poll: false,
-                    depth: 1
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${GIT_BRANCH}"]],
+                    userRemoteConfigs: [[
+                        url: "${GIT_REPO}",
+                        credentialsId: 'github-credentials'
+                    ]],
+                    extensions: [
+                        [$class: 'CloneOption', depth: 1, shallow: true, noTags: true],
+                        [$class: 'CheckoutOption', timeout: 10]
+                    ]
+                ])
             }
         }
 
