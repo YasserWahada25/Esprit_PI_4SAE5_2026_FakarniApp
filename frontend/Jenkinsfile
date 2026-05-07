@@ -1,8 +1,9 @@
 pipeline {
-    agent any
-
-    tools {
-        nodejs 'NodeJS-20'
+    agent {
+        docker {
+            image 'node:20-bullseye'
+            args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+        }
     }
 
     environment {
@@ -26,9 +27,14 @@ pipeline {
                             git config --global http.lowSpeedLimit 0
                             git config --global http.lowSpeedTime 999999
                         '''
-                        git branch: "${GIT_BRANCH}",
-                            credentialsId: 'github-credentials',
-                            url: "${GIT_REPO}"
+                        checkout([
+                            $class: 'GitSCM',
+                            branches: [[name: "*/${GIT_BRANCH}"]],
+                            userRemoteConfigs: [[
+                                url: "${GIT_REPO}",
+                                credentialsId: 'github-credentials'
+                            ]]
+                        ])
                     }
                 }
             }
