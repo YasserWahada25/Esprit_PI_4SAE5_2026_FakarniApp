@@ -1,254 +1,161 @@
-# 🏥 Fakarni App - Plateforme de Santé Connectée
+# Fakarni – Connected Health Platform for Seniors
 
-## 📋 Description
+## Overview
 
-Fakarni est une plateforme complète de gestion de santé basée sur une architecture microservices, offrant des services de télémédecine, suivi médical, et détection de maladies par IA.
+This project was developed as part of the **PIDEV – 4th Year Engineering Program** at **Esprit School of Engineering** (Academic Year 2025–2026).
 
-## 🏗️ Architecture
+Fakarni is a comprehensive connected health platform designed specifically for elderly people and Alzheimer's patients. Built on a microservices architecture, it provides telemedicine services, medical monitoring, AI-powered disease detection, and family connectivity features to ensure safety, health, and social engagement for seniors.
 
-### Microservices Backend (15 services Spring Boot)
+## Features
 
-#### Infrastructure Services
-- **Eureka-Service** (Port 8762) - Service Discovery
-- **Gateway-Service** (Port 8090) - API Gateway & Routing
+- **Real-time GPS Tracking & Geofencing**: Monitor patient location with customizable safety zones and automatic alerts
+- **AI-Powered Alzheimer Detection**: Early detection through behavioral analysis using machine learning
+- **Electronic Medical Records**: Centralized and secure patient data management
+- **Telemedicine Integration**: Video consultations with healthcare providers
+- **Family Communication Hub**: Simplified chat interface and shared calendar for family coordination
+- **Cognitive Stimulation Activities**: Educational games and therapeutic exercises with progress tracking
+- **Support Groups**: Community forums for patients and caregivers
+- **Smart Medication Management**: Automated reminders and prescription tracking
+- **Emergency Alerts**: Instant SMS/Email notifications to family members
 
-#### Core Services
-- **User-Service** (Port 8081) - Gestion utilisateurs & authentification
-- **Chat-Service** (Port 8070) - Messagerie instantanée
-- **Dossier-Medical-service** (Port 8059) - Dossiers médicaux électroniques
+## Tech Stack
 
-#### Business Services
-- **Tracking-Service** (Port 9011) - Suivi géolocalisation temps réel
-- **Geofencing-Service** (Port 9012) - Zones géographiques & alertes
-- **Event-Service** (Port 8087) - Gestion événements médicaux
-- **Post-Service** (Port 8069) - Publications & actualités santé
-- **Detection-Maladie-Service** (Port 8058) - Détection maladies par IA
-- **activite-educative-service** (Port 8084) - Activités éducatives
-- **session-service** (Port 8071) - Gestion sessions thérapeutiques
-- **meeting-insights-service** (Port 8096) - Analyse réunions médicales
-- **suivi-engagement-service** (Port 8088) - Suivi engagement patients
-- **group-service** (Port 8097) - Gestion groupes de support
+### Frontend
+- Angular 18
+- TypeScript
+- Angular Material
+- Leaflet (Interactive Maps)
+- RxJS
 
-### Services Additionnels
+### Backend
+- Spring Boot 4.0 (15 Microservices)
+- Java 21
+- Spring Cloud (Eureka, Gateway)
+- MongoDB (Chat, Users)
+- MySQL 8.0 (Business Data)
+- Python 3.13 + Flask (ML Service)
 
-- **detection-alzheimer** - Service ML Python/Flask pour détection Alzheimer
-- **frontend** (Port 4200) - Application Angular
+### DevOps
+- Docker & Docker Compose
+- Kubernetes
+- Jenkins (CI/CD)
+- SonarQube
+- JaCoCo
+- Prometheus & Grafana
 
-### Infrastructure & DevOps
+## Architecture
 
-- **MongoDB** (Port 27018) - Base NoSQL (Chat, Users)
-- **MySQL** (Ports 3310-3319) - 10 bases relationnelles dédiées
-- **SonarQube** (Port 9000) - Analyse qualité du code
-- **Jenkins** (Port 8085) - CI/CD Automation
-- **Kubernetes** - Orchestration conteneurs (Docker Desktop)
-- **Docker Hub** - Registry images Docker
+### Microservices Architecture
 
-## 🚀 Démarrage Rapide
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Frontend (Angular)                    │
+└────────────────────────┬────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────┐
+│              API Gateway (Port 8090)                     │
+└────────────────────────┬────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────┐
+│          Eureka Service Discovery (Port 8762)            │
+└─────────────┬──────────────────────────┬─────────────────┘
+              │                          │
+    ┌─────────▼─────────┐      ┌────────▼──────────┐
+    │  Core Services    │      │ Business Services │
+    ├───────────────────┤      ├───────────────────┤
+    │ • User Service    │      │ • Tracking        │
+    │ • Chat Service    │      │ • Geofencing      │
+    │ • Medical Records │      │ • Activities      │
+    │ • Detection AI    │      │ • Events          │
+    └───────────────────┘      └───────────────────┘
+```
 
-### Prérequis
+### CI/CD Pipeline
 
-- **Docker Desktop** avec Kubernetes activé
-- **Java 21** (JDK)
-- **Maven 3.9+**
-- **Node.js 20+**
-- **Python 3.13+**
-- **Git**
+```
+GitHub → Jenkins CI → Docker Hub → Jenkins CD → Kubernetes
+           ↓
+       SonarQube
+```
 
-### Installation
+**Pipeline Stages:**
+1. Checkout from GitHub
+2. Build with Maven
+3. Run Tests + JaCoCo Coverage
+4. Code Quality Analysis (SonarQube)
+5. Package JAR
+6. Build Docker Image
+7. Push to Docker Hub
+8. Deploy to Kubernetes
+9. Verify Deployment
+
+## Contributors
+
+**Development Team - Esprit School of Engineering**
+
+- Project Lead & Backend Developer
+- Frontend Developer
+- DevOps Engineer
+- ML Engineer
+- Medical Advisor
+
+## Academic Context
+
+**Institution**: Esprit School of Engineering – Tunisia  
+**Program**: PIDEV – 4th Year Engineering (4SAE5)  
+**Academic Year**: 2025–2026  
+**Project Type**: Integrated Development Project  
+**Domain**: Healthcare Technology & Connected Health
+
+This project represents the culmination of our engineering studies, combining software architecture, artificial intelligence, DevOps practices, and healthcare domain knowledge to create a meaningful solution for elderly care.
+
+## Getting Started
+
+### Prerequisites
+
+- Docker Desktop with Kubernetes enabled
+- Java 21 (JDK)
+- Maven 3.9+
+- Node.js 20+
+- Python 3.13+
+- Git
+
+### Quick Start
 
 ```bash
-# 1. Cloner le repository
+# 1. Clone the repository
 git clone https://github.com/YasserWahada25/Esprit_PI_4SAE5_2026_FakarniApp.git
 cd Esprit_PI_4SAE5_2026_FakarniApp
 
-# 2. Configurer les variables d'environnement
+# 2. Configure environment variables
 cp .env.example .env
-# Éditer .env avec vos credentials
+# Edit .env with your credentials
 
-# 3. Démarrer l'infrastructure (bases de données + Jenkins)
-docker-compose --profile cicd up -d
+# 3. Start the application
+docker-compose up -d
 
-# 4. Vérifier le statut
-docker-compose ps
+# 4. Access the application
+# Frontend: http://localhost:4200
+# API Gateway: http://localhost:8090
+# Eureka Dashboard: http://localhost:8762
 ```
 
-### Accès aux Services
+### Development Setup
 
-| Service | URL | Credentials |
-|---------|-----|-------------|
-| Frontend | http://localhost:4200 | - |
-| API Gateway | http://localhost:8090 | - |
-| Eureka Dashboard | http://localhost:8762 | - |
-| Jenkins | http://localhost:8085 | admin / (voir logs) |
-| SonarQube | http://localhost:9000 | admin / admin |
-| PhpMyAdmin | http://localhost:8086 | root / root |
-| Mongo Express | http://localhost:8091 | admin / admin |
-| Adminer | http://localhost:8092 | root / root |
-
-## 🔄 DevOps & CI/CD
-
-### Architecture CI/CD
-
-```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌──────────────┐
-│   GitHub    │────▶│  Jenkins CI  │────▶│  Docker Hub │────▶│  Jenkins CD  │
-│  (Source)   │     │   (Build)    │     │  (Registry) │     │   (Deploy)   │
-└─────────────┘     └──────────────┘     └─────────────┘     └──────────────┘
-                            │                                         │
-                            ▼                                         ▼
-                    ┌──────────────┐                         ┌──────────────┐
-                    │  SonarQube   │                         │  Kubernetes  │
-                    │  (Quality)   │                         │  (Runtime)   │
-                    └──────────────┘                         └──────────────┘
-```
-
-### Pipelines Configurés
-
-#### CI Pipelines (15 services)
-Chaque service dispose d'un pipeline CI automatisé :
-
-**Stages CI** :
-1. 📥 **Checkout** - Clone du code depuis GitHub (shallow clone)
-2. 🔨 **Build** - Compilation Maven (`mvn clean compile`)
-3. 🧪 **Test** - Tests unitaires + JaCoCo coverage
-4. 📊 **SonarQube** - Analyse qualité (désactivé temporairement)
-5. 📦 **Package** - Création JAR (`mvn package`)
-6. 🐳 **Docker Build** - Build image Docker
-7. 📤 **Docker Push** - Push vers Docker Hub
-8. 🚀 **Trigger CD** - Déclenchement automatique du CD
-
-#### CD Pipelines (15 services)
-Déploiement automatique sur Kubernetes :
-
-**Stages CD** :
-1. 📥 **Checkout** - Récupération manifests K8s
-2. 🔄 **Update Image Tag** - Mise à jour tag Docker
-3. 🚀 **Deploy to Kubernetes** - Déploiement via kubectl
-4. ✅ **Verify** - Vérification pods Running
-
-### Ordre d'Exécution des Pipelines
-
-#### Phase 1 : Infrastructure (Séquentiel)
+**Backend Service:**
 ```bash
-1. eureka-service-CI     # Service Discovery - DOIT être premier
-2. gateway-service-CI    # API Gateway - Attend Eureka
-```
-
-#### Phase 2 : Core Services (Parallèle possible)
-```bash
-3. user-service-CI
-4. dossier-medical-service-CI
-5. chat-service-CI
-```
-
-#### Phase 3 : Business Services (Parallèle)
-```bash
-6-15. Tous les autres services peuvent être lancés en parallèle
-```
-
-### Commandes de Vérification
-
-```bash
-# Vérifier les pods Kubernetes
-kubectl get pods -n fakarni
-
-# Vérifier les services
-kubectl get svc -n fakarni
-
-# Logs d'un service
-kubectl logs -n fakarni -l app=eureka-server --tail=50
-
-# État du cluster
-kubectl cluster-info
-```
-
-## 🔧 Configuration
-
-### Variables d'Environnement (.env)
-
-```env
-# Mail Configuration
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
-MAIL_USERNAME_USER=your-email@gmail.com
-MAIL_PASSWORD_USER=your-app-password
-
-# OAuth2
-GOOGLE_CLIENT_ID=your-google-client-id
-FACEBOOK_APP_ID=your-facebook-app-id
-FACEBOOK_APP_SECRET=your-facebook-app-secret
-
-# Twilio (SMS)
-TWILIO_ACCOUNT_SID=your-twilio-sid
-TWILIO_AUTH_TOKEN=your-twilio-token
-TWILIO_FROM_NUMBER=your-twilio-number
-
-# Mailtrap
-MAILTRAP_USERNAME=your-mailtrap-username
-MAILTRAP_PASSWORD=your-mailtrap-password
-```
-
-**⚠️ Important** : Ne jamais commiter le fichier `.env` !
-
-### Jenkins Credentials
-
-Les credentials suivants doivent être configurés dans Jenkins :
-
-| ID | Type | Description |
-|----|------|-------------|
-| `github-credentials` | Username/Password | Token GitHub |
-| `dockerhub-credentials` | Username/Password | Docker Hub |
-| `kubeconfig` | Secret File | Kubeconfig Kubernetes |
-
-## 📊 Qualité du Code
-
-### Métriques
-
-- **JaCoCo Coverage** : Configuré sur tous les services
-- **SonarQube** : Analyse statique du code
-- **Tests Unitaires** : JUnit 5 + Mockito
-- **Tests d'Intégration** : Spring Boot Test
-
-### Exécuter les Tests
-
-```bash
-# Tests unitaires
-cd backend/User-Service
-mvn test
-
-# Tests avec coverage
-mvn clean test jacoco:report
-
-# Analyse SonarQube (si activé)
-mvn sonar:sonar \
-  -Dsonar.projectKey=user-service \
-  -Dsonar.host.url=http://localhost:9000
-```
-
-## 🛠️ Développement Local
-
-### Backend (Spring Boot)
-
-```bash
-# Démarrer un service
 cd backend/User-Service
 mvn spring-boot:run
-
-# Avec profil Docker
-mvn spring-boot:run -Dspring-boot.run.profiles=docker
 ```
 
-### Frontend (Angular)
-
+**Frontend:**
 ```bash
 cd frontend
 npm install
 npm start
-# Accès: http://localhost:4200
 ```
 
-### Service Python (ML)
-
+**ML Service:**
 ```bash
 cd detection-alzheimer/detection-alzheimer
 python -m venv venv
@@ -257,210 +164,50 @@ pip install -r requirements.txt
 python app.py
 ```
 
-## 🐳 Docker
-
-### Build Images
+### Running Tests
 
 ```bash
-# Build un service spécifique
-docker-compose build user-service
-
-# Build tous les services
-docker-compose build
-
-# Build avec cache désactivé
-docker-compose build --no-cache
-```
-
-### Gestion des Conteneurs
-
-```bash
-# Démarrer tous les services
-docker-compose up -d
-
-# Démarrer avec profil CI/CD
-docker-compose --profile cicd up -d
-
-# Arrêter tous les services
-docker-compose down
-
-# Voir les logs
-docker-compose logs -f user-service
-
-# Nettoyer les volumes
-docker-compose down -v
-```
-
-## ☸️ Kubernetes
-
-### Déploiement Manuel
-
-```bash
-# Créer le namespace
-kubectl create namespace fakarni
-
-# Appliquer les ConfigMaps et Secrets
-kubectl apply -f k8s/configmap.yaml
-kubectl apply -f k8s/secrets.yaml
-
-# Déployer un service
-kubectl apply -f k8s/user-service/deployment.yaml
-
-# Vérifier le déploiement
-kubectl get deployments -n fakarni
-kubectl get pods -n fakarni
-```
-
-### Monitoring
-
-```bash
-# Dashboard Kubernetes (si installé)
-kubectl proxy
-# Accès: http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
-
-# Métriques des pods
-kubectl top pods -n fakarni
-
-# Événements
-kubectl get events -n fakarni --sort-by='.lastTimestamp'
-```
-
-## 🔐 Sécurité
-
-### Authentification
-- **JWT** : Tokens pour API REST
-- **OAuth2** : Google & Facebook login
-- **Spring Security** : Protection endpoints
-
-### Secrets Management
-- **Jenkins Credentials** : Stockage sécurisé
-- **Kubernetes Secrets** : Secrets runtime
-- **Environment Variables** : Configuration sensible
-
-### Best Practices
-- Pas de secrets dans le code
-- HTTPS en production
-- Rate limiting sur Gateway
-- Input validation
-- CORS configuré
-
-## 📝 Documentation API
-
-### Swagger UI
-
-Chaque microservice expose sa documentation Swagger :
-
-- User Service: http://localhost:8081/swagger-ui.html
-- Gateway: http://localhost:8090/swagger-ui.html
-- Etc.
-
-### Endpoints Principaux
-
-#### User Service
-```
-POST   /api/users/register
-POST   /api/users/login
-GET    /api/users/profile
-PUT    /api/users/profile
-```
-
-#### Chat Service
-```
-GET    /api/chat/conversations
-POST   /api/chat/messages
-WS     /ws/chat
-```
-
-## 🧪 Tests
-
-### Structure des Tests
-
-```
-src/
-├── main/java/
-└── test/java/
-    ├── unit/          # Tests unitaires
-    ├── integration/   # Tests d'intégration
-    └── e2e/          # Tests end-to-end
-```
-
-### Exécution
-
-```bash
-# Tests unitaires uniquement
+# Unit tests
 mvn test
 
-# Tests d'intégration
-mvn verify
-
-# Avec coverage
+# Tests with coverage
 mvn clean test jacoco:report
 
-# Rapport dans: target/site/jacoco/index.html
+# View coverage report
+# Open: backend/User-Service/target/site/jacoco/index.html
 ```
 
-## 📦 Structure du Projet
+### Kubernetes Deployment
 
-```
-Fakarni_App/
-├── backend/                    # Microservices Spring Boot
-│   ├── Eureka-Service/        # Service Discovery
-│   ├── Gateway-Service/       # API Gateway
-│   ├── User-Service/          # Gestion utilisateurs
-│   └── .../                   # Autres services
-├── frontend/                   # Application Angular
-├── detection-alzheimer/        # Service ML Python
-├── k8s/                       # Manifests Kubernetes
-│   ├── configmap.yaml
-│   ├── secrets.yaml
-│   ├── eureka/
-│   ├── gateway/
-│   └── .../
-├── docker-compose.yml         # Orchestration Docker
-├── .env.example              # Template environnement
-├── .gitignore
-└── README.md
-```
-
-## 👥 Équipe
-
-**Projet Académique - ESPRIT 4SAE5**  
-Année Universitaire : 2025-2026
-
-## 📄 Licence
-
-Ce projet est développé dans un cadre académique à des fins éducatives.
-
-## 🆘 Support & Contribution
-
-### Problèmes Courants
-
-**Jenkins ne démarre pas** :
 ```bash
-docker-compose logs jenkins
-docker-compose restart jenkins
+# Deploy to Kubernetes
+kubectl apply -f k8s/ --recursive
+
+# Check deployment status
+kubectl get pods -n fakarni
+
+# Access services
+# Frontend: http://localhost:30080
+# API Gateway: http://localhost:30090
 ```
 
-**Pods en CrashLoopBackOff** :
-```bash
-kubectl describe pod <pod-name> -n fakarni
-kubectl logs <pod-name> -n fakarni
-```
+## Acknowledgments
 
-**Build Maven échoue** :
-```bash
-mvn clean install -U  # Force update dependencies
-```
+We would like to express our gratitude to:
 
-### Contact
+- **Esprit School of Engineering** for providing the academic framework and resources
+- Our **project supervisors** for their guidance and expertise
+- **Healthcare professionals** who provided domain knowledge and feedback
+- The **open-source community** for the tools and frameworks used in this project
+- Our **families** for their continuous support throughout this journey
 
-Pour toute question ou problème :
-- Ouvrir une issue sur GitHub
-- Consulter la documentation technique
-- Contacter l'équipe de développement
+Special thanks to the elderly care facilities that participated in our user testing and provided valuable insights into the real-world needs of seniors and Alzheimer's patients.
 
 ---
 
-**Version** : 2.0  
-**Dernière mise à jour** : Mai 2026  
-**Status** : ✅ Production Ready
+**Project Status**: ✅ Production Ready  
+**Version**: 2.0  
+**Last Updated**: May 2026  
+**License**: Academic Project - Educational Use
+
+**Developed with ❤️ at Esprit School of Engineering**
