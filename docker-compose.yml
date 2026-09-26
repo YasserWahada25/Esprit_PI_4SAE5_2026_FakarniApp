@@ -1,3 +1,6 @@
+# Paramètres MySQL allégés pour machines à peu de RAM (performance_schema seul coûte ~300 Mo par instance)
+x-mysql-command: &mysql-command ["--performance-schema=OFF", "--innodb-buffer-pool-size=48M", "--innodb-log-buffer-size=8M", "--key-buffer-size=8M", "--max-connections=40", "--table-open-cache=64", "--thread-cache-size=4"]
+
 services:
   # ==========================================
   # 1. BASES DE DONNÉES
@@ -6,6 +9,7 @@ services:
     image: mongo:latest
     container_name: fakarni_mongo
     restart: always
+    command: ["--wiredTigerCacheSizeGB", "0.25"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
@@ -19,6 +23,7 @@ services:
   db-tracking:
     image: mysql:8.0
     container_name: fakarni_db_tracking
+    command: *mysql-command
     environment:
       MYSQL_DATABASE: db_tracking
       MYSQL_ROOT_PASSWORD: root
@@ -32,11 +37,13 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      start_period: 90s
+      retries: 10
 
   db-geofencing:
     image: mysql:8.0
     container_name: fakarni_db_geofencing
+    command: *mysql-command
     environment:
       MYSQL_DATABASE: db_geofencing
       MYSQL_ROOT_PASSWORD: root
@@ -50,11 +57,13 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      start_period: 90s
+      retries: 10
 
   db-activite:
     image: mysql:8.0
     container_name: fakarni_db_activite
+    command: *mysql-command
     environment:
       MYSQL_DATABASE: activite_educative_db
       MYSQL_ROOT_PASSWORD: root
@@ -68,11 +77,13 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      start_period: 90s
+      retries: 10
 
   db-detection:
     image: mysql:8.0
     container_name: fakarni_db_detection
+    command: *mysql-command
     environment:
       MYSQL_DATABASE: detection_maladie_db
       MYSQL_ROOT_PASSWORD: root
@@ -86,11 +97,13 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      start_period: 90s
+      retries: 10
 
   db-dossier:
     image: mysql:8.0
     container_name: fakarni_db_dossier
+    command: *mysql-command
     environment:
       MYSQL_DATABASE: dossier_medical_db
       MYSQL_ROOT_PASSWORD: root
@@ -104,11 +117,13 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      start_period: 90s
+      retries: 10
 
   db-event:
     image: mysql:8.0
     container_name: fakarni_db_event
+    command: *mysql-command
     environment:
       MYSQL_DATABASE: EventFakerni
       MYSQL_ROOT_PASSWORD: root
@@ -122,11 +137,13 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      start_period: 90s
+      retries: 10
 
   db-group:
     image: mysql:8.0
     container_name: fakarni_db_group
+    command: *mysql-command
     environment:
       MYSQL_DATABASE: group_service_db
       MYSQL_ROOT_PASSWORD: root
@@ -140,11 +157,13 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      start_period: 90s
+      retries: 10
 
   db-post:
     image: mysql:8.0
     container_name: fakarni_db_post
+    command: *mysql-command
     environment:
       MYSQL_DATABASE: post_service_db
       MYSQL_ROOT_PASSWORD: root
@@ -158,12 +177,14 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      start_period: 90s
+      retries: 10
 
 
   db-suivi:
     image: mysql:8.0
     container_name: fakarni_db_suivi
+    command: *mysql-command
     environment:
       MYSQL_DATABASE: suivi_engagement_db
       MYSQL_ROOT_PASSWORD: root
@@ -177,11 +198,13 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      start_period: 90s
+      retries: 10
 
   db-session:
     image: mysql:8.0
     container_name: fakarni_db_session
+    command: *mysql-command
     environment:
       MYSQL_DATABASE: alzheimer_session_db
       MYSQL_ROOT_PASSWORD: root
@@ -195,7 +218,8 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      start_period: 90s
+      retries: 10
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -254,6 +278,7 @@ services:
       - "8762:8761"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
     restart: always
     networks:
       - fakarni-net
@@ -266,8 +291,10 @@ services:
       - "8090:8090"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       eureka-server:
         condition: service_started
@@ -286,9 +313,11 @@ services:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
       - SPRING_DATA_MONGODB_URI=mongodb://admin:admin@mongodb:27017/rayen?authSource=admin
+      - JWT_SECRET=${JWT_SECRET}
       - MAIL_USERNAME_USER=${MAIL_USERNAME_USER}
       - MAIL_PASSWORD_USER=${MAIL_PASSWORD_USER}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
@@ -310,6 +339,7 @@ services:
       - "9011:9011"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - SPRING_DATASOURCE_URL=jdbc:mysql://db-tracking:3306/db_tracking?createDatabaseIfNotExist=true&serverTimezone=UTC
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
@@ -334,6 +364,7 @@ services:
       - "9012:9012"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - SPRING_DATASOURCE_URL=jdbc:mysql://db-geofencing:3306/db_geofencing?createDatabaseIfNotExist=true&serverTimezone=UTC
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
@@ -366,6 +397,7 @@ services:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
     volumes:
@@ -388,6 +420,7 @@ services:
       - "8070:8070"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
       - SPRING_DATA_MONGODB_URI=mongodb://admin:admin@mongodb:27017/chat_db?authSource=admin
@@ -406,8 +439,10 @@ services:
       - "8071:8071"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       db-session:
         condition: service_healthy
@@ -425,6 +460,7 @@ services:
       - "8058:8058"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
       - IA_FLASK_URL=http://flask-ia-service:5000
@@ -452,8 +488,8 @@ services:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
       interval: 30s
       timeout: 10s
-      start_period: 60s
-      retries: 5
+      start_period: 300s
+      retries: 10
     networks:
       - fakarni-net
     restart: on-failure
@@ -466,6 +502,7 @@ services:
       - "8059:8059"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
     depends_on:
@@ -485,6 +522,7 @@ services:
       - "8087:8087"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
       - MAILTRAP_USERNAME=${MAILTRAP_USERNAME}
@@ -506,8 +544,10 @@ services:
       - "8097:8097"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       db-group:
         condition: service_healthy
@@ -525,6 +565,7 @@ services:
       - "8096:8096"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
     depends_on:
@@ -542,8 +583,10 @@ services:
       - "8069:8069"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       db-post:
         condition: service_healthy
@@ -561,6 +604,7 @@ services:
       - "8088:8088"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
     depends_on:
@@ -581,7 +625,7 @@ services:
       dockerfile: Dockerfile
     container_name: fakarni_frontend
     ports:
-      - "4200:80"
+      - "4300:80"
     depends_on:
       - api-gateway
     networks:

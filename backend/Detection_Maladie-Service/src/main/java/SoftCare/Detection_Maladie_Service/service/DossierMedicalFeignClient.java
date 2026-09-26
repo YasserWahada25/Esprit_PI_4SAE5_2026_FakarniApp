@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 /**
- * Client Feign pour communiquer avec le Dossier_Medical-service via Eureka.
- * Le nom correspond exactement à spring.application.name du service cible.
- * Spring Cloud LoadBalancer résout automatiquement l'adresse via Eureka.
+ * Client Feign vers le Dossier_Medical-service.
+ * Feign refuse un "_" dans name (« Service id not legal hostname »), or le service s'enregistre sous
+ * Dossier_Medical-Service : on l'adresse donc par URL, surchargeable via DOSSIER_MEDICAL_URL.
  */
-@FeignClient(name = "Dossier_Medical-service")
+@FeignClient(name = "dossier-medical-client", url = "${dossier-medical.url:http://dossier-medical-service:8059}")
 public interface DossierMedicalFeignClient {
 
     @PostMapping("/api/dossiers/ajouter-analyse")
