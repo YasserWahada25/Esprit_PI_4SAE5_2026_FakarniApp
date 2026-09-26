@@ -1,0 +1,18 @@
+{
+  "name": "Fakarni - stack complete (images Docker Hub)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb"
+  },
+  "forwardPorts": [4300, 8090, 8762],
+  "portsAttributes": {
+    "4300": { "label": "Frontend Fakarni", "onAutoForward": "notify" },
+    "8090": { "label": "API Gateway" },
+    "8762": { "label": "Eureka" }
+  },
+  "postCreateCommand": "cp -n .env.example .env"
+}
