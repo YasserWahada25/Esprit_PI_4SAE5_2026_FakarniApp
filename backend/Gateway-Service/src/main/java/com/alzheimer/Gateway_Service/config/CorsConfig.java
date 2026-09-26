@@ -13,9 +13,10 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 public class CorsConfig {
 
 	// Surchargeable via CORS_ALLOWED_ORIGIN_PATTERNS (liste séparée par des virgules).
+	// https://localhost:* : la redirection de ports de GitHub Codespaces réécrit l'en-tête Origin vers cette adresse.
 	@Bean
 	public CorsWebFilter corsWebFilter(
-			@Value("${cors.allowed-origin-patterns:http://localhost:[*],https://*.app.github.dev}") List<String> allowedOriginPatterns) {
+			@Value("${cors.allowed-origin-patterns:http://localhost:[*],https://localhost:[*],https://*.app.github.dev}") List<String> allowedOriginPatterns) {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowedOriginPatterns(allowedOriginPatterns);
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
