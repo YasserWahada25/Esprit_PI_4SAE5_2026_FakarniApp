@@ -56,21 +56,10 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/fakarni-frontend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/fakarni-frontend:${{ github.sha }}
 
-      - name: "Trigger Azure Web App redeploy via webhook"
-        run: |
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X POST "${{ secrets.AZURE_FRONTEND_WEBHOOK_URL }}" \
-            --max-time 30)
-          echo "Azure webhook response: HTTP $HTTP_CODE"
-          if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "202" ]; then
-            echo "Warning: webhook returned $HTTP_CODE (may still deploy)"
-          fi
-
       - name: "Build Summary"
         run: |
-          echo "### Frontend Deploy Triggered" >> $GITHUB_STEP_SUMMARY
+          echo "### Frontend Image Published" >> $GITHUB_STEP_SUMMARY
           echo "| Info | Valeur |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Image latest | \`${{ secrets.DOCKERHUB_USERNAME }}/fakarni-frontend:latest\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Image SHA | \`${{ secrets.DOCKERHUB_USERNAME }}/fakarni-frontend:${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| URL Frontend | https://fakarni-frontend.azurewebsites.net |" >> $GITHUB_STEP_SUMMARY

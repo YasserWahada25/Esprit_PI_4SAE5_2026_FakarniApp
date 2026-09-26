@@ -1,6 +1,6 @@
 # ============================================================
 # WORKFLOW CI REUSABLE - FakarniApp
-# Architecture : Docker Hub + Azure Container Apps
+# Architecture : Docker Hub
 # Appele par chaque ci-{service}.yml via workflow_call
 # ============================================================
 name: "CI Reusable"
@@ -31,17 +31,6 @@ on:
         required: true
       SONAR_TOKEN:
         required: true
-      # Azure (optionnel - requis seulement quand CD est active)
-      AZURE_CLIENT_ID:
-        required: false
-      AZURE_TENANT_ID:
-        required: false
-      AZURE_SUBSCRIPTION_ID:
-        required: false
-      AZURE_RESOURCE_GROUP:
-        required: false
-      CONTAINER_APPS_ENV:
-        required: false
     outputs:
       image-tag:
         description: "Short SHA du commit"
@@ -178,18 +167,3 @@ jobs:
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
           echo "| Image | \`${{ secrets.DOCKERHUB_USERNAME }}/${{ inputs.image-name }}:${{ steps.meta.outputs.short-sha }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Branche | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
-
-  # -- CD auto sur main --
-  # NOTE : CD desactive temporairement (Azure Container Apps bloque par policy ESPRIT)
-  # Pour reactiver : decommmenter le bloc ci-dessous et configurer AZURE_CLIENT_ID dans GitHub Secrets
-  # cd:
-  #   name: CD
-  #   needs: ci
-  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-  #   uses: ./.github/workflows/cd-deploy.yml
-  #   with:
-  #     service-name: ${{ inputs.image-name }}
-  #     image-name: ${{ inputs.image-name }}
-  #     image-tag: ${{ needs.ci.outputs.image-tag }}
-  #     environment: production
-  #   secrets: inherit
