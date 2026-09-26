@@ -1,0 +1,56 @@
+# Lance l'application depuis les images publiées sur Docker Hub (aucun build local, aucun Azure).
+#   docker compose -f docker-compose.yml -f docker-compose.hub.yml pull <services>
+#   docker compose -f docker-compose.yml -f docker-compose.hub.yml up -d --no-build <services>
+# Variables optionnelles : DOCKERHUB_USERNAME (défaut yasserwahada25), IMAGE_TAG (défaut latest, ou un sha de commit).
+services:
+  eureka-server:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-eureka-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  api-gateway:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-gateway-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  user-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-user-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  tracking-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-tracking-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  geofencing-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-geofencing-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  activite-educative-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-activite-educative-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  chat-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-chat-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  session-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-session-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  detection-maladie-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-detection-maladie-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  flask-ia-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-flask-ia-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  dossier-medical-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-dossier-medical-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  event-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-event-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  group-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-group-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  meeting-insights-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-meeting-insights-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  post-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-post-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  suivi-engagement-service:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-suivi-engagement-service:${IMAGE_TAG:-latest}
+    build: !reset null
+  frontend:
+    image: ${DOCKERHUB_USERNAME:-yasserwahada25}/fakarni-frontend:${IMAGE_TAG:-latest}
+    build: !reset null
