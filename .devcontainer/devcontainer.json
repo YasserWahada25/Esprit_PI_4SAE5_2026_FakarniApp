@@ -1,8 +1,10 @@
 {
   "name": "Fakarni - stack complete (images Docker Hub)",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": false
+    }
   },
   "hostRequirements": {
     "cpus": 4,
@@ -14,5 +16,5 @@
     "8090": { "label": "API Gateway" },
     "8762": { "label": "Eureka" }
   },
-  "postCreateCommand": "cp -n .env.example .env"
+  "postCreateCommand": "[ -f .env ] || cp .env.example .env"
 }
