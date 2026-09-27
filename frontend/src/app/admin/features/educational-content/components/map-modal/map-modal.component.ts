@@ -101,10 +101,11 @@ export class MapModalComponent implements OnInit, AfterViewInit {
 
         // tile.openstreetmap.org actively blocks cloud/datacenter IPs (incl. GitHub Codespaces)
         // per its usage policy (osm.wiki/Blocked) -> use CARTO's free basemap tiles instead.
-        this.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
+        // CARTO's free anonymous basemap tier now watermarks tiles with "API KEY REQUIRED";
+        // Esri's World Street Map stays free/no-key and doesn't block cloud/datacenter IPs.
+        this.L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
+            maxZoom: 19
         }).addTo(this.map);
 
         this.L.marker([lat, lng])

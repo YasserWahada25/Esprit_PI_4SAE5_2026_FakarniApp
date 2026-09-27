@@ -74,10 +74,11 @@ export class LocationPickerComponent implements OnInit, AfterViewInit, OnDestroy
 
         // tile.openstreetmap.org actively blocks cloud/datacenter IPs (incl. GitHub Codespaces)
         // per its usage policy (osm.wiki/Blocked) -> use CARTO's free basemap tiles instead.
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
+        // CARTO's free anonymous basemap tier now watermarks tiles with "API KEY REQUIRED";
+        // Esri's World Street Map stays free/no-key and doesn't block cloud/datacenter IPs.
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
+            maxZoom: 19
         }).addTo(this.map);
 
         // If initial coordinates are provided (edit mode), place the marker
