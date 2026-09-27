@@ -12,7 +12,7 @@ public class SecurityConfig {
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                // CORS uniquement via CorsConfig.corsWebFilter() — évite des en-têtes dupliqués.
+                // CORS : uniquement via spring.cloud.gateway.globalcors (application.yml).
                 .authorizeExchange(ex -> ex
                         .anyExchange().permitAll()
                 )

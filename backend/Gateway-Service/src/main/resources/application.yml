@@ -1,0 +1,31 @@
+# CORS lives here, not in a custom CorsWebFilter bean.
+#
+# Spring Cloud Gateway always registers its own CorsWebFilter, backed by GlobalCorsProperties
+# (spring.cloud.gateway.globalcors). A previous custom @Bean CorsWebFilter (CorsConfig.java)
+# ran ALONGSIDE this built-in one; whichever ran first would accept and add headers, then the
+# built-in one ran too and rejected with 403 "Invalid CORS request" whenever ITS OWN (then-empty)
+# config didn't match - inconsistently, depending on WebFilter bean ordering. Configuring the
+# built-in mechanism directly (and removing the custom bean) avoids running two independent CORS
+# checks on the same request. The [/**] key needs YAML - the equivalent .properties syntax for a
+# map key containing "*" plus a nested list is too easy to get subtly wrong.
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "http://localhost:[*]"
+              - "https://localhost:[*]"
+              - "https://*.app.github.dev"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+              - HEAD
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
