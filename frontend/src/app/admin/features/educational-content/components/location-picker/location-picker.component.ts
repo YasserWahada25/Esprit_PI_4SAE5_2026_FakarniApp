@@ -72,9 +72,12 @@ export class LocationPickerComponent implements OnInit, AfterViewInit, OnDestroy
             this.initialLat ? 14 : 11
         );
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-            maxZoom: 19
+        // tile.openstreetmap.org actively blocks cloud/datacenter IPs (incl. GitHub Codespaces)
+        // per its usage policy (osm.wiki/Blocked) -> use CARTO's free basemap tiles instead.
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
         }).addTo(this.map);
 
         // If initial coordinates are provided (edit mode), place the marker

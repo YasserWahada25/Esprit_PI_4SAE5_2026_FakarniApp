@@ -169,8 +169,12 @@ export class SupervisionDashboardComponent implements OnInit, OnDestroy, AfterVi
         const container = document.getElementById('patient-zone-map');
         if (!container || !this.L) return;
         this.map = this.L.map('patient-zone-map').setView([36.8065, 10.1815], 14);
-        this.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
+        // tile.openstreetmap.org actively blocks cloud/datacenter IPs (incl. GitHub Codespaces)
+        // per its usage policy (osm.wiki/Blocked) -> use CARTO's free basemap tiles instead.
+        this.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
         }).addTo(this.map);
         this.mapReady = true;
         this.drawZone();

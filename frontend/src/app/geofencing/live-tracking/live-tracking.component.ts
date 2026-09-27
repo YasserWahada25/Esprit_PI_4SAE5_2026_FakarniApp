@@ -119,8 +119,12 @@ export class LiveTrackingComponent implements AfterViewInit, OnDestroy {
         }
 
         this.map = this.L.map(mapId).setView([36.8065, 10.1815], 14);
-        this.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+        // tile.openstreetmap.org actively blocks cloud/datacenter IPs (incl. GitHub Codespaces)
+        // per its usage policy (osm.wiki/Blocked) -> use CARTO's free basemap tiles instead.
+        this.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
         }).addTo(this.map);
 
         this.map.on('click', (e: any) => {

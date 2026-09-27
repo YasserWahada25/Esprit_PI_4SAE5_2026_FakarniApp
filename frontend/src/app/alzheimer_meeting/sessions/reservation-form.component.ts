@@ -680,8 +680,12 @@ export class ReservationFormComponent implements OnInit, AfterViewInit, OnDestro
 
         if (!this.map) {
             this.map = this.leaflet.map(mapElement, { zoomControl: true }).setView(this.defaultMapCenter, 13);
-            this.leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
+            // tile.openstreetmap.org actively blocks cloud/datacenter IPs (incl. GitHub Codespaces)
+            // per its usage policy (osm.wiki/Blocked) -> use CARTO's free basemap tiles instead.
+            this.leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20
             }).addTo(this.map);
             this.map.on('click', this.onMapClick);
         } else {

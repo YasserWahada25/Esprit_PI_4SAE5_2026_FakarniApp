@@ -99,8 +99,12 @@ export class MapModalComponent implements OnInit, AfterViewInit {
             zoom: 14
         });
 
-        this.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
+        // tile.openstreetmap.org actively blocks cloud/datacenter IPs (incl. GitHub Codespaces)
+        // per its usage policy (osm.wiki/Blocked) -> use CARTO's free basemap tiles instead.
+        this.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
         }).addTo(this.map);
 
         this.L.marker([lat, lng])
