@@ -40,6 +40,10 @@ jobs:
   ci:
     name: "CI - ${{ inputs.service-name }}"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write      # needed by dorny/test-reporter to publish the "Tests - <service>" check
+      pull-requests: write
     outputs:
       image-tag: ${{ steps.meta.outputs.short-sha }}
 
