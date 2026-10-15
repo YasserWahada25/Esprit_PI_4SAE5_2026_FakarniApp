@@ -54,6 +54,8 @@ public class GatewayServiceApplication {
 								.uri(sessionUri))
 				.route("group-uploads", r -> r.path("/uploads/groups/**")
 						.uri(groupUri))
+				.route("event-uploads", r -> r.path("/uploads/events/**")
+						.uri(eventUri))
 				.route("activite-uploads", r -> r.path("/uploads/**")
 						.uri(activiteTarget))
 				.route("activite-game-sessions-flat", r -> r.path("/api/game-sessions", "/api/game-sessions/**")

@@ -20,6 +20,11 @@ WORKDIR /app
 
 # Sécurité : utilisateur non-root
 RUN addgroup -S softcare && adduser -S softcare -G softcare
+
+# Créer le dossier uploads avec les bonnes permissions (sinon upload image -> 500)
+RUN mkdir -p /app/uploads/events && \
+    chown -R softcare:softcare /app/uploads
+
 USER softcare
 
 COPY --from=build /app/target/*.jar app.jar
