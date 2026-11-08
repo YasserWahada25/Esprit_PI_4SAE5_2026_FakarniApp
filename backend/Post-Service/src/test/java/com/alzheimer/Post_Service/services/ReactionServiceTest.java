@@ -33,13 +33,13 @@ class ReactionServiceTest {
     private ReactionService reactionService;
 
     private Post testPost;
-    private Long userId;
+    private String userId;
     private Long postId;
 
     @BeforeEach
     void setUp() {
         postId = 1L;
-        userId = 1L;
+        userId = "user-1";
         testPost = new Post();
         testPost.setId(postId);
         testPost.setContent("Test post");

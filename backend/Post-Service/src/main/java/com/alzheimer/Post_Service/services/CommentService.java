@@ -1,5 +1,6 @@
 package com.alzheimer.Post_Service.services;
 
+import com.alzheimer.Post_Service.client.UserClient;
 import com.alzheimer.Post_Service.dto.CommentRequest;
 import com.alzheimer.Post_Service.dto.CommentResponse;
 import com.alzheimer.Post_Service.entities.Comment;
@@ -26,6 +27,9 @@ public class CommentService {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private UserClient userClient;
 
     @Transactional
     public CommentResponse addComment(Long postId, CommentRequest request) {
@@ -71,7 +75,7 @@ public class CommentService {
     }
 
     @Transactional
-    public void deleteComment(Long commentId, Long userId) {
+    public void deleteComment(Long commentId, String userId) {
         Comment comment = commentRepository.findById(commentId)
             .orElseThrow(() -> new RuntimeException("Comment not found with id: " + commentId));
 
@@ -92,6 +96,13 @@ public class CommentService {
         response.setCreatedAt(comment.getCreatedAt());
         response.setUpdatedAt(comment.getUpdatedAt());
         response.setReplies(new ArrayList<>());
+
+        // Nom de l'auteur depuis User-Service (même principe que PostService)
+        try {
+            response.setUser(userClient.getUserById(comment.getUserId()));
+        } catch (Exception e) {
+            System.err.println("Failed to fetch comment author: " + e.getMessage());
+        }
         return response;
     }
 }

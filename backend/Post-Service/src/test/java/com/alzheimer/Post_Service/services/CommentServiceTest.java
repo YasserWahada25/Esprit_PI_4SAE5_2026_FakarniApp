@@ -1,5 +1,6 @@
 package com.alzheimer.Post_Service.services;
 
+import com.alzheimer.Post_Service.client.UserClient;
 import com.alzheimer.Post_Service.dto.CommentRequest;
 import com.alzheimer.Post_Service.dto.CommentResponse;
 import com.alzheimer.Post_Service.entities.Comment;
@@ -28,17 +29,20 @@ class CommentServiceTest {
     @Mock
     private PostRepository postRepository;
 
+    @Mock
+    private UserClient userClient;
+
     @InjectMocks
     private CommentService commentService;
 
     private Post testPost;
-    private Long userId;
+    private String userId;
     private Long postId;
 
     @BeforeEach
     void setUp() {
         postId = 1L;
-        userId = 1L;
+        userId = "user-1";
         testPost = new Post();
         testPost.setId(postId);
         testPost.setContent("Test post");
@@ -67,7 +71,7 @@ class CommentServiceTest {
     @Test
     void addComment_ShouldCreateReply_WhenParentCommentExists() {
         // Arrange
-        Comment parentComment = new Comment(testPost, 2L, "Parent comment", null);
+        Comment parentComment = new Comment(testPost, "user-2", "Parent comment", null);
         parentComment.setId(1L);
         
         CommentRequest request = new CommentRequest(userId, "Reply comment", 1L);
@@ -90,10 +94,10 @@ class CommentServiceTest {
     @Test
     void addComment_ShouldThrowException_WhenNestedReply() {
         // Arrange
-        Comment grandParent = new Comment(testPost, 2L, "Grandparent", null);
+        Comment grandParent = new Comment(testPost, "user-2", "Grandparent", null);
         grandParent.setId(1L);
         
-        Comment parent = new Comment(testPost, 3L, "Parent", grandParent);
+        Comment parent = new Comment(testPost, "user-3", "Parent", grandParent);
         parent.setId(2L);
         
         CommentRequest request = new CommentRequest(userId, "Nested reply", 2L);
@@ -125,7 +129,7 @@ class CommentServiceTest {
     @Test
     void deleteComment_ShouldThrowException_WhenUserIsNotOwner() {
         // Arrange
-        Comment comment = new Comment(testPost, 2L, "Test comment", null);
+        Comment comment = new Comment(testPost, "user-2", "Test comment", null);
         comment.setId(1L);
 
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));

@@ -50,7 +50,7 @@ public class ReactionService {
         return getReactionCounts(postId, request.getUserId());
     }
 
-    public ReactionCountResponse getReactionCounts(Long postId, Long userId) {
+    public ReactionCountResponse getReactionCounts(Long postId, String userId) {
         Map<String, Long> counts = new HashMap<>();
         counts.put("LIKE", reactionRepository.countByPostIdAndType(postId, ReactionType.LIKE));
         counts.put("HEART", reactionRepository.countByPostIdAndType(postId, ReactionType.HEART));

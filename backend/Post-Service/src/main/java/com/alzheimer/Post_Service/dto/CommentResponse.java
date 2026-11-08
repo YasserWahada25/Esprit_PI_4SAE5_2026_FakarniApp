@@ -6,7 +6,9 @@ import java.util.List;
 public class CommentResponse {
     private Long id;
     private Long postId;
-    private Long userId;
+    private String userId;
+    /** Auteur (User-Service), comme dans PostResponse ; null si User-Service est indisponible. */
+    private UserDTO user;
     private String content;
     private Long parentCommentId;
     private LocalDateTime createdAt;
@@ -14,6 +16,14 @@ public class CommentResponse {
     private List<CommentResponse> replies;
 
     public CommentResponse() {
+    }
+
+    public UserDTO getUser() {
+        return user;
+    }
+
+    public void setUser(UserDTO user) {
+        this.user = user;
     }
 
     public Long getId() {
@@ -32,11 +42,11 @@ public class CommentResponse {
         this.postId = postId;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

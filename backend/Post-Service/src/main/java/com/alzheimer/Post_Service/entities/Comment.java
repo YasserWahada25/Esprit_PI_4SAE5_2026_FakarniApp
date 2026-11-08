@@ -20,7 +20,7 @@ public class Comment {
     private Comment parentComment;
 
     @Column(nullable = false)
-    private Long userId;
+    private String userId;
 
     @Column(length = 1000, nullable = false)
     private String content;
@@ -34,7 +34,7 @@ public class Comment {
     public Comment() {
     }
 
-    public Comment(Post post, Long userId, String content, Comment parentComment) {
+    public Comment(Post post, String userId, String content, Comment parentComment) {
         this.post = post;
         this.userId = userId;
         this.content = content;
@@ -65,11 +65,11 @@ public class Comment {
         this.parentComment = parentComment;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

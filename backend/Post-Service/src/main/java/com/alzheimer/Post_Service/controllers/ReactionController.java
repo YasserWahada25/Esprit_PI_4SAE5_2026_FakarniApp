@@ -21,7 +21,7 @@ public class ReactionController {
             @PathVariable Long postId,
             @RequestBody ReactionRequest request) {
         try {
-            if (request.getUserId() == null) {
+            if (request.getUserId() == null || request.getUserId().isBlank()) {
                 return ResponseEntity.badRequest().body("User ID is required");
             }
             if (request.getType() == null) {
@@ -41,7 +41,7 @@ public class ReactionController {
     @GetMapping
     public ResponseEntity<?> getReactionCounts(
             @PathVariable Long postId,
-            @RequestParam(required = false) Long userId) {
+            @RequestParam(required = false) String userId) {
         try {
             ReactionCountResponse response = reactionService.getReactionCounts(postId, userId);
             return ResponseEntity.ok(response);

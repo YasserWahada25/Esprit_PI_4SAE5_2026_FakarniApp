@@ -22,7 +22,7 @@ public class CommentController {
             @PathVariable Long postId,
             @RequestBody CommentRequest request) {
         try {
-            if (request.getUserId() == null) {
+            if (request.getUserId() == null || request.getUserId().isBlank()) {
                 return ResponseEntity.badRequest().body("User ID is required");
             }
             if (request.getContent() == null || request.getContent().trim().isEmpty()) {
@@ -60,9 +60,9 @@ public class CommentController {
     public ResponseEntity<?> deleteComment(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam Long userId) {
+            @RequestParam String userId) {
         try {
-            if (userId == null) {
+            if (userId == null || userId.isBlank()) {
                 return ResponseEntity.badRequest().body("User ID is required");
             }
 

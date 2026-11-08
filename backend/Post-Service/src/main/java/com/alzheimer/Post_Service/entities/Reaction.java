@@ -18,7 +18,7 @@ public class Reaction {
     private Post post;
 
     @Column(nullable = false)
-    private Long userId;
+    private String userId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -34,7 +34,7 @@ public class Reaction {
     public Reaction() {
     }
 
-    public Reaction(Post post, Long userId, ReactionType type) {
+    public Reaction(Post post, String userId, ReactionType type) {
         this.post = post;
         this.userId = userId;
         this.type = type;
@@ -56,11 +56,11 @@ public class Reaction {
         this.post = post;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

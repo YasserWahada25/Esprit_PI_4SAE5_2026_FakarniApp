@@ -3,22 +3,22 @@ package com.alzheimer.Post_Service.dto;
 import com.alzheimer.Post_Service.entities.Reaction.ReactionType;
 
 public class ReactionRequest {
-    private Long userId;
+    private String userId;
     private ReactionType type;
 
     public ReactionRequest() {
     }
 
-    public ReactionRequest(Long userId, ReactionType type) {
+    public ReactionRequest(String userId, ReactionType type) {
         this.userId = userId;
         this.type = type;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
