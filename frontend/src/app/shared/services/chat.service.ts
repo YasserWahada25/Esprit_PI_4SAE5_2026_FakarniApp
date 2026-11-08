@@ -1,14 +1,19 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { MessageRequest, MessageResponse, MockUser } from '../models/message.model';
+import { Observable, forkJoin, map } from 'rxjs';
+import { Contact, MessageRequest, MessageResponse } from '../models/message.model';
+import { User } from '../../auth/models/user.model';
+import { Role, ROLE_OPTIONS } from '../../auth/models/sign-up.model';
+
+/** Rôles proposés comme contacts (l'administrateur n'est pas un interlocuteur du chat). */
+const CONTACT_ROLES: Role[] = [Role.DOCTOR_PROFILE, Role.CARE_OWNER, Role.PATIENT_PROFILE];
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
   private apiUrl = '/api/messages';
-  private mockUsersUrl = '/api/mock-users';
+  private usersUrl = '/api/users/by-role';
 
   constructor(private http: HttpClient) {}
 
@@ -44,11 +49,33 @@ export class ChatService {
     return this.http.delete<void>(`${this.apiUrl}/conversation`, { params });
   }
 
-  getMockUsers(): Observable<MockUser[]> {
-    return this.http.get<MockUser[]>(this.mockUsersUrl);
+  /**
+   * Utilisateurs réels de la plateforme, triés par nom, sans l'utilisateur connecté.
+   * `GET /api/users` est réservé aux administrateurs : la liste est construite rôle par rôle.
+   */
+  getContacts(excludeUserId?: string | null): Observable<Contact[]> {
+    return forkJoin(
+      CONTACT_ROLES.map((role) => this.http.get<User[]>(`${this.usersUrl}/${role}`))
+    ).pipe(
+      map((lists) =>
+        lists
+          .flat()
+          .filter((user) => user.id !== excludeUserId)
+          .map(toContact)
+          .sort((a, b) => a.name.localeCompare(b.name, 'fr'))
+      )
+    );
   }
+}
 
-  getMockUserById(userId: string): Observable<MockUser> {
-    return this.http.get<MockUser>(`${this.mockUsersUrl}/${userId}`);
-  }
+function toContact(user: User): Contact {
+  const name = [user.prenom, user.nom].filter((part) => !!part?.trim()).join(' ') || user.email;
+  const initials = name
+    .split(' ')
+    .filter((part) => part.length > 0)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('');
+  const role = ROLE_OPTIONS.find((option) => option.value === user.role)?.label ?? '';
+  return { id: user.id, name, role, initials };
 }

@@ -13,19 +13,11 @@ export interface MessageResponse {
   timestamp: string;
 }
 
+/** Utilisateur réel de la plateforme (user-service) avec qui discuter. */
 export interface Contact {
   id: string;
   name: string;
-  status: 'online' | 'away' | 'offline';
-  avatar: string;
-  lastMessage?: string;
-  unreadCount?: number;
-}
-
-export interface MockUser {
-  id: string;
-  name: string;
-  email: string;
+  /** Libellé du rôle (Médecin, Aidant / Proche, Patient). */
   role: string;
-  avatar: string;
+  initials: string;
 }

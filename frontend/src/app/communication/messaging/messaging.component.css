@@ -79,17 +79,15 @@
     font-size: 0.95rem;
 }
 
-.status {
+.role {
     font-size: 0.8rem;
     color: #999;
 }
 
-.status.online {
-    color: #27ae60;
-}
-
-.status.away {
-    color: #f39c12;
+.avatar.initials {
+    flex-shrink: 0;
+    font-weight: 600;
+    font-size: 0.85rem;
 }
 
 .chat-area {
@@ -239,7 +237,7 @@ es for integration */
     color: white;
 }
 
-.contact.active .status {
+.contact.active .role {
     color: white;
     opacity: 0.9;
 }
@@ -332,45 +330,47 @@ es for integration */
     cursor: not-allowed;
 }
 
-/* User Switcher Styles */
-.user-switcher {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+/* Utilisateur connecté */
+.current-user {
     margin-left: auto;
     padding: 8px 15px;
     background: #f0f8ff;
     border-radius: 8px;
     border: 1px solid #04d9c4;
-}
-
-.user-switcher label {
     font-size: 0.9rem;
     color: #555;
     display: flex;
     align-items: center;
-    gap: 5px;
-    margin: 0;
+    gap: 6px;
 }
 
-.user-switcher select {
-    padding: 6px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+/* Feed vide */
+.empty-feed {
     background: white;
-    cursor: pointer;
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.2s;
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    color: #777;
 }
 
-.user-switcher select:hover {
-    border-color: #04d9c4;
+.empty-feed i {
+    font-size: 2rem;
+    color: #b8a5d6;
 }
 
-.user-switcher select:focus {
-    border-color: #04d9c4;
-    box-shadow: 0 0 0 2px rgba(4, 217, 196, 0.1);
+.empty-feed h3 {
+    margin: 12px 0 6px;
+    color: #444;
+}
+
+.feed-link {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    background: #04d9c4;
+    color: white;
+    text-decoration: none;
 }
 
 .page-header {

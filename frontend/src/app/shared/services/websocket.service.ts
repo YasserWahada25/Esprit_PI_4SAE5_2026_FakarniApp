@@ -32,69 +32,64 @@ export class WebSocketService {
       }
 
       try {
-        console.log('🔌 Connexion WebSocket via proxy');
-        
-        // Import dynamique de SockJS
-        import('sockjs-client').then((SockJSModule) => {
-          const SockJS = SockJSModule.default;
-          // Utiliser une URL relative pour passer par le proxy Angular
-          const socket = new SockJS('/ws');
-          
-          this.client = new Client({
-            webSocketFactory: () => socket,
-            debug: (str: string) => {
-              console.log('STOMP: ' + str);
-            },
-            reconnectDelay: 5000,
-            heartbeatIncoming: 4000,
-            heartbeatOutgoing: 4000,
-            onConnect: () => {
-              console.log('✅ WebSocket connecté pour user:', userId);
-              this.connected = true;
+        // WebSocket natif vers Chat_Service. '/ws' appartient à session-service :
+        // le chat est exposé sur '/chat-ws/**' (nginx → gateway → Chat_Service '/ws/**'),
+        // '/websocket' étant le point d'accès WebSocket brut (sans SockJS) du service.
+        const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const brokerURL = `${scheme}://${window.location.host}/chat-ws/websocket`;
+        console.log('🔌 Connexion WebSocket du chat:', brokerURL);
 
-              // S'abonner aux messages pour cet utilisateur
-              this.client!.subscribe(`/queue/messages/${userId}`, (message: IMessage) => {
-                const msg = JSON.parse(message.body) as MessageResponse;
-                console.log('📨 Message reçu via WebSocket:', msg);
-                this.messageSubject.next(msg);
+        this.client = new Client({
+          brokerURL,
+          debug: (str: string) => {
+            console.log('STOMP: ' + str);
+          },
+          reconnectDelay: 5000,
+          heartbeatIncoming: 4000,
+          heartbeatOutgoing: 4000,
+          onConnect: () => {
+            console.log('✅ WebSocket connecté pour user:', userId);
+            this.connected = true;
+
+            // S'abonner aux messages pour cet utilisateur
+            this.client!.subscribe(`/queue/messages/${userId}`, (message: IMessage) => {
+              const msg = JSON.parse(message.body) as MessageResponse;
+              console.log('📨 Message reçu via WebSocket:', msg);
+              this.messageSubject.next(msg);
+            });
+
+            // S'abonner aux notifications de frappe
+            this.client!.subscribe(`/queue/typing/${userId}`, (message: IMessage) => {
+              const notification = JSON.parse(message.body);
+              console.log('⌨️ Notification de frappe:', notification);
+              this.typingSubject.next({
+                senderId: notification.senderId,
+                typing: notification.typing
               });
+            });
 
-              // S'abonner aux notifications de frappe
-              this.client!.subscribe(`/queue/typing/${userId}`, (message: IMessage) => {
-                const notification = JSON.parse(message.body);
-                console.log('⌨️ Notification de frappe:', notification);
-                this.typingSubject.next({
-                  senderId: notification.senderId,
-                  typing: notification.typing
-                });
-              });
-
-              resolve();
-            },
-            onStompError: (frame: IFrame) => {
-              console.error('❌ Erreur STOMP:', frame);
-              console.error('Frame headers:', frame.headers);
-              console.error('Frame body:', frame.body);
-              this.connected = false;
-              const errorMsg = frame.headers?.['message'] || 'Unknown error';
-              reject(new Error(`STOMP Error: ${errorMsg}`));
-            },
-            onWebSocketError: (error: Event) => {
-              console.error('❌ Erreur WebSocket:', error);
-              this.connected = false;
-              reject(new Error('WebSocket connection failed. Is the backend running?'));
-            },
-            onWebSocketClose: (event: CloseEvent) => {
-              console.warn('⚠️ WebSocket fermé:', event);
-              this.connected = false;
-            }
-          });
-
-          this.client.activate();
-        }).catch((error) => {
-          console.error('❌ Erreur lors du chargement de SockJS:', error);
-          reject(error);
+            resolve();
+          },
+          onStompError: (frame: IFrame) => {
+            console.error('❌ Erreur STOMP:', frame);
+            console.error('Frame headers:', frame.headers);
+            console.error('Frame body:', frame.body);
+            this.connected = false;
+            const errorMsg = frame.headers?.['message'] || 'Unknown error';
+            reject(new Error(`STOMP Error: ${errorMsg}`));
+          },
+          onWebSocketError: (error: Event) => {
+            console.error('❌ Erreur WebSocket:', error);
+            this.connected = false;
+            reject(new Error('WebSocket connection failed. Is the backend running?'));
+          },
+          onWebSocketClose: (event: CloseEvent) => {
+            console.warn('⚠️ WebSocket fermé:', event);
+            this.connected = false;
+          }
         });
+
+        this.client.activate();
       } catch (error) {
         console.error('❌ Exception lors de la création du WebSocket:', error);
         reject(error);

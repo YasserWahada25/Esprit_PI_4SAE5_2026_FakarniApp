@@ -161,6 +161,19 @@ export class AuthService {
     return user;
   }
 
+  /** Id de l'utilisateur connecté (User-Service), ou à défaut le `sub` du JWT. */
+  getCurrentUserId(): string | null {
+    const id = this.getCurrentUser()?.id;
+    if (id) return id;
+    const token = this.getAccessToken();
+    if (!token) return null;
+    try {
+      return JSON.parse(atob(token.split('.')[1])).sub ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   // ✅ Lire le token depuis sessionStorage (pas depuis une variable)
   getAccessToken(): string | null {
     return sessionStorage.getItem(TOKEN_KEY);

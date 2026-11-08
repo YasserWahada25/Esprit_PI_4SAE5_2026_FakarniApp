@@ -8,53 +8,51 @@
                 <i class="fa-solid fa-newspaper"></i> Feed
             </button>
         </div>
-        
-        <!-- User Switcher for Testing -->
-        <div class="user-switcher" *ngIf="activeTab === 'chat' && availableUsers.length > 0">
-            <label>
-                <i class="fa-solid fa-user"></i> Connecté en tant que:
-            </label>
-            <select [(ngModel)]="currentUserId" (change)="switchUser(currentUserId)">
-                <option *ngFor="let user of availableUsers" [value]="user.id">
-                    {{ user.name }} ({{ user.role }})
-                </option>
-            </select>
+
+        <div class="current-user" *ngIf="activeTab === 'chat' && currentUserName">
+            <i class="fa-solid fa-user"></i> {{ currentUserName }}
         </div>
     </header>
 
     <!-- Chat Interface -->
     <div class="chat-interface" *ngIf="activeTab === 'chat'">
         <div class="contacts-list">
-            <div class="contact" 
-                 *ngFor="let contact of contacts" 
+            <div class="loading" *ngIf="loadingContacts">
+                <i class="fa-solid fa-spinner fa-spin"></i> Chargement...
+            </div>
+            <div class="no-messages" *ngIf="!loadingContacts && currentUserId && contacts.length === 0">
+                <p>Aucun contact pour le moment.</p>
+            </div>
+            <div class="contact"
+                 *ngFor="let contact of contacts"
                  [class.active]="selectedContact?.id === contact.id"
                  (click)="selectContact(contact)">
-                <div class="avatar"><i class="fa-solid" [ngClass]="contact.avatar"></i></div>
+                <div class="avatar initials">{{ contact.initials }}</div>
                 <div class="info">
                     <h4>{{ contact.name }}</h4>
-                    <span class="status" [ngClass]="contact.status">{{ contact.status }}</span>
+                    <span class="role">{{ contact.role }}</span>
                 </div>
             </div>
         </div>
         <div class="chat-area">
             <div class="chat-header" *ngIf="selectedContact">
                 <h3>{{ selectedContact.name }}</h3>
-                <span class="status" [ngClass]="selectedContact.status">{{ selectedContact.status }}</span>
+                <span class="role">{{ selectedContact.role }}</span>
             </div>
-            
+
             <div class="error-message" *ngIf="error">
                 <i class="fa-solid fa-exclamation-circle"></i> {{ error }}
             </div>
 
-            <div class="messages" #messagesContainer *ngIf="!loading">
-                <div class="message" 
-                     *ngFor="let msg of messages" 
+            <div class="messages" #messagesContainer *ngIf="!loading && selectedContact">
+                <div class="message"
+                     *ngFor="let msg of messages"
                      [class.self]="isMyMessage(msg)">
                     <div class="msg-content">
                         <p>{{ msg.content }}</p>
                         <span class="time">{{ formatTime(msg.timestamp) }}</span>
-                        <button class="delete-btn" 
-                                *ngIf="isMyMessage(msg)" 
+                        <button class="delete-btn"
+                                *ngIf="isMyMessage(msg)"
                                 (click)="deleteMessage(msg.id)"
                                 title="Supprimer">
                             <i class="fa-solid fa-trash"></i>
@@ -65,7 +63,7 @@
                     <p>Aucun message. Commencez la conversation!</p>
                 </div>
                 <div class="typing-indicator" *ngIf="isContactTyping()">
-                    <span>{{ selectedContact?.name }} est en train d'écrire</span>
+                    <span>{{ selectedContact.name }} est en train d'écrire</span>
                     <span class="dots">
                         <span>.</span><span>.</span><span>.</span>
                     </span>
@@ -77,45 +75,28 @@
             </div>
 
             <div class="input-area">
-                <input type="text" 
-                       placeholder="Tapez un message..." 
+                <input type="text"
+                       placeholder="Tapez un message..."
                        [(ngModel)]="newMessage"
                        (input)="onMessageInput()"
                        (keyup.enter)="sendMessage()"
                        [disabled]="loading || !selectedContact">
-                <button class="send-btn" 
+                <button class="send-btn"
                         (click)="sendMessage()"
                         [disabled]="loading || !newMessage.trim() || !selectedContact">
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
-                <button class="icon-btn"><i class="fa-solid fa-microphone"></i></button>
-                <button class="icon-btn"><i class="fa-solid fa-video"></i></button>
             </div>
         </div>
     </div>
 
-    <!-- Feed Interface -->
+    <!-- Feed Interface : pas encore de backend, les publications sont dans la page Posts -->
     <div class="feed-interface" *ngIf="activeTab === 'feed'">
-        <div class="create-post">
-            <input type="text" placeholder="Share something...">
-            <button>Post</button>
-        </div>
-        <div class="posts">
-            <div class="post-card" *ngFor="let post of posts">
-                <div class="post-header">
-                    <i class="fa-solid fa-user-circle"></i>
-                    <div>
-                        <h4>{{ post.author }}</h4>
-                        <span>{{ post.date }}</span>
-                    </div>
-                </div>
-                <h3>{{ post.title }}</h3>
-                <p>{{ post.content }}</p>
-                <div class="post-actions">
-                    <button><i class="fa-regular fa-thumbs-up"></i> Like</button>
-                    <button><i class="fa-regular fa-comment"></i> Comment</button>
-                </div>
-            </div>
+        <div class="empty-feed">
+            <i class="fa-solid fa-newspaper"></i>
+            <h3>Aucune publication</h3>
+            <p>Les publications de la communauté sont disponibles dans la page Posts.</p>
+            <a routerLink="/posts" class="feed-link">Voir les publications</a>
         </div>
     </div>
 </div>
