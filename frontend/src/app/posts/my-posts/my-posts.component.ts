@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PostsService } from '../services/posts.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { Post } from '../models/post.model';
 
 @Component({
@@ -16,7 +17,7 @@ export class MyPostsComponent implements OnInit {
     isLoading: boolean = true;
     errorMessage: string = '';
 
-    constructor(private postsService: PostsService) { }
+    constructor(private postsService: PostsService, private authService: AuthService) { }
 
     ngOnInit() {
         this.loadUserPosts();
@@ -26,10 +27,15 @@ export class MyPostsComponent implements OnInit {
         this.isLoading = true;
         this.errorMessage = '';
 
-        // Since backend doesn't have user-specific endpoint, fetch all posts
-        this.postsService.getPosts().subscribe({
+        const userId = this.authService.getCurrentUserId();
+        if (!userId) {
+            this.isLoading = false;
+            this.errorMessage = 'Connectez-vous pour voir vos posts.';
+            return;
+        }
+
+        this.postsService.getPostsByUser(userId).subscribe({
             next: (response) => {
-                // Show all posts as user's posts
                 this.myPosts = response.map(p => ({
                     id: p.id,
                     content: p.content,

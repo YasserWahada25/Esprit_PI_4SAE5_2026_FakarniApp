@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { PostsService } from '../services/posts.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { PostReactionsComponent } from '../shared/post-reactions/post-reactions.component';
 import { PostCommentsComponent } from '../shared/post-comments/post-comments.component';
 
@@ -22,6 +23,13 @@ export class PostsListComponent implements OnInit {
     expandedComments = signal<Set<number>>(new Set());
 
     private platformId = inject(PLATFORM_ID);
+    private authService = inject(AuthService);
+
+    /** Seul l'auteur peut modifier ou supprimer son post. */
+    isMine(post: { userId?: string }): boolean {
+        const me = this.authService.getCurrentUserId();
+        return !!me && post.userId === me;
+    }
     private isBrowser: boolean;
 
     constructor(

@@ -28,6 +28,13 @@ export class PostsService {
     }
 
     /**
+     * Posts of one user (newest first)
+     */
+    getPostsByUser(userId: string): Observable<PostResponse[]> {
+        return this.http.get<PostResponse[]>(`${this.apiUrl}/user/${userId}`);
+    }
+
+    /**
      * Get post by ID
      */
     getPostById(id: number): Observable<PostResponse> {

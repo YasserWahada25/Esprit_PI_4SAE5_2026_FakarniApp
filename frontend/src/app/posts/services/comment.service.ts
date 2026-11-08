@@ -11,7 +11,7 @@ export class CommentService {
 
     constructor(private http: HttpClient) {}
 
-    addComment(postId: number, userId: number, content: string, parentCommentId?: number): Observable<Comment> {
+    addComment(postId: number, userId: string, content: string, parentCommentId?: number): Observable<Comment> {
         const request: CommentRequest = { userId, content, parentCommentId };
         return this.http.post<Comment>(
             `${this.apiUrl}/${postId}/comments`,
@@ -30,8 +30,8 @@ export class CommentService {
         );
     }
 
-    deleteComment(postId: number, commentId: number, userId: number): Observable<void> {
-        const params = new HttpParams().set('userId', userId.toString());
+    deleteComment(postId: number, commentId: number, userId: string): Observable<void> {
+        const params = new HttpParams().set('userId', userId);
         return this.http.delete<void>(
             `${this.apiUrl}/${postId}/comments/${commentId}`,
             { params }

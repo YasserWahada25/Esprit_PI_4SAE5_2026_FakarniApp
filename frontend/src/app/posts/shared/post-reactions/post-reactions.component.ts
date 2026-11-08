@@ -1,7 +1,8 @@
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactionService } from '../../services/reaction.service';
 import { ReactionCounts, ReactionType } from '../../models/reaction.model';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
     selector: 'app-post-reactions',
@@ -12,7 +13,9 @@ import { ReactionCounts, ReactionType } from '../../models/reaction.model';
 })
 export class PostReactionsComponent implements OnInit {
     @Input() postId!: number;
-    @Input() userId: number = 1; // TODO: Get from auth service
+    /** Utilisateur connecté (par défaut celui de la session). */
+    @Input() userId: string | null = null;
+    private authService = inject(AuthService);
     
     reactionCounts = signal<ReactionCounts | null>(null);
     isLoading = signal(false);
@@ -20,6 +23,7 @@ export class PostReactionsComponent implements OnInit {
     constructor(private reactionService: ReactionService) {}
 
     ngOnInit() {
+        this.userId ??= this.authService.getCurrentUserId();
         this.loadReactions();
     }
 
@@ -32,7 +36,7 @@ export class PostReactionsComponent implements OnInit {
     }
 
     toggleReaction(type: ReactionType) {
-        if (this.isLoading()) return;
+        if (this.isLoading() || !this.userId) return;
         
         this.isLoading.set(true);
         this.reactionService.toggleReaction(this.postId, this.userId, type)

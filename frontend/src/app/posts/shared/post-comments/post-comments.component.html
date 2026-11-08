@@ -35,7 +35,7 @@
         <div *ngFor="let comment of comments()" class="comment">
             <div class="comment-header">
                 <span class="user">
-                    <i class="fa-solid fa-user"></i> User {{ comment.userId }}
+                    <i class="fa-solid fa-user"></i> {{ authorName(comment) }}
                 </span>
                 <span class="date">{{ formatDate(comment.createdAt) }}</span>
             </div>
@@ -76,7 +76,7 @@
                 <div *ngFor="let reply of comment.replies" class="reply">
                     <div class="comment-header">
                         <span class="user">
-                            <i class="fa-solid fa-user"></i> User {{ reply.userId }}
+                            <i class="fa-solid fa-user"></i> {{ authorName(reply) }}
                         </span>
                         <span class="date">{{ formatDate(reply.createdAt) }}</span>
                     </div>

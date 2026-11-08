@@ -1,8 +1,9 @@
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommentService } from '../../services/comment.service';
 import { Comment, CommentPage } from '../../models/comment.model';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
     selector: 'app-post-comments',
@@ -13,7 +14,9 @@ import { Comment, CommentPage } from '../../models/comment.model';
 })
 export class PostCommentsComponent implements OnInit {
     @Input() postId!: number;
-    @Input() userId: number = 1; // TODO: Get from auth service
+    /** Utilisateur connecté (par défaut celui de la session). */
+    @Input() userId: string | null = null;
+    private authService = inject(AuthService);
 
     comments = signal<Comment[]>([]);
     newCommentContent = signal('');
@@ -31,6 +34,7 @@ export class PostCommentsComponent implements OnInit {
     constructor(private commentService: CommentService) {}
 
     ngOnInit() {
+        this.userId ??= this.authService.getCurrentUserId();
         this.loadComments();
     }
 
@@ -57,6 +61,10 @@ export class PostCommentsComponent implements OnInit {
     addComment() {
         const content = this.newCommentContent().trim();
         if (!content) return;
+        if (!this.userId) {
+            this.errorMessage.set('Connectez-vous pour commenter.');
+            return;
+        }
 
         this.commentService.addComment(this.postId, this.userId, content)
             .subscribe({
@@ -79,6 +87,10 @@ export class PostCommentsComponent implements OnInit {
     addReply(parentCommentId: number) {
         const content = this.replyContent().trim();
         if (!content) return;
+        if (!this.userId) {
+            this.errorMessage.set('Connectez-vous pour répondre.');
+            return;
+        }
 
         this.commentService.addComment(this.postId, this.userId, content, parentCommentId)
             .subscribe({
@@ -93,13 +105,19 @@ export class PostCommentsComponent implements OnInit {
             });
     }
 
+    /** Nom de l'auteur ("Prénom Nom"), ou un libellé neutre si User-Service n'a pas répondu. */
+    authorName(comment: Comment): string {
+        const name = [comment.user?.prenom, comment.user?.nom].filter(Boolean).join(' ');
+        return name || 'Community Member';
+    }
+
     cancelReply() {
         this.replyingTo.set(null);
         this.replyContent.set('');
     }
 
     deleteComment(commentId: number) {
-        if (!confirm('Are you sure you want to delete this comment?')) {
+        if (!this.userId || !confirm('Are you sure you want to delete this comment?')) {
             return;
         }
 

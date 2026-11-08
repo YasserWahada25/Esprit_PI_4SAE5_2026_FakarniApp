@@ -1,7 +1,17 @@
+export interface CommentAuthor {
+    id: string;
+    nom: string;
+    prenom: string;
+    email?: string;
+}
+
 export interface Comment {
     id: number;
     postId: number;
-    userId: number;
+    /** Id User-Service (chaîne Mongo) de l'auteur. */
+    userId: string;
+    /** Auteur résolu par Post-Service ; absent si User-Service est indisponible. */
+    user?: CommentAuthor | null;
     content: string;
     parentCommentId: number | null;
     createdAt: string;
@@ -10,7 +20,7 @@ export interface Comment {
 }
 
 export interface CommentRequest {
-    userId: number;
+    userId: string;
     content: string;
     parentCommentId?: number;
 }

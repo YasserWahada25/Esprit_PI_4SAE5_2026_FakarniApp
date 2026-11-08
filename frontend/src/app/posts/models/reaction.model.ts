@@ -10,6 +10,6 @@ export interface ReactionCounts {
 }
 
 export interface ReactionRequest {
-    userId: number;
+    userId: string;
     type: ReactionType;
 }

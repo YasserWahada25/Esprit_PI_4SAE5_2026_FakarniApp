@@ -72,7 +72,7 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="post-menu">
+                        <div class="post-menu" *ngIf="isMine(post)">
                             <button class="menu-btn" (click)="editPost(post.id)">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>

@@ -11,7 +11,7 @@ export class ReactionService {
 
     constructor(private http: HttpClient) {}
 
-    toggleReaction(postId: number, userId: number, type: ReactionType): Observable<ReactionCounts> {
+    toggleReaction(postId: number, userId: string, type: ReactionType): Observable<ReactionCounts> {
         const request: ReactionRequest = { userId, type };
         return this.http.post<ReactionCounts>(
             `${this.apiUrl}/${postId}/reactions/toggle`,
@@ -19,10 +19,10 @@ export class ReactionService {
         );
     }
 
-    getReactionCounts(postId: number, userId?: number): Observable<ReactionCounts> {
+    getReactionCounts(postId: number, userId?: string | null): Observable<ReactionCounts> {
         let params = new HttpParams();
-        if (userId !== undefined) {
-            params = params.set('userId', userId.toString());
+        if (userId) {
+            params = params.set('userId', userId);
         }
         
         return this.http.get<ReactionCounts>(
