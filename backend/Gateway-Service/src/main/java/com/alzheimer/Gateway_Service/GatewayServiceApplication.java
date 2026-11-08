@@ -34,12 +34,15 @@ public class GatewayServiceApplication {
 				? directActiviteUri.trim()
 				: "lb://activite-educative-service";
 		return builder.routes()
-				.route("Detection_Maladie-Service", r ->
+				// Eureka ids are the services' spring.application.name: Detection-Maladie-Service and
+				// Dossier-Medical-Service (hyphens). The former underscores matched no instance (and
+				// are not valid in a URI host), so every /api/detection and /api/dossiers call failed.
+				.route("Detection-Maladie-Service", r ->
 						r.path("/api/detection/**")
-								.uri("lb://Detection_Maladie-Service"))
-				.route("Dossier_Medical-Service", r ->
+								.uri("lb://DETECTION-MALADIE-SERVICE"))
+				.route("Dossier-Medical-Service", r ->
 						r.path("/api/dossiers/**")
-								.uri("lb://Dossier_Medical-Service"))
+								.uri("lb://DOSSIER-MEDICAL-SERVICE"))
 				.route("user-auth", r ->
 						r.path("/auth/**", "/internal/users/**")
 								.uri(userAuthUri))
