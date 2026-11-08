@@ -316,7 +316,7 @@ services:
       - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - SPRING_DATA_MONGODB_URI=mongodb://admin:admin@mongodb:27017/rayen?authSource=admin
+      - SPRING_MONGODB_URI=mongodb://admin:admin@mongodb:27017/rayen?authSource=admin
       - JWT_SECRET=${JWT_SECRET}
       - MAIL_USERNAME_USER=${MAIL_USERNAME_USER}
       - MAIL_PASSWORD_USER=${MAIL_PASSWORD_USER}
@@ -423,7 +423,7 @@ services:
       - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC -XX:TieredStopAtLevel=1
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - SPRING_DATA_MONGODB_URI=mongodb://admin:admin@mongodb:27017/chat_db?authSource=admin
+      - SPRING_MONGODB_URI=mongodb://admin:admin@mongodb:27017/chat_db?authSource=admin
     depends_on:
       - mongodb
       - eureka-server
