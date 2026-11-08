@@ -14,8 +14,17 @@ public class AppConfig {
     /**
      * RestClient dédié à l'appel du service Flask Python (IA - prédiction IRM).
      * L'URL est configurée via la propriété ia.flask.url.
-     * La communication avec Dossier_Medical-service se fait via Feign (voir DossierMedicalFeignClient).
+     * Dossier_Medical-service est appelé via dossierRestClient (voir DossierMedicalClient).
      */
+    /** Dossier_Medical-service, joint par son nom de service Docker (surchargeable). */
+    @Value("${dossier-medical.url:http://dossier-medical-service:8059}")
+    private String dossierMedicalUrl;
+
+    @Bean("dossierRestClient")
+    public RestClient dossierRestClient() {
+        return RestClient.builder().baseUrl(dossierMedicalUrl).build();
+    }
+
     @Bean("flaskRestClient")
     public RestClient flaskRestClient() {
         return RestClient.builder().baseUrl(flaskUrl).build();

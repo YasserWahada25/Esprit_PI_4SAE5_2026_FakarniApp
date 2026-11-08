@@ -27,17 +27,17 @@ public class DetectionService {
 
     private final AnalyseIRMRepository repository;
     private final RestClient flaskRestClient;
-    private final DossierMedicalFeignClient dossierMedicalFeignClient;
+    private final DossierMedicalClient dossierMedicalClient;
 
     @Value("${app.upload-dir:uploads/mri}")
     private String uploadDir;
 
     public DetectionService(AnalyseIRMRepository repository,
                             @Qualifier("flaskRestClient") RestClient flaskRestClient,
-                            DossierMedicalFeignClient dossierMedicalFeignClient) {
+                            DossierMedicalClient dossierMedicalClient) {
         this.repository = repository;
         this.flaskRestClient = flaskRestClient;
-        this.dossierMedicalFeignClient = dossierMedicalFeignClient;
+        this.dossierMedicalClient = dossierMedicalClient;
     }
 
     public AnalyseIRMResponse analyserIRM(MultipartFile image, String patientId) throws Exception {
@@ -93,7 +93,7 @@ public class DetectionService {
         AnalyseIRM saved = repository.save(analyse);
         log.info("💾 Sauvegardé en base → ID = {}", saved.getId());
 
-        // 4. Notification au Dossier_Medical-service via Feign (Eureka Load Balancer)
+        // 4. Ajout de l'analyse au dossier du patient (Dossier_Medical-service)
         AjouterAnalyseRequest dossierRequest = AjouterAnalyseRequest.builder()
                 .analyseIrmId(saved.getId())
                 .patientId(saved.getPatientId())
@@ -111,8 +111,8 @@ public class DetectionService {
                 .build();
 
         try {
-            dossierMedicalFeignClient.ajouterAnalyse(dossierRequest);
-            log.info("✅ Dossier médical mis à jour via Feign !");
+            dossierMedicalClient.ajouterAnalyse(dossierRequest);
+            log.info("✅ Dossier médical mis à jour");
         } catch (Exception e) {
             log.error("❌ Erreur dossier médical (non bloquant): {}", e.getMessage());
         }
