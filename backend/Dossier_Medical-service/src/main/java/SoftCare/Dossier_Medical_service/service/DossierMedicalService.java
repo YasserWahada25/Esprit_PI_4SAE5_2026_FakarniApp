@@ -9,8 +9,10 @@ import SoftCare.Dossier_Medical_service.repository.AnalyseIRMDossierRepository;
 import SoftCare.Dossier_Medical_service.repository.DossierMedicalRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -156,9 +158,11 @@ public class DossierMedicalService {
     // ══════════════════════════════════════════════════
     @Transactional(readOnly = true)
     public DossierMedicalResponse getDossierByPatientId(String patientId) {
+        // 404 (not 500): a patient without any MRI analysis simply has no dossier yet.
         DossierMedical dossier = dossierRepository
                 .findByPatientId(patientId)
-                .orElseThrow(() -> new RuntimeException("Aucun dossier pour patient ID: " + patientId));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Aucun dossier pour patient ID: " + patientId));
         return mapToResponse(dossier);
     }
 
