@@ -81,8 +81,11 @@ public class GatewayServiceApplication {
 				.route("Chat-Service-MockUsers", r ->
 						r.path("/api/mock-users/**")
 								.uri(chatUri))
+				// Chat_Service exposes its STOMP endpoint at /ws (SockJS, raw WebSocket at /ws/websocket),
+				// while /ws/** here belongs to session-service: expose the chat under /chat-ws/** instead.
 				.route("Chat-Service-WebSocket", r ->
 						r.path("/chat-ws/**")
+								.filters(f -> f.rewritePath("/chat-ws/(?<segment>.*)", "/ws/${segment}"))
 								.uri(chatWsUri))
 				.route("meeting-insights-service", r ->
 						r.path("/api/meet/**")
