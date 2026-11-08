@@ -247,3 +247,61 @@
         justify-content: space-around;
     }
 }
+/* Dossier réel (Dossier-Medical-Service) */
+.avatar.initials {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #7c3aed;
+    background: #ede9fe;
+}
+
+.vital-item .risk-value,
+.vital-item .date-value {
+    font-size: 1rem;
+}
+
+.state-card {
+    text-align: center;
+    color: #7f8c8d;
+}
+
+.state-card i {
+    font-size: 1.6rem;
+    color: #b8a5d6;
+    margin-bottom: 8px;
+}
+
+.state-card h3 {
+    margin: 8px 0 4px;
+    color: #2c3e50;
+}
+
+.state-card.error,
+.state-card.error i {
+    color: #e74c3c;
+}
+
+.state-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.state-link {
+    padding: 8px 18px;
+    border-radius: 20px;
+    background: #7c3aed;
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.stage-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+}

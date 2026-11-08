@@ -61,7 +61,8 @@ export class DetectionService {
 
   // ── Patients ──────────────────────────────────────────
   getAllPatients(): Observable<PatientUser[]> {
-    return this.http.get<PatientUser[]>(`${this.USER_URL}/patients`);
+    // `/api/users/patients` does not exist (user-service reads "patients" as a user id → 500).
+    return this.http.get<PatientUser[]>(`${this.USER_URL}/by-role/PATIENT_PROFILE`);
   }
 
   // ── MRI Analysis ─────────────────────────────────────

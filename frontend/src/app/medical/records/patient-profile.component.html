@@ -1,69 +1,98 @@
 <div class="profile-container">
-    <!-- Patient Header Card -->
+    <!-- En-tête : utilisateur connecté + synthèse du dossier -->
     <div class="patient-header">
-        <div class="avatar">
-            <i class="fa-solid fa-user"></i>
-        </div>
+        <div class="avatar initials">{{ initials || '?' }}</div>
         <div class="info">
-            <h1>{{ patient.name }}</h1>
-            <p><span class="label">Age:</span> {{ patient.age }} | <span class="label">Blood Type:</span> {{
-                patient.bloodType }}</p>
-            <span class="condition-badge">{{ patient.condition }}</span>
+            <h1>{{ fullName }}</h1>
+            <p *ngIf="user">
+                <i class="fa-solid fa-envelope"></i> {{ user.email }}
+                <span *ngIf="user.numTel"> | <i class="fa-solid fa-phone"></i> {{ user.numTel }}</span>
+            </p>
+            <span class="condition-badge" *ngIf="dossier"
+                  [style.background]="stage(dossier.dernierePrediction).color + '22'"
+                  [style.color]="stage(dossier.dernierePrediction).color">
+                Dernier stade : {{ stage(dossier.dernierePrediction).label }}
+            </span>
         </div>
-        <div class="vitals-grid">
+        <div class="vitals-grid" *ngIf="dossier">
             <div class="vital-item">
-                <i class="fa-solid fa-heart-pulse"></i>
-                <span class="value">{{ vitals.bp }}</span>
-                <span class="unit">mmHg</span>
+                <i class="fa-solid fa-brain"></i>
+                <span class="value">{{ dossier.nombreAnalyses }}</span>
+                <span class="unit">analyse(s) IRM</span>
             </div>
             <div class="vital-item">
-                <i class="fa-solid fa-heart"></i>
-                <span class="value">{{ vitals.heartRate }}</span>
-                <span class="unit">bpm</span>
+                <i class="fa-solid fa-triangle-exclamation" [style.color]="dossier.derniereCouleurRisque"></i>
+                <span class="value risk-value">{{ dossier.dernierNiveauRisque }}</span>
+                <span class="unit">niveau de risque</span>
             </div>
             <div class="vital-item">
-                <i class="fa-solid fa-weight-scale"></i>
-                <span class="value">{{ vitals.weight }}</span>
-                <span class="unit">kg</span>
+                <i class="fa-solid fa-calendar-check"></i>
+                <span class="value date-value">{{ formatDate(dossier.dateDerniereMaj) }}</span>
+                <span class="unit">dernière mise à jour</span>
             </div>
         </div>
     </div>
 
-    <div class="content-grid">
-        <!-- Consultation History -->
+    <div class="card state-card" *ngIf="isLoading">
+        <i class="fa-solid fa-spinner fa-spin"></i> Chargement du dossier médical...
+    </div>
+
+    <div class="card state-card error" *ngIf="errorMessage">
+        <i class="fa-solid fa-circle-exclamation"></i> {{ errorMessage }}
+    </div>
+
+    <div class="card state-card" *ngIf="noDossier">
+        <i class="fa-solid fa-folder-open"></i>
+        <h3>Aucun dossier médical pour le moment</h3>
+        <p *ngIf="isPatient">Votre dossier sera créé automatiquement après votre première analyse IRM.</p>
+        <p *ngIf="!isPatient">Cette page présente le dossier du patient connecté. Les dossiers de vos patients sont dans le suivi.</p>
+        <div class="state-actions">
+            <a routerLink="/medical/detection" class="state-link"><i class="fa-solid fa-brain"></i> Analyse IRM</a>
+            <a *ngIf="!isPatient" routerLink="/medical/follow-up" class="state-link"><i class="fa-solid fa-users"></i> Suivi des patients</a>
+        </div>
+    </div>
+
+    <div class="content-grid" *ngIf="dossier">
+        <!-- Historique des analyses -->
         <div class="card history-card">
             <div class="card-header">
-                <h3><i class="fa-solid fa-clock-rotate-left"></i> Medical History</h3>
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> Historique des analyses IRM</h3>
             </div>
             <div class="timeline">
-                <div class="timeline-item" *ngFor="let item of history">
-                    <div class="timeline-date">{{ item.date }}</div>
+                <div class="timeline-item" *ngFor="let a of analyses">
+                    <div class="timeline-date">{{ formatDate(a.dateAnalyse) }}</div>
                     <div class="timeline-content">
-                        <h4>{{ item.type }} <span class="doctor">with {{ item.doctor }}</span></h4>
-                        <p class="diagnosis"><strong>Diagnosis:</strong> {{ item.diagnosis }}</p>
-                        <p class="treatment"><strong>Treatment:</strong> {{ item.treatment }}</p>
+                        <h4>
+                            <span class="stage-dot" [style.background]="stage(a.prediction).color"></span>
+                            Stade {{ stage(a.prediction).label }}
+                            <span class="doctor">· confiance {{ a.confidence | number:'1.0-1' }} %</span>
+                        </h4>
+                        <p class="diagnosis"><strong>Risque :</strong> {{ a.niveauRisque }} — {{ a.descriptionRisque }}</p>
+                        <p class="treatment" *ngIf="a.conseilMedecin"><strong>Conseil du médecin :</strong> {{ a.conseilMedecin }}</p>
+                        <p class="treatment" *ngIf="a.notesCliniques"><strong>Notes cliniques :</strong> {{ a.notesCliniques }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Evolution Charts -->
+        <!-- Évolution -->
         <div class="card chart-card">
             <div class="card-header">
-                <h3><i class="fa-solid fa-chart-line"></i> MMSE Evolution</h3>
-                <p>Mini-Mental State Examination Scores</p>
+                <h3><i class="fa-solid fa-chart-line"></i> Évolution cognitive</h3>
+                <p>Score indicatif /30 déduit du stade détecté par l'IA</p>
             </div>
             <div class="chart-area">
                 <div class="bar-chart">
-                    <div class="bar-group" *ngFor="let data of chartData">
-                        <div class="bar" [style.height]="getBarHeight(data.score)" [title]="'Score: ' + data.score">
+                    <div class="bar-group" *ngFor="let data of evolution">
+                        <div class="bar" [style.height]="getBarHeight(data.score)" [style.background]="data.color"
+                             [title]="'Score : ' + data.score">
                             <span class="bar-value">{{ data.score }}</span>
                         </div>
                         <span class="bar-label">{{ data.date }}</span>
                     </div>
                 </div>
                 <div class="chart-legend">
-                    Standard Range: 24-30 (Normal)
+                    Repère : 24-30 = normal · indicatif, ne remplace pas un test MMSE
                 </div>
             </div>
         </div>

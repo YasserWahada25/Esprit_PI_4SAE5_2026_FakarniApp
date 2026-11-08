@@ -1,7 +1,9 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AnalyseIRMResponse, DetectionService } from '../services/detection';
+import { AnalyseIRMResponse, DetectionService, PatientUser } from '../services/detection';
+import { AuthService } from '../../auth/services/auth.service';
+import { Role } from '../../auth/models/sign-up.model';
 
 @Component({
   selector: 'app-mri-analysis',
@@ -10,7 +12,7 @@ import { AnalyseIRMResponse, DetectionService } from '../services/detection';
   templateUrl: './mri-analysis.component.html',
   styleUrl: './mri-analysis.component.css'
 })
-export class MriAnalysisComponent implements OnDestroy {
+export class MriAnalysisComponent implements OnInit, OnDestroy {
 
   // ── Wizard ───────────────────────────────────────────
   currentStep = 1;
@@ -27,6 +29,10 @@ export class MriAnalysisComponent implements OnDestroy {
   patientId     = '';
   patientAge: number | null = null;
   patientGender = '';
+
+  /** Patients réels (User-Service) : on choisit le patient au lieu de saisir son id. */
+  patients: PatientUser[] = [];
+  patientsLoading = false;
 
   // ── Viewer / Image ──────────────────────────────────
   imageUrl    = '';
@@ -114,8 +120,33 @@ export class MriAnalysisComponent implements OnDestroy {
     { value:'gt2ans', label:'Plus de 2 ans'      }
   ];
 
-  constructor(private detectionService: DetectionService) {}
+  constructor(private detectionService: DetectionService, private authService: AuthService) {}
   ngOnDestroy() { this.clearProc(); }
+
+  ngOnInit(): void {
+    this.patientsLoading = true;
+    this.detectionService.getAllPatients().subscribe({
+      next: (patients) => {
+        this.patients = patients;
+        this.patientsLoading = false;
+        // Un patient connecté analyse sa propre IRM : il est présélectionné.
+        const me = this.authService.getCurrentUser();
+        if (me?.role === Role.PATIENT_PROFILE && patients.some(p => p.id === me.id)) {
+          this.patientId = me.id;
+          this.onPatientSelected(me.id);
+        }
+      },
+      error: () => {
+        this.patientsLoading = false;
+        this.errorMessage = 'Impossible de charger la liste des patients.';
+      }
+    });
+  }
+
+  onPatientSelected(id: string): void {
+    const p = this.patients.find(x => x.id === id);
+    this.patientName = p ? `${p.prenom} ${p.nom}`.trim() : '';
+  }
 
   // ══════════════════════════════════════════════════════
   //  WIZARD NAVIGATION
@@ -347,7 +378,7 @@ runAIAnalysis(): void {
   }
 
   if (!this.patientId || this.patientId.trim() === '') {
-    this.errorMessage = 'Veuillez saisir un ID patient valide.';
+    this.errorMessage = 'Veuillez sélectionner un patient.';
     return;
   }
 
