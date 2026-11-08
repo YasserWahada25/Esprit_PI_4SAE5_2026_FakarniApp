@@ -16,6 +16,9 @@ WORKDIR /app
 
 # Sécurité : utilisateur non-root
 RUN addgroup -S softcare && adduser -S softcare -G softcare
+# MRI images are written to uploads/mri (relative to /app, owned by root): give the
+# non-root user its own directory (also the mount point of the uploads volume).
+RUN mkdir -p /app/uploads/mri && chown -R softcare:softcare /app/uploads
 USER softcare
 
 COPY --from=build /app/target/*.jar app.jar

@@ -464,6 +464,9 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
       - IA_FLASK_URL=http://flask-ia-service:5000
+    volumes:
+      # MRI images shown by the medical follow-up: keep them across container re-creation
+      - fakarni_detection_uploads:/app/uploads
     depends_on:
       db-detection:
         condition: service_healthy
@@ -708,6 +711,7 @@ volumes:
   fakarni_db_post_data:
   fakarni_db_session_data:
   fakarni_db_suivi_data:
+  fakarni_detection_uploads:
   fakarni_sonar_data:
   fakarni_sonar_logs:
   fakarni_sonar_extensions:
