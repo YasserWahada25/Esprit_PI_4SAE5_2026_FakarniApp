@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { timeout, catchError } from 'rxjs/operators';
@@ -53,7 +53,9 @@ export class FollowUpComponent implements OnInit {
   viewerBrightness  = 100;
   viewerSaturation  = 100;
 
-  constructor(private detectionService: DetectionService) {}
+  // The app is zoneless (provideZonelessChangeDetection): views are not refreshed
+  // after an HTTP response, timer or image load unless they are marked for check.
+  constructor(private detectionService: DetectionService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadPatients();
@@ -73,11 +75,12 @@ export class FollowUpComponent implements OnInit {
       this.patients          = patients;
       this.filteredPatients  = patients;
       this.isPatientsLoading = false;
-      console.log('4. isPatientsLoading:', this.isPatientsLoading);
+      this.cdr.markForCheck();
     },
     error: (err) => {
       console.error('ERREUR:', err);
       this.isPatientsLoading = false;
+      this.cdr.markForCheck();
     }
   });
 }
@@ -167,6 +170,7 @@ export class FollowUpComponent implements OnInit {
       )
       .subscribe((dossier) => {
         this.isLoading = false;
+        this.cdr.markForCheck();
 
         if (!dossier) return;
 
@@ -289,7 +293,7 @@ export class FollowUpComponent implements OnInit {
       conseilMedecin:    this.editForm.conseilMedecin,
       notesCliniques:    this.editForm.notesCliniques
     }).subscribe({
-      next: (updated) => { this.dossier = updated; this.closeEditModal(); },
+      next: (updated) => { this.dossier = updated; this.closeEditModal(); this.cdr.markForCheck(); },
       error: (err)    => { alert('Erreur : ' + err.message); }
     });
   }
@@ -297,7 +301,7 @@ export class FollowUpComponent implements OnInit {
   deleteAnalyse(id: number, nomFichier: string): void {
     if (!confirm(`Supprimer l'analyse "${nomFichier}" ? Cette action est irréversible.`)) return;
     this.detectionService.deleteAnalyse(id).subscribe({
-      next: (updated) => { this.dossier = updated; },
+      next: (updated) => { this.dossier = updated; this.cdr.markForCheck(); },
       error: (err)    => { alert('Erreur : ' + err.message); }
     });
   }

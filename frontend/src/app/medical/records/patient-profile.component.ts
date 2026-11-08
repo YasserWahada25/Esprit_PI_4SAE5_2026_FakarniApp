@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../auth/services/auth.service';
@@ -33,7 +33,12 @@ export class PatientProfileComponent implements OnInit {
         Moderate_Demented:  { label: 'Modéré',     color: '#fb7185', score: 9 },
     };
 
-    constructor(private authService: AuthService, private detectionService: DetectionService) {}
+    // Zoneless app: refresh the view when the dossier arrives.
+    constructor(
+        private authService: AuthService,
+        private detectionService: DetectionService,
+        private cdr: ChangeDetectorRef
+    ) {}
 
     ngOnInit(): void {
         this.user = this.authService.getCurrentUser();
@@ -81,6 +86,7 @@ export class PatientProfileComponent implements OnInit {
             next: (dossier) => {
                 this.dossier = dossier;
                 this.isLoading = false;
+                this.cdr.markForCheck();
             },
             error: (err) => {
                 this.isLoading = false;
@@ -89,6 +95,7 @@ export class PatientProfileComponent implements OnInit {
                 } else {
                     this.errorMessage = 'Impossible de charger le dossier médical. Réessayez plus tard.';
                 }
+                this.cdr.markForCheck();
             }
         });
     }

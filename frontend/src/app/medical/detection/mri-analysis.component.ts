@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AnalyseIRMResponse, DetectionService, PatientUser } from '../services/detection';
@@ -120,7 +120,13 @@ export class MriAnalysisComponent implements OnInit, OnDestroy {
     { value:'gt2ans', label:'Plus de 2 ans'      }
   ];
 
-  constructor(private detectionService: DetectionService, private authService: AuthService) {}
+  // The app is zoneless (provideZonelessChangeDetection): views are not refreshed
+  // after an HTTP response, timer or image load unless they are marked for check.
+  constructor(
+    private detectionService: DetectionService,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
   ngOnDestroy() { this.clearProc(); }
 
   ngOnInit(): void {
@@ -135,10 +141,12 @@ export class MriAnalysisComponent implements OnInit, OnDestroy {
           this.patientId = me.id;
           this.onPatientSelected(me.id);
         }
+        this.cdr.markForCheck();
       },
       error: () => {
         this.patientsLoading = false;
         this.errorMessage = 'Impossible de charger la liste des patients.';
+        this.cdr.markForCheck();
       }
     });
   }
@@ -233,6 +241,7 @@ export class MriAnalysisComponent implements OnInit, OnDestroy {
     reader.onload = (ev) => {
       this.imageUrl = ev.target?.result as string;
       this.autoDetectMRI(this.imageUrl);
+      this.cdr.markForCheck();
     };
     reader.readAsDataURL(this.selectedFile);
   }
@@ -331,6 +340,7 @@ export class MriAnalysisComponent implements OnInit, OnDestroy {
         this.imageConfirmed     = false;
         this.showRejectionModal = true;
       }
+      this.cdr.markForCheck();
     };
     img.src = dataUrl;
   }
@@ -356,7 +366,7 @@ export class MriAnalysisComponent implements OnInit, OnDestroy {
     if (!input.files?.[0]) return;
     this.compareFile = input.files[0];
     const reader = new FileReader();
-    reader.onload = (ev) => { this.compareUrl = ev.target?.result as string; };
+    reader.onload = (ev) => { this.compareUrl = ev.target?.result as string; this.cdr.markForCheck(); };
     reader.readAsDataURL(this.compareFile);
   }
 
@@ -398,18 +408,24 @@ runAIAnalysis(): void {
         this.isAnalyzing      = false;
         this.analysisComplete = true;
         this.computeGlobalRisk();
+        this.cdr.markForCheck();
       }, 500);
+      this.cdr.markForCheck();
     },
     error: () => {
       this.clearProc();
       this.isAnalyzing  = false;
       this.errorMessage = 'Analyse échouée. Vérifiez que le service backend est actif.';
+      this.cdr.markForCheck();
     }
   });
 }
 
   private startProcAnim(): void {
-    this.procInterval = setInterval(() => { if (this.procStep < 4) this.procStep++; }, 850);
+    this.procInterval = setInterval(() => {
+      if (this.procStep < 4) this.procStep++;
+      this.cdr.markForCheck();
+    }, 850);
   }
   private clearProc(): void {
     if (this.procInterval) { clearInterval(this.procInterval); this.procInterval = null; }
