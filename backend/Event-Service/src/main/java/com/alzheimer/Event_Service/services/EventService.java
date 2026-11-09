@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class EventService {
     private static final String UPLOAD_DIR = "uploads/events/";
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
-    private static final String PUBLIC_UPLOAD_BASE_URL = "http://localhost:8087/uploads/events/";
+    private static final String PUBLIC_UPLOAD_BASE_URL = "/uploads/events/";
 
     private final EventRepository eventRepository;
     private final EventParticipationRepository participationRepository;
