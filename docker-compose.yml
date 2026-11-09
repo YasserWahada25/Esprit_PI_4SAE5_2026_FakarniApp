@@ -24,6 +24,7 @@ services:
     image: mysql:8.0
     container_name: fakarni_db_tracking
     command: *mysql-command
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: db_tracking
       MYSQL_ROOT_PASSWORD: root
@@ -44,6 +45,7 @@ services:
     image: mysql:8.0
     container_name: fakarni_db_geofencing
     command: *mysql-command
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: db_geofencing
       MYSQL_ROOT_PASSWORD: root
@@ -64,6 +66,7 @@ services:
     image: mysql:8.0
     container_name: fakarni_db_activite
     command: *mysql-command
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: activite_educative_db
       MYSQL_ROOT_PASSWORD: root
@@ -84,6 +87,7 @@ services:
     image: mysql:8.0
     container_name: fakarni_db_detection
     command: *mysql-command
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: detection_maladie_db
       MYSQL_ROOT_PASSWORD: root
@@ -104,6 +108,7 @@ services:
     image: mysql:8.0
     container_name: fakarni_db_dossier
     command: *mysql-command
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: dossier_medical_db
       MYSQL_ROOT_PASSWORD: root
@@ -124,6 +129,7 @@ services:
     image: mysql:8.0
     container_name: fakarni_db_event
     command: *mysql-command
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: EventFakerni
       MYSQL_ROOT_PASSWORD: root
@@ -144,6 +150,7 @@ services:
     image: mysql:8.0
     container_name: fakarni_db_group
     command: *mysql-command
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: group_service_db
       MYSQL_ROOT_PASSWORD: root
@@ -164,6 +171,7 @@ services:
     image: mysql:8.0
     container_name: fakarni_db_post
     command: *mysql-command
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: post_service_db
       MYSQL_ROOT_PASSWORD: root
@@ -185,6 +193,7 @@ services:
     image: mysql:8.0
     container_name: fakarni_db_suivi
     command: *mysql-command
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: suivi_engagement_db
       MYSQL_ROOT_PASSWORD: root
@@ -205,6 +214,7 @@ services:
     image: mysql:8.0
     container_name: fakarni_db_session
     command: *mysql-command
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: alzheimer_session_db
       MYSQL_ROOT_PASSWORD: root
