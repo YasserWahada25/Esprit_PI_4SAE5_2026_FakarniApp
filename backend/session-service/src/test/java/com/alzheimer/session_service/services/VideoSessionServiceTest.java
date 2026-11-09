@@ -311,6 +311,26 @@ class VideoSessionServiceTest {
     }
 
     @Test
+    void joinVideoSession_bookingPatientJoinsRoomOpenedByDoctor() {
+        // The doctor (organizer) opened the room; the patient who booked it is
+        // not in the participants list but must still get in.
+        existingVideoSession.setHostUserId("doctor");
+        existingVideoSession.setActiveParticipantIds(new HashSet<>(Set.of("doctor")));
+        scheduledOnlineSession.getParticipants().removeIf(p -> p.getUserId().equals("alice"));
+
+        JoinVideoSessionRequest req = JoinVideoSessionRequest.builder()
+                .roomId("test-room-uuid")
+                .userId("alice")
+                .build();
+
+        when(videoSessionRepository.findByRoomId("test-room-uuid")).thenReturn(Optional.of(existingVideoSession));
+        when(virtualSessionRepository.findById(1L)).thenReturn(Optional.of(scheduledOnlineSession));
+        when(videoSessionRepository.save(any(VideoSession.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        assertEquals(2, videoSessionService.joinVideoSession(req).getCurrentParticipants());
+    }
+
+    @Test
     void joinVideoSession_userNotConfirmed_throwsUnauthorized() {
         // bob a JoinStatus.INVITED (non confirmé)
         scheduledOnlineSession.getParticipants().stream()

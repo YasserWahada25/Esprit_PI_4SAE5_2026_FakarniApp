@@ -79,8 +79,12 @@ public class VirtualSessionService {
         session.setStartTime(req.getStartTime());
         session.setEndTime(req.getEndTime());
         session.setMeetingUrl(normalizedMeetingUrl);
-        session.setStatus(req.getStatus());
-        session.setVisibility(req.getVisibility());
+        // Only the admin decides the status (accepting a request) and opens a
+        // session to everyone; the patient's edits keep both.
+        if (isAdmin(requesterRole)) {
+            session.setStatus(req.getStatus());
+            session.setVisibility(req.getVisibility());
+        }
         session.setSessionType(sessionType);
         session.setMeetingMode(meetingMode);
         session.setLocationAddress(locationAddress);
@@ -275,7 +279,12 @@ public class VirtualSessionService {
         }
 
         SessionType sessionType = req.getSessionType() != null ? req.getSessionType() : SessionType.PRIVATE;
-        SessionVisibility visibility = resolveVisibility(req.getVisibility(), sessionType);
+        // A patient's request (and the session it becomes once accepted) is seen
+        // only by that patient, the participants added to it and the admin, even
+        // for a group session. Only the admin creates sessions open to everyone.
+        SessionVisibility visibility = isAdmin(requesterRole)
+                ? resolveVisibility(req.getVisibility(), sessionType)
+                : SessionVisibility.PRIVATE;
         MeetingMode meetingMode = resolveMeetingMode(req.getMeetingMode(), req.getMeetingUrl());
         String meetingUrl = normalizeMeetingUrl(req.getMeetingUrl());
         String locationAddress = normalizeLocationAddress(req.getLocationAddress());
@@ -315,8 +324,10 @@ public class VirtualSessionService {
     }
 
     public VirtualSession respondToReservation(Long sessionId, boolean accept, String requesterUserId, String requesterRole) {
+        if (!isAdmin(requesterRole)) {
+            throw new VideoSessionService.UnauthorizedException("Seul l'administrateur peut valider une reservation.");
+        }
         VirtualSession session = getById(sessionId);
-        ensureCanRead(session, requesterUserId, requesterRole);
 
         if (accept) {
             session.setStatus(SessionStatus.SCHEDULED);

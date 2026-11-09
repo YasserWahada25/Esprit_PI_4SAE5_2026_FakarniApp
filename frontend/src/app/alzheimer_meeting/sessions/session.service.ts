@@ -74,6 +74,14 @@ export class SessionService {
         );
     }
 
+    /** Requests made by the signed-in user (the "Reservations" page). */
+    getMyRequests(): Observable<PatientSession[]> {
+        const userId = this.authService.getCurrentUser()?.id?.trim();
+        return this.getSessions().pipe(
+            map(sessions => sessions.filter(s => !!userId && s.createdBy === userId))
+        );
+    }
+
     createSession(session: PatientSession): Observable<PatientSession> {
         const request = this.mapToCreateRequest(session);
         return this.http.post<VirtualSessionResponse>(`${this.apiUrl}/sessions`, request).pipe(

@@ -297,6 +297,11 @@ public class VideoSessionService {
         }
 
         VirtualSession virtualSession = getVirtualSessionOrThrow(videoSession.getVirtualSessionId());
+        // The patient who booked the session joins even when someone else
+        // (e.g. the doctor added as organizer) opened the room.
+        if (userId.equals(virtualSession.getCreatedBy())) {
+            return;
+        }
 
         if (videoSession.getSessionVisibility() == SessionVisibility.PRIVATE) {
             boolean isAuthorized = virtualSession.getParticipants().stream()

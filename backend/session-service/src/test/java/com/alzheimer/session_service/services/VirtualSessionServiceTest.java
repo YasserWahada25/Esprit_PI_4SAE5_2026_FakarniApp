@@ -26,8 +26,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -172,6 +174,90 @@ class VirtualSessionServiceTest {
         VirtualSession updated = service.update(30L, request, "admin", "ADMIN");
 
         assertEquals("https://meet.example.com/existing-room", updated.getMeetingUrl());
+    }
+
+    @Test
+    void createReservation_byPatient_isPrivateDraftEvenForGroup() {
+        CreateSessionRequest request = CreateSessionRequest.builder()
+                .title("Atelier memoire")
+                .description("Demande de seance de groupe")
+                .startTime(Instant.parse("2026-03-12T08:00:00Z"))
+                .endTime(Instant.parse("2026-03-12T09:00:00Z"))
+                .createdBy("patient-1")
+                .status(SessionStatus.SCHEDULED)
+                .visibility(SessionVisibility.PUBLIC)
+                .sessionType(SessionType.GROUP)
+                .meetingMode(MeetingMode.ONLINE)
+                .build();
+        when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        VirtualSession created = service.createReservation(request, "PATIENT_PROFILE");
+
+        assertEquals(SessionVisibility.PRIVATE, created.getVisibility());
+        assertEquals(SessionStatus.DRAFT, created.getStatus());
+        assertEquals(SessionType.GROUP, created.getSessionType());
+    }
+
+    @Test
+    void list_patientSeesOwnRequestsAndPublicSessionsOnly() {
+        VirtualSession mine = buildSession(1L);
+        mine.setCreatedBy("patient-1");
+        mine.setVisibility(SessionVisibility.PRIVATE);
+        VirtualSession othersRequest = buildSession(2L);
+        othersRequest.setCreatedBy("patient-2");
+        othersRequest.setVisibility(SessionVisibility.PRIVATE);
+        VirtualSession invited = buildSession(3L);
+        invited.setCreatedBy("patient-2");
+        invited.setVisibility(SessionVisibility.PRIVATE);
+        invited.getParticipants().add(SessionParticipant.builder()
+                .userId("doctor-1").role(ParticipantRole.ORGANIZER).joinStatus(JoinStatus.CONFIRMED).build());
+        VirtualSession adminPublic = buildSession(4L);
+        when(repository.findAll()).thenReturn(List.of(mine, othersRequest, invited, adminPublic));
+
+        assertEquals(List.of(1L, 4L),
+                service.list(null, null, null, "patient-1", "PATIENT_PROFILE").stream().map(VirtualSession::getId).toList());
+        assertEquals(List.of(3L, 4L),
+                service.list(null, null, null, "doctor-1", "DOCTOR_PROFILE").stream().map(VirtualSession::getId).toList());
+        assertEquals(4, service.list(null, null, null, "admin", "ADMIN").size());
+    }
+
+    @Test
+    void update_byPatient_keepsStatusAndVisibility() {
+        VirtualSession existing = buildSession(31L);
+        existing.setCreatedBy("patient-1");
+        existing.setStatus(SessionStatus.DRAFT);
+        existing.setVisibility(SessionVisibility.PRIVATE);
+        existing.setMeetingMode(MeetingMode.ONLINE);
+        UpdateSessionRequest request = UpdateSessionRequest.builder()
+                .title("Nouveau titre")
+                .description("description")
+                .startTime(Instant.parse("2026-02-21T11:00:00Z"))
+                .endTime(Instant.parse("2026-02-21T12:00:00Z"))
+                .status(SessionStatus.SCHEDULED)
+                .visibility(SessionVisibility.PUBLIC)
+                .build();
+        when(repository.findById(31L)).thenReturn(Optional.of(existing));
+        when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        VirtualSession updated = service.update(31L, request, "patient-1", "PATIENT_PROFILE");
+
+        assertEquals("Nouveau titre", updated.getTitle());
+        assertEquals(SessionStatus.DRAFT, updated.getStatus());
+        assertEquals(SessionVisibility.PRIVATE, updated.getVisibility());
+    }
+
+    @Test
+    void respondToReservation_onlyAdminCanAccept() {
+        assertThrows(VideoSessionService.UnauthorizedException.class,
+                () -> service.respondToReservation(5L, true, "patient-1", "PATIENT_PROFILE"));
+        verify(repository, never()).save(any(VirtualSession.class));
+
+        VirtualSession request = buildSession(5L);
+        request.setStatus(SessionStatus.DRAFT);
+        when(repository.findById(5L)).thenReturn(Optional.of(request));
+        when(repository.save(any(VirtualSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertEquals(SessionStatus.SCHEDULED, service.respondToReservation(5L, true, "admin", "ADMIN").getStatus());
     }
 
     private VirtualSession buildSession(Long id) {

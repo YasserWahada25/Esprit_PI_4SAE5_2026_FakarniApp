@@ -473,8 +473,10 @@ export class ReservationFormComponent implements OnInit, AfterViewInit, OnDestro
     }
 
     get visibilityLabel(): string {
+        // A request (group or not) stays private: the patient, the invited
+        // participants and the admin see it (enforced by session-service).
         return this.reservationForm.get('sessionType')?.value === 'GROUP'
-            ? 'Publique (seance de groupe)'
+            ? 'Privee (seance de groupe : vous, les participants invites et l administrateur)'
             : 'Privee (seance individuelle)';
     }
 
@@ -502,7 +504,7 @@ export class ReservationFormComponent implements OnInit, AfterViewInit, OnDestro
             description: formValue.description.trim(),
             startTime: startTime.toISOString(),
             endTime: endTime.toISOString(),
-            visibility: sessionType === 'GROUP' ? 'PUBLIC' : 'PRIVATE',
+            visibility: 'PRIVATE',
             sessionType,
             status: 'DRAFT',
             type: mode,

@@ -12,7 +12,6 @@ import com.alzheimer.session_service.security.AuthenticatedUser;
 import com.alzheimer.session_service.services.VirtualSessionService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
@@ -138,13 +136,8 @@ public class VirtualSessionController {
             @RequestParam boolean accept,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        try {
-            AuthenticatedUser authUser = AuthenticatedUser.fromJwt(jwt);
-            return service.respondToReservation(id, accept, authUser.userId(), authUser.role());
-        } catch (VirtualSessionService.BadRequestException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur serveur interne", e);
-        }
+        // ApiExceptionHandler answers 400 / 403 (not admin) / 404 with their message.
+        AuthenticatedUser authUser = AuthenticatedUser.fromJwt(jwt);
+        return service.respondToReservation(id, accept, authUser.userId(), authUser.role());
     }
 }

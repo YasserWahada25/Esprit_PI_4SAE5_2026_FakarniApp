@@ -648,7 +648,7 @@ export class CalendarViewComponent implements OnInit {
         this.loading = true;
         this.errorMessage = null;
 
-        this.sessionService.getSessions().subscribe({
+        this.sessionService.getMyRequests().subscribe({
             next: sessions => {
                 this.sessions = sessions.slice().sort((a, b) => {
                     return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
